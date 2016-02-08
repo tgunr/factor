@@ -599,7 +599,7 @@ update_boot_images() {
 
 get_boot_image() {
     $ECHO "Downloading boot image $BOOT_IMAGE."
-	if [[ $($DOWNLOADER http://downloads.factorcode.org/images/latest/$BOOT_IMAGE) ]] ; then
+	if [[ ! $($DOWNLOADER http://downloads.factorcode.org/images/latest/$BOOT_IMAGE) ]] ; then
 		$ECHO "Download complete."
 	else
 		$ECHO "Could not connect to server to download image."
