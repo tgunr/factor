@@ -95,10 +95,30 @@ void factor_vm::init_parameters_from_args(vm_parameters* p, int argc,
 void factor_vm::prepare_boot_image() {
   std::cout << "*** Stage 2 early init... " << std::flush;
 
-  compile_all_words();
+  // Compile all words.
+  data_root<array> words(instances(WORD_TYPE), this);
+
+  cell n_words = array_capacity(words.untagged());
+  for (cell i = 0; i < n_words; i++) {
+    data_root<word> word(array_nth(words.untagged(), i), this);
+
+    FACTOR_ASSERT(!word->entry_point);
+    jit_compile_word(word.value(), word->def, false);
+  }
   update_code_heap_words(true);
-  initialize_all_quotations();
-  special_objects[OBJ_STAGE2] = true_object;
+
+  // Initialize all quotations
+  data_root<array> quotations(instances(QUOTATION_TYPE), this);
+
+  cell n_quots = array_capacity(quotations.untagged());
+  for (cell i = 0; i < n_quots; i++) {
+    data_root<quotation> quot(array_nth(quotations.untagged(), i), this);
+
+    if (!quot->entry_point)
+      quot->entry_point = lazy_jit_compile_entry_point();
+  }
+
+  special_objects[OBJ_STAGE2] = special_objects[OBJ_CANONICAL_TRUE];
 
   std::cout << "done" << std::endl;
 }
@@ -142,22 +162,27 @@ void factor_vm::init_factor(vm_parameters* p) {
   load_image(p);
   init_c_io();
   init_inline_caching((int)p->max_pic_size);
-  special_objects[OBJ_CPU] =
-      allot_alien(false_object, (cell)FACTOR_CPU_STRING);
-  special_objects[OBJ_OS] = allot_alien(false_object, (cell)FACTOR_OS_STRING);
   special_objects[OBJ_CELL_SIZE] = tag_fixnum(sizeof(cell));
-  special_objects[OBJ_EXECUTABLE] =
-      allot_alien(false_object, (cell)p->executable_path);
   special_objects[OBJ_ARGS] = false_object;
   special_objects[OBJ_EMBEDDED] = false_object;
-  special_objects[OBJ_VM_COMPILER] =
-      allot_alien(false_object, (cell)FACTOR_COMPILER_VERSION);
-  special_objects[OBJ_VM_COMPILE_TIME] =
-      allot_alien(false_object, (cell)FACTOR_COMPILE_TIME);
-  special_objects[OBJ_VM_VERSION] =
-      allot_alien(false_object, (cell)FACTOR_STRINGIZE(FACTOR_VERSION));
-  special_objects[OBJ_VM_GIT_LABEL] =
-      allot_alien(false_object, (cell)FACTOR_STRINGIZE(FACTOR_GIT_LABEL));
+
+  cell aliens[][2] = {
+    {OBJ_CPU,             (cell)FACTOR_CPU_STRING},
+    {OBJ_EXECUTABLE,      (cell)p->executable_path},
+    {OBJ_OS,              (cell)FACTOR_OS_STRING},
+    {OBJ_VM_COMPILE_TIME, (cell)FACTOR_COMPILE_TIME},
+    {OBJ_VM_COMPILER,     (cell)FACTOR_COMPILER_VERSION},
+    {OBJ_VM_GIT_LABEL,    (cell)FACTOR_STRINGIZE(FACTOR_GIT_LABEL)},
+    {OBJ_VM_VERSION,      (cell)FACTOR_STRINGIZE(FACTOR_VERSION)},
+#if defined(WINDOWS)
+    {WIN_EXCEPTION_HANDLER, (cell)&factor::exception_handler}
+#endif
+  };
+  int n_items = sizeof(aliens) / sizeof(cell[2]);
+  for (int n = 0; n < n_items; n++) {
+    cell idx = aliens[n][0];
+    special_objects[idx] = allot_alien(false_object, aliens[n][1]);
+  }
 
   /* We can GC now */
   gc_off = false;
@@ -177,7 +202,7 @@ void factor_vm::init_factor(vm_parameters* p) {
 void factor_vm::pass_args_to_factor(int argc, vm_char** argv) {
   growable_array args(this);
 
-  for (fixnum i = 1; i < argc; i++)
+  for (fixnum i = 0; i < argc; i++)
     args.add(allot_alien(false_object, (cell)argv[i]));
 
   args.trim();

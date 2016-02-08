@@ -12,7 +12,6 @@ enum vm_error_type {
   ERROR_SIGNAL,
   ERROR_ARRAY_SIZE,
   ERROR_OUT_OF_FIXNUM_RANGE,
-  ERROR_C_STRING,
   ERROR_FFI,
   ERROR_UNDEFINED_SYMBOL,
   ERROR_DATASTACK_UNDERFLOW,
@@ -29,7 +28,6 @@ enum vm_error_type {
 
 void fatal_error(const char* msg, cell tagged);
 void critical_error(const char* msg, cell tagged);
-void out_of_memory(const char* msg);
 void memory_signal_handler_impl();
 void fp_signal_handler_impl();
 void synchronous_signal_handler_impl();

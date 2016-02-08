@@ -47,7 +47,7 @@ HELP: :c
 { $description "Prints the call stack at the time of the most recent error. Used for interactive debugging." } ;
 
 HELP: :get
-{ $values { "variable" object } { "value" "the value, or f" } }
+{ $values { "variable" object } { "value" { $maybe "value" } } }
 { $description "Looks up the value of a variable at the time of the most recent error." } ;
 
 HELP: :res
@@ -121,9 +121,6 @@ HELP: signal-error.
 
 HELP: array-size-error.
 { $error-description "Thrown by " { $link <array> } ", " { $link <string> } ", " { $link <vector> } " and " { $link <sbuf> } " if the specified capacity is negative or too large." } ;
-
-HELP: c-string-error.
-{ $error-description "Thrown by " { $link alien-invoke } " and various primitives if a string containing null bytes, or characters with values higher than 255 is passed in where a C string is expected. See " { $link "c-strings" } "." } ;
 
 HELP: ffi-error.
 { $error-description "Thrown by " { $link dlopen } " and " { $link dlsym } " if a problem occurs while loading a native library or looking up a symbol. See " { $link "alien" } "." } ;

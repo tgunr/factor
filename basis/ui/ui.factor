@@ -3,36 +3,35 @@
 USING: accessors arrays assocs boxes classes.tuple
 classes.tuple.parser combinators combinators.short-circuit
 concurrency.flags concurrency.promises continuations deques
-destructors dlists fry init kernel lexer make math namespaces
-parser sequences sets strings threads ui.backend ui.gadgets
-ui.gadgets.private ui.gadgets.worlds ui.gestures vocabs.parser
-words ;
-FROM: namespaces => change-global ;
+destructors dlists fry init io.streams.c kernel lexer make math
+namespaces parser sequences sets strings threads ui.backend ui.gadgets
+ui.gadgets.private ui.gadgets.worlds ui.gestures ui.render vectors
+vocabs.parser words ;
 IN: ui
 
 <PRIVATE
 
 ! Assoc mapping aliens to gadgets
-SYMBOL: windows
+SYMBOL: ui-windows
 
-: window ( handle -- world ) windows get-global at ;
+: window ( handle -- world ) ui-windows get-global at ;
 
 : register-window ( world handle -- )
-    #! Add the new window just below the topmost window. Why?
-    #! So that if the new window doesn't actually receive focus
-    #! (eg, we're using focus follows mouse and the mouse is not
-    #! in the new window when it appears) Factor doesn't get
-    #! confused and send workspace operations to the new window,
-    #! etc.
-    swap 2array windows get-global push
-    windows get-global dup length 1 >
+    ! Add the new window just below the topmost window. Why?
+    ! So that if the new window doesn't actually receive focus
+    ! (eg, we're using focus follows mouse and the mouse is not
+    ! in the new window when it appears) Factor doesn't get
+    ! confused and send workspace operations to the new window,
+    ! etc.
+    swap 2array ui-windows get-global push
+    ui-windows get-global dup length 1 >
     [ [ length 1 - dup 1 - ] keep exchange ] [ drop ] if ;
 
 : unregister-window ( handle -- )
-    windows [ [ first = not ] with filter ] change-global ;
+    ui-windows [ [ first = ] with reject ] change-global ;
 
 : raised-window ( world -- )
-    windows get-global
+    ui-windows get-global
     [ [ second eq? ] with find drop ] keep
     [ nth ] [ remove-nth! drop ] [ nip ] 2tri push ;
 
@@ -65,9 +64,8 @@ SYMBOL: windows
         [ [ title>> ] keep set-title ]
         [ begin-world ]
         [ resize-world ]
-        [ t >>active? drop ]
         [ request-focus ]
-    } cleave ;
+    } cleave gl-init ;
 
 : clean-up-broken-window ( world -- )
     [
@@ -106,25 +104,22 @@ M: world ungraft*
     f hand-world set-global
     f world set-global
     <dlist> \ graft-queue set-global
-    <dlist> \ layout-queue set-global
+    100 <vector> \ layout-queue set-global
     <dlist> \ gesture-queue set-global
-    V{ } clone windows set-global ;
+    V{ } clone ui-windows set-global ;
 
 : update-hand ( world -- )
     dup hand-world get-global eq?
     [ hand-loc get-global swap move-hand ] [ drop ] if ;
 
-: (layout-queued) ( deque -- seq )
-    [
-        in-layout? on
-        [
-            dup layout find-world [ , ] when*
-        ] slurp-deque
-    ] { } make members ; inline
+: slurp-vector ( .. seq quot: ( ... elt -- .. ) -- )
+    over '[ _ empty? not ] -rot '[ _ pop @ ] while ; inline
 
 : layout-queued ( -- seq )
-    layout-queue dup deque-empty?
-    [ drop { } ] [ (layout-queued) ] if ;
+    layout-queue [
+        in-layout? on
+        [ dup layout find-world [ , ] when* ] slurp-vector
+    ] { } make members ;
 
 : redraw-worlds ( seq -- )
     [ dup update-hand draw-world ] each ;
@@ -147,7 +142,7 @@ SYMBOL: ui-thread
 PRIVATE>
 
 : find-window ( quot: ( world -- ? ) -- world )
-    [ windows get-global values ] dip
+    [ ui-windows get-global values ] dip
     '[ dup children>> [ ] [ nip first ] if-empty @ ]
     find-last nip ; inline
 
@@ -157,10 +152,10 @@ PRIVATE>
 <PRIVATE
 
 : update-ui-loop ( -- )
-    #! Note the logic: if update-ui fails, we open an error window
-    #! and run one iteration of update-ui. If that also fails, well,
-    #! the whole UI subsystem is broken so we exit out of the
-    #! update-ui-loop.
+    ! Note the logic: if update-ui fails, we open an error window
+    ! and run one iteration of update-ui. If that also fails, well,
+    ! the whole UI subsystem is broken so we exit out of the
+    ! update-ui-loop.
     [ { [ ui-running? ] [ ui-thread get-global self eq? ] } 0&& ]
     [
         ui-notify-flag get lower-flag
@@ -202,7 +197,7 @@ PRIVATE>
     find-world raise-window* ;
 
 : topmost-window ( -- world )
-    windows get-global last second ;
+    ui-windows get-global last second ;
 
 HOOK: close-window ui-backend ( gadget -- )
 

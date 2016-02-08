@@ -7,6 +7,60 @@ BUILTIN: callstack ;
 BUILTIN: tuple ;
 BUILTIN: wrapper { wrapped read-only } ;
 
+PRIMITIVE: -rot ( x y z -- z x y )
+PRIMITIVE: dup ( x -- x x )
+PRIMITIVE: dupd ( x y -- x x y )
+PRIMITIVE: drop ( x -- )
+PRIMITIVE: nip ( x y -- y )
+PRIMITIVE: over ( x y -- x y x )
+PRIMITIVE: pick ( x y z -- x y z x )
+PRIMITIVE: rot ( x y z -- y z x )
+PRIMITIVE: swap ( x y -- y x )
+PRIMITIVE: swapd ( x y z -- y x z )
+PRIMITIVE: 2drop ( x y -- )
+PRIMITIVE: 2dup ( x y -- x y x y )
+PRIMITIVE: 2nip ( x y z -- z )
+PRIMITIVE: 3drop ( x y z -- )
+PRIMITIVE: 3dup ( x y z -- x y z x y z )
+PRIMITIVE: 4drop ( w x y z -- )
+PRIMITIVE: 4dup ( w x y z -- w x y z w x y z )
+
+PRIMITIVE: (clone) ( obj -- newobj )
+PRIMITIVE: eq? ( obj1 obj2 -- ? )
+PRIMITIVE: <wrapper> ( obj -- wrapper )
+PRIMITIVE: die ( -- )
+PRIMITIVE: callstack>array ( callstack -- array )
+
+<PRIVATE
+PRIMITIVE: (call) ( quot -- )
+PRIMITIVE: (execute) ( word -- )
+PRIMITIVE: (identity-hashcode) ( obj -- code )
+PRIMITIVE: become ( old new -- )
+PRIMITIVE: c-to-factor ( -- )
+PRIMITIVE: callstack-bounds ( -- start end )
+PRIMITIVE: check-datastack ( array in# out# -- ? )
+PRIMITIVE: compute-identity-hashcode ( obj -- )
+PRIMITIVE: context-object ( n -- obj )
+PRIMITIVE: fpu-state ( -- )
+PRIMITIVE: innermost-frame-executing ( callstack -- obj )
+PRIMITIVE: innermost-frame-scan ( callstack -- n )
+PRIMITIVE: lazy-jit-compile ( -- )
+PRIMITIVE: leaf-signal-handler ( -- )
+PRIMITIVE: set-callstack ( callstack -- * )
+PRIMITIVE: set-context-object ( obj n -- )
+PRIMITIVE: set-datastack ( array -- )
+PRIMITIVE: set-fpu-state ( -- )
+PRIMITIVE: set-innermost-frame-quotation ( n callstack -- )
+PRIMITIVE: set-retainstack ( array -- )
+PRIMITIVE: set-special-object ( obj n -- )
+PRIMITIVE: signal-handler ( -- )
+PRIMITIVE: special-object ( n -- obj )
+PRIMITIVE: strip-stack-traces ( -- )
+PRIMITIVE: tag ( object -- n )
+PRIMITIVE: unimplemented ( -- * )
+PRIMITIVE: unwind-native-frames ( -- )
+PRIVATE>
+
 DEFER: dip
 DEFER: 2dip
 DEFER: 3dip
@@ -24,9 +78,9 @@ GENERIC: execute ( word -- )
 DEFER: if
 
 : ? ( ? true false -- true/false )
-    #! 'if' and '?' can be defined in terms of each other
-    #! because the JIT special-cases an 'if' preceeded by
-    #! two literal quotations.
+    ! 'if' and '?' can be defined in terms of each other
+    ! because the JIT special-cases an 'if' preceeded by
+    ! two literal quotations.
     rot [ drop ] [ nip ] if ; inline
 
 : if ( ..a ? true: ( ..a -- ..b ) false: ( ..a -- ..b ) -- ..b ) ? call ;
@@ -255,9 +309,7 @@ ERROR: assert got expect ;
 
 ! Special object count and identifiers must be kept in sync with:
 !   vm/objects.hpp
-!   basis/bootstrap/image/image.factor
-
-CONSTANT: special-object-count 80
+CONSTANT: special-object-count 85
 
 CONSTANT: OBJ-WALKER-HOOK 3
 
@@ -296,7 +348,7 @@ CONSTANT: JIT-IF 29
 CONSTANT: JIT-SAFEPOINT 30
 CONSTANT: JIT-EPILOG 31
 CONSTANT: JIT-RETURN 32
-CONSTANT: JIT-PROFILING 33
+CONSTANT: JIT-UNUSED 33
 CONSTANT: JIT-PUSH-IMMEDIATE 34
 CONSTANT: JIT-DIP-WORD 35
 CONSTANT: JIT-DIP 36
@@ -314,8 +366,7 @@ CONSTANT: GET-FPU-STATE-WORD 46
 CONSTANT: SET-FPU-STATE-WORD 47
 CONSTANT: SIGNAL-HANDLER-WORD 48
 CONSTANT: LEAF-SIGNAL-HANDLER-WORD 49
-CONSTANT: FFI-SIGNAL-HANDLER-WORD 50
-CONSTANT: FFI-LEAF-SIGNAL-HANDLER-WORD 51
+CONSTANT: WIN-EXCEPTION-HANDLER 50
 
 CONSTANT: REDEFINITION-COUNTER 52
 
@@ -357,10 +408,16 @@ CONSTANT: OBJ-VM-COMPILE-TIME 75
 CONSTANT: OBJ-VM-VERSION 76
 CONSTANT: OBJ-VM-GIT-LABEL 77
 
+CONSTANT: OBJ-CANONICAL-TRUE 78
+
+CONSTANT: OBJ-BIGNUM-ZERO 79
+CONSTANT: OBJ-BIGNUM-POS-ONE 80
+CONSTANT: OBJ-BIGNUM-NEG-ONE 81
+
 ! Context object count and identifiers must be kept in sync with:
 !   vm/contexts.hpp
 
-CONSTANT: context-object-count 10
+CONSTANT: context-object-count 4
 
 CONSTANT: CONTEXT-OBJ-NAMESTACK 0
 CONSTANT: CONTEXT-OBJ-CATCHSTACK 1
@@ -371,7 +428,7 @@ CONSTANT: CONTEXT-OBJ-IN-CALLBACK-P 3
 !   basis/debugger/debugger.factor
 !   vm/errors.hpp
 
-CONSTANT: kernel-error-count 21
+CONSTANT: kernel-error-count 20
 
 CONSTANT: ERROR-EXPIRED 0
 CONSTANT: ERROR-IO      1
@@ -381,18 +438,33 @@ CONSTANT: ERROR-DIVIDE-BY-ZERO 4
 CONSTANT: ERROR-SIGNAL 5
 CONSTANT: ERROR-ARRAY-SIZE 6
 CONSTANT: ERROR-OUT-OF-FIXNUM-RANGE 7
-CONSTANT: ERROR-C-STRING 8
-CONSTANT: ERROR-FFI 9
-CONSTANT: ERROR-UNDEFINED-SYMBOL 10
-CONSTANT: ERROR-DATASTACK-UNDERFLOW 11
-CONSTANT: ERROR-DATASTACK-OVERFLOW 12
-CONSTANT: ERROR-RETAINSTACK-UNDERFLOW 13
-CONSTANT: ERROR-RETAINSTACK-OVERFLOW 14
-CONSTANT: ERROR-CALLSTACK-UNDERFLOW 15
-CONSTANT: ERROR-CALLSTACK-OVERFLOW 16
-CONSTANT: ERROR-MEMORY 17
-CONSTANT: ERROR-FP-TRAP 18
-CONSTANT: ERROR-INTERRUPT 19
-CONSTANT: ERROR-CALLBACK-SPACE-OVERFLOW 20
+CONSTANT: ERROR-FFI 8
+CONSTANT: ERROR-UNDEFINED-SYMBOL 9
+CONSTANT: ERROR-DATASTACK-UNDERFLOW 10
+CONSTANT: ERROR-DATASTACK-OVERFLOW 11
+CONSTANT: ERROR-RETAINSTACK-UNDERFLOW 12
+CONSTANT: ERROR-RETAINSTACK-OVERFLOW 13
+CONSTANT: ERROR-CALLSTACK-UNDERFLOW 14
+CONSTANT: ERROR-CALLSTACK-OVERFLOW 15
+CONSTANT: ERROR-MEMORY 16
+CONSTANT: ERROR-FP-TRAP 17
+CONSTANT: ERROR-INTERRUPT 18
+CONSTANT: ERROR-CALLBACK-SPACE-OVERFLOW 19
+
+PRIMITIVE: callstack-for ( context -- array )
+PRIMITIVE: retainstack-for ( context -- array )
+PRIMITIVE: datastack-for ( context -- array )
+
+: context ( -- context )
+    CONTEXT-OBJ-CONTEXT context-object ; inline
 
 PRIVATE>
+
+: get-callstack ( -- callstack )
+    context callstack-for ; inline
+
+: get-datastack ( -- array )
+    context datastack-for ; inline
+
+: get-retainstack ( -- array )
+    context retainstack-for ; inline

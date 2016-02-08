@@ -4,13 +4,12 @@
 USING: accessors alien alien.c-types alien.data alien.parser
 arrays byte-arrays classes classes.parser classes.private
 classes.struct.bit-accessors classes.tuple classes.tuple.parser
-combinators combinators.smart cpu.architecture definitions fry
-functors.backend generalizations generic generic.parser io kernel
-kernel.private lexer libc locals macros math math.order parser
-quotations sequences slots slots.private specialized-arrays
-stack-checker.dependencies summary vectors vocabs.loader
-vocabs.parser words ;
-FROM: delegate.private => group-words slot-group-words ;
+combinators combinators.smart cpu.architecture definitions
+delegate.private fry functors.backend generalizations generic
+generic.parser io kernel kernel.private lexer libc locals macros
+math math.order parser quotations sequences slots slots.private
+specialized-arrays stack-checker.dependencies summary vectors
+vocabs.loader vocabs.parser words ;
 QUALIFIED: math
 IN: classes.struct
 
@@ -35,7 +34,7 @@ TUPLE: struct-bit-slot-spec < struct-slot-spec
     bits signed? ;
 
 PREDICATE: struct-class < tuple-class
-    superclass \ struct eq? ;
+    superclass-of \ struct eq? ;
 
 SLOT: fields
 
@@ -46,23 +45,8 @@ M: struct-class group-words
     struct-slots slot-group-words ;
 
 ! struct allocation
-
 M: struct >c-ptr
     2 slot { c-ptr } declare ; inline
-
-M: struct equal?
-    over struct? [
-        2dup [ class-of ] same? [
-            2dup [ >c-ptr ] both?
-            [ [ >c-ptr ] [ binary-object ] bi* memory= ]
-            [ [ >c-ptr not ] both? ]
-            if
-        ] [ 2drop f ] if
-    ] [ 2drop f ] if ; inline
-
-M: struct hashcode*
-    binary-object over
-    [ uchar <c-direct-array> hashcode* ] [ 3drop 0 ] if ; inline
 
 : struct-prototype ( class -- prototype ) "prototype" word-prop ; foldable
 
@@ -75,21 +59,23 @@ M: struct hashcode*
     [ heap-size read ] [ memory>struct ] bi ;
 
 <PRIVATE
-: (init-struct) ( class with-prototype: ( prototype -- alien ) sans-prototype: ( class -- alien ) -- alien )
+
+: init-struct ( class with-prototype: ( prototype -- alien ) sans-prototype: ( class -- alien ) -- alien )
     '[ dup struct-prototype _ _ ?if ] keep memory>struct ; inline
+
 PRIVATE>
 
 : (malloc-struct) ( class -- struct )
     [ heap-size malloc ] keep memory>struct ; inline
 
 : malloc-struct ( class -- struct )
-    [ >c-ptr malloc-byte-array ] [ 1 swap heap-size calloc ] (init-struct) ; inline
+    [ >c-ptr malloc-byte-array ] [ 1 swap heap-size calloc ] init-struct ; inline
 
 : (struct) ( class -- struct )
     [ heap-size (byte-array) ] keep memory>struct ; inline
 
 : <struct> ( class -- struct )
-    [ >c-ptr clone ] [ heap-size <byte-array> ] (init-struct) ; inline
+    [ >c-ptr clone ] [ heap-size <byte-array> ] init-struct ; inline
 
 MACRO: <struct-boa> ( class -- quot: ( ... -- struct ) )
     [
@@ -138,11 +124,11 @@ M: struct-bit-slot-spec (writer-quot)
 : (unboxer-quot) ( class -- quot )
     drop [ >c-ptr ] ;
 
-MACRO: read-struct-slot ( slot -- )
+MACRO: read-struct-slot ( slot -- quot )
     dup type>> add-depends-on-c-type
     (reader-quot) ;
 
-MACRO: write-struct-slot ( slot -- )
+MACRO: write-struct-slot ( slot -- quot )
     dup type>> add-depends-on-c-type
     (writer-quot) ;
 PRIVATE>
@@ -167,6 +153,14 @@ M: struct-class writer-quot
 
 : offset-of ( field struct -- offset )
     struct-slots slot-named offset>> ; inline
+
+M: struct equal?
+    2dup [ class-of ] same? [
+        [ struct-slot-values ] same?
+    ] [ 2drop f ] if ; inline
+
+M: struct hashcode*
+    nip dup >c-ptr [ struct-slot-values hashcode ] [ drop 0 ] if ; inline
 
 ! c-types
 
@@ -245,7 +239,7 @@ M: struct-bit-slot-spec compute-slot-offset
     1 [ 0 >>offset type>> heap-size max ] reduce ;
 
 : struct-alignment ( slots -- align )
-    [ struct-bit-slot-spec? not ] filter
+    [ struct-bit-slot-spec? ] reject
     1 [ dup offset>> c-type-align-at max ] reduce ;
 
 PRIVATE>
@@ -333,7 +327,7 @@ M: struct-class reset-class
             [ forget-struct-slot-values-method ]
             [ forget-clone-method ] bi
         ]
-        [ { "c-type" "layout" "struct-size" } reset-props ]
+        [ { "c-type" "layout" "struct-size" } remove-word-props ]
         [ call-next-method ]
     } cleave ;
 

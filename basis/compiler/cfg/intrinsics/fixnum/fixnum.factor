@@ -1,17 +1,11 @@
 ! Copyright (C) 2008, 2010 Slava Pestov, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: sequences accessors layouts kernel math math.intervals
-namespaces combinators fry arrays
-cpu.architecture
-compiler.tree.propagation.info
-compiler.cfg
-compiler.cfg.hats
-compiler.cfg.stacks
-compiler.cfg.instructions
-compiler.cfg.utilities
-compiler.cfg.builder.blocks
-compiler.cfg.registers
-compiler.cfg.comparisons ;
+USING: accessors arrays combinators compiler.cfg
+compiler.cfg.builder.blocks compiler.cfg.comparisons compiler.cfg.hats
+compiler.cfg.instructions compiler.cfg.registers compiler.cfg.stacks
+compiler.cfg.stacks.local compiler.tree.propagation.info
+cpu.architecture fry kernel layouts math math.intervals namespaces
+sequences ;
 IN: compiler.cfg.intrinsics.fixnum
 
 : emit-both-fixnums? ( -- )
@@ -35,7 +29,7 @@ IN: compiler.cfg.intrinsics.fixnum
     ds-peek 0 cc> ##compare-integer-imm-branch,
     [ emit-fixnum-left-shift ] with-branch
     [ emit-fixnum-right-shift ] with-branch
-    2array emit-conditional ;
+    2array basic-block get emit-conditional ;
 
 : emit-fixnum-shift-fast ( node -- )
     node-input-infos second interval>> {
@@ -48,13 +42,11 @@ IN: compiler.cfg.intrinsics.fixnum
     '[ _ ^^compare-integer ] binary-op ;
 
 : emit-no-overflow-case ( dst -- final-bb )
-    [ ds-drop ds-drop ds-push ] with-branch ;
+    [ D: -2 inc-stack ds-push ] with-branch ;
 
 : emit-overflow-case ( word -- final-bb )
     [
-        ##call,
-        -1 adjust-d
-        make-kill-block
+        -1 basic-block get emit-call-block
     ] with-branch ;
 
 : emit-fixnum-overflow-op ( quot word -- )
@@ -62,7 +54,7 @@ IN: compiler.cfg.intrinsics.fixnum
     ! of loc>vreg sync
     [ [ (2inputs) [ any-rep ^^copy ] bi@ cc/o ] dip call ] dip
     [ emit-no-overflow-case ] [ emit-overflow-case ] bi* 2array
-    emit-conditional ; inline
+    basic-block get emit-conditional ; inline
 
 : fixnum+overflow ( x y -- z ) [ >bignum ] bi@ + ;
 

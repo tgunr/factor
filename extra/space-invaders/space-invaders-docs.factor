@@ -1,19 +1,19 @@
 ! Copyright (C) 2007 Chris Double.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: help.syntax help.markup cpu.8080.emulator ;
-IN: space-invaders 
+IN: space-invaders
 
 HELP: run-invaders
-{ $description 
+{ $description
 "Run the Space Invaders emulator in a new window." $nl
 { $link rom-root } " must be set to the directory containing the "
-"location of the Space Invaders ROM files. See " 
+"location of the Space Invaders ROM files. See "
 { $link { "space-invaders" "space-invaders" } } "  for details."
 } ;
 
 ARTICLE: { "space-invaders" "space-invaders" } "Space Invaders Emulator"
 "Provides an emulation of the original 8080 Arcade Game 'Space Invaders'." $nl
-"More information on the arcade game can be obtained from " { $url "http://www.mameworld.net/maws/romset/invaders" } "." $nl
+"More information on the arcade game can be obtained from " { $url "http://www.mamedb.com/game/invaders" } "." $nl
 "To play the game you need the ROM files for the arcade game. They should "
 "be placed in a directory called 'invaders' in the location specified by "
 "the variable " { $link rom-root } ". The specific files needed are:"
@@ -23,9 +23,9 @@ ARTICLE: { "space-invaders" "space-invaders" } "Space Invaders Emulator"
   "invaders/invaders.g"
   "invaders/invaders.h"
 }
-"These are the same ROM files as used by MAME. To run the game use the " 
+"These are the same ROM files as used by MAME. To run the game use the "
 { $link run-invaders } " word." $nl
-"Keys:" 
+"Keys:"
 { $table
   { "Backspace" "Insert Coin" }
   { "1" "1 Player" }
@@ -37,4 +37,4 @@ ARTICLE: { "space-invaders" "space-invaders" } "Space Invaders Emulator"
 "If you save the Factor image while a game is running, when you restart "
 "the image the game continues where it left off." ;
 
-ABOUT: { "space-invaders" "space-invaders" } 
+ABOUT: { "space-invaders" "space-invaders" }

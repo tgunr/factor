@@ -1,72 +1,66 @@
 ! Copyright (C) 2009, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays fry kernel make math namespaces sequences
-compiler.cfg compiler.cfg.instructions compiler.cfg.stacks
-compiler.cfg.stacks.local ;
+USING: accessors arrays compiler.cfg compiler.cfg.instructions
+compiler.cfg.stacks compiler.cfg.stacks.local compiler.cfg.utilities fry kernel
+make math namespaces sequences ;
+SLOT: in-d
+SLOT: out-d
 IN: compiler.cfg.builder.blocks
 
 : set-basic-block ( basic-block -- )
-    [ basic-block set ] [ instructions>> building set ] bi
-    begin-local-analysis ;
+    [ basic-block set ]
+    [ instructions>> building set ]
+    [ begin-local-analysis ] tri ;
 
-: initial-basic-block ( -- )
-    <basic-block> set-basic-block ;
+: end-basic-block ( block -- )
+    [ end-local-analysis ] when* building off basic-block off ;
 
-: end-basic-block ( -- )
-    basic-block get [ end-local-analysis ] when
-    building off
-    basic-block off ;
+: (begin-basic-block) ( block -- )
+    <basic-block> swap [ over connect-bbs ] when* set-basic-block ;
 
-: (begin-basic-block) ( -- )
-    <basic-block>
-    basic-block get [ dupd successors>> push ] when*
-    set-basic-block ;
-
-: begin-basic-block ( -- )
-    basic-block get [ end-local-analysis ] when
-    (begin-basic-block) ;
+: begin-basic-block ( block -- )
+    dup [ end-local-analysis ] when* (begin-basic-block) ;
 
 : emit-trivial-block ( quot -- )
-    ##branch, begin-basic-block
-    call
+    ##branch, basic-block get begin-basic-block
+    basic-block get [ swap call ] keep
     ##branch, begin-basic-block ; inline
 
-: make-kill-block ( -- )
-    basic-block get t >>kill-block? drop ;
+: make-kill-block ( block -- )
+    t swap kill-block?<< ;
 
 : call-height ( #call -- n )
     [ out-d>> length ] [ in-d>> length ] bi - ;
 
+: emit-call-block ( word height block -- )
+    make-kill-block adjust-d ##call, ;
+
 : emit-primitive ( node -- )
-    [
-        [ word>> ##call, ]
-        [ call-height adjust-d ] bi
-        make-kill-block
-    ] emit-trivial-block ;
+    [ word>> ] [ call-height ] bi
+    [ emit-call-block ] emit-trivial-block ;
 
-: begin-branch ( -- ) clone-current-height (begin-basic-block) ;
+: begin-branch ( block -- )
+    height-state [ clone-height-state ] change (begin-basic-block) ;
 
-: end-branch ( -- pair/f )
-    ! pair is { final-bb final-height }
-    basic-block get dup [
+: end-branch ( block -- pair/f )
+    dup [
         ##branch,
         end-local-analysis
-        current-height get clone 2array
-    ] when ;
+        height-state get clone-height-state 2array
+    ] when* ;
 
 : with-branch ( quot -- pair/f )
-    [ begin-branch call end-branch ] with-scope ; inline
+    [
+        basic-block get begin-branch
+        call
+        basic-block get end-branch
+    ] with-scope ; inline
 
-: set-successors ( branches -- )
-    ! Set the successor of each branch's final basic block to the
-    ! current block.
-    [ [ [ basic-block get ] dip first successors>> push ] when* ] each ;
-
-: emit-conditional ( branches -- )
+: emit-conditional ( branches block -- )
     ! branches is a sequence of pairs as above
     end-basic-block
-    dup [ ] find nip dup [
-        second current-height set
-        begin-basic-block
-        set-successors
-    ] [ 2drop ] if ;
+    sift [
+        dup first second height-state set
+        basic-block get begin-basic-block
+        [ first ] map basic-block get connect-Nto1-bbs
+    ] unless-empty ;

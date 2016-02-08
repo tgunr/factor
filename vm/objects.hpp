@@ -4,7 +4,7 @@ namespace factor {
 //   core/kernel/kernel.factor
 //   basis/bootstrap/image/image.factor
 
-static const cell special_object_count = 80;
+static const cell special_object_count = 85;
 
 enum special_object {
   OBJ_WALKER_HOOK = 3, /* non-local exit hook, used by library only */
@@ -44,7 +44,7 @@ enum special_object {
   JIT_SAFEPOINT,
   JIT_EPILOG,
   JIT_RETURN,
-  JIT_PROFILING,
+  JIT_UNUSED,
   JIT_PUSH_IMMEDIATE,
   JIT_DIP_WORD,
   JIT_DIP,
@@ -55,7 +55,8 @@ enum special_object {
   JIT_EXECUTE,
   JIT_DECLARE_WORD,
 
-  /* External entry points */
+  /* External entry points. These are defined in the files in
+     bootstrap/assembler/ */
   C_TO_FACTOR_WORD = 43,
   LAZY_JIT_COMPILE_WORD,
   UNWIND_NATIVE_FRAMES_WORD,
@@ -63,14 +64,14 @@ enum special_object {
   SET_FPU_STATE_WORD,
   SIGNAL_HANDLER_WORD,
   LEAF_SIGNAL_HANDLER_WORD,
-  FFI_SIGNAL_HANDLER_WORD,
-  FFI_LEAF_SIGNAL_HANDLER_WORD,
+  WIN_EXCEPTION_HANDLER,
+  UNUSED2,
 
   /* Incremented on every modify-code-heap call; invalidates call( inline
      caching */
   REDEFINITION_COUNTER = 52,
 
-  /* Callback stub generation in callbacks.c */
+  /* Callback stub generation in callbacks.cpp */
   CALLBACK_STUB = 53,
 
   /* Polymorphic inline cache generation in inline_cache.c */
@@ -109,27 +110,34 @@ enum special_object {
   OBJ_VM_COMPILE_TIME = 75, /* when the binary was built */
   OBJ_VM_VERSION = 76, /* factor version */
   OBJ_VM_GIT_LABEL = 77, /* git label (git describe --all --long) */
+
+  /* Canonical truth value. In Factor, 't' */
+  OBJ_CANONICAL_TRUE = 78,
+
+  /* Canonical bignums. These needs to be kept in the image in case
+     some heap objects refer to them. */
+  OBJ_BIGNUM_ZERO,
+  OBJ_BIGNUM_POS_ONE,
+  OBJ_BIGNUM_NEG_ONE = 81,
 };
 
 /* save-image-and-exit discards special objects that are filled in on startup
    anyway, to reduce image size */
-#define OBJ_FIRST_SAVE OBJ_STARTUP_QUOT
-#define OBJ_LAST_SAVE OBJ_STAGE2
-
 inline static bool save_special_p(cell i) {
-  return (i >= OBJ_FIRST_SAVE && i <= OBJ_LAST_SAVE);
+  /* Need to fix the order here. */
+  return (i >= OBJ_STARTUP_QUOT && i <= LEAF_SIGNAL_HANDLER_WORD) ||
+      (i >= REDEFINITION_COUNTER && i <= OBJ_UNDEFINED) ||
+      i == OBJ_STAGE2 ||
+      (i >= OBJ_CANONICAL_TRUE && i <= OBJ_BIGNUM_NEG_ONE);
 }
 
 template <typename Iterator> void object::each_slot(Iterator& iter) {
-  cell scan = (cell)this;
-  cell payload_start = binary_payload_start();
-  cell end = scan + payload_start;
+  cell* start = (cell*)this + 1;
+  cell* end = start + slot_count();
 
-  scan += sizeof(cell);
-
-  while (scan < end) {
-    iter((cell*)scan);
-    scan += sizeof(cell);
+  while (start < end) {
+    iter(start);
+    start++;
   }
 }
 

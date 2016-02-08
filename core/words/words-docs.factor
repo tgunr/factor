@@ -9,8 +9,8 @@ $nl
 $nl
 "Parsing words add definitions to the current vocabulary. When a source file is being parsed, the current vocabulary is initially set to " { $vocab-link "scratchpad" } ". The current vocabulary may be changed with the " { $link POSTPONE: IN: } " parsing word (see " { $link "word-search" } ")."
 { $subsections
-    create
-    create-in
+    create-word
+    create-word-in
     lookup-word
 } ;
 
@@ -91,24 +91,62 @@ ARTICLE: "word-props" "Word properties"
 $nl
 "The following are some of the properties used by the library:"
 { $table
-    { "Property" "Documentation" }
-    { { $snippet "\"parsing\"" } { $link "parsing-words" } }
-
-    { { { $snippet "\"inline\"" } ", " { $snippet "\"foldable\"" } ", " { $snippet "flushable" } } { $link "declarations" } }
-
-    { { $snippet "\"loc\"" } { "Location information - " { $link where } } }
-
-    { { { $snippet "\"methods\"" } ", " { $snippet "\"combination\"" } } { "Set on generic words - " { $link "generic" } } }
-
-    { { { $snippet "\"reading\"" } ", " { $snippet "\"writing\"" } } { "Set on slot accessor words - " { $link "slots" } } }
-
-    { { $snippet "\"declared-effect\"" } { $link "effects" } }
-
-    { { { $snippet "\"help\"" } ", " { $snippet "\"help-loc\"" } ", " { $snippet "\"help-parent\"" } } { "Where word help is stored - " { $link "writing-help" } } }
-
-    { { $snippet "\"specializer\"" } { $link "hints" } }
-
-    { { $snippet "\"predicating\"" } " Set on class predicates, stores the corresponding class word" }
+  { "Property" "Documentation" }
+  {
+      { $snippet "\"declared-effect\"" } { $link "effects" }
+  }
+  {
+      {
+          { $snippet "\"inline\"" } ", "
+          { $snippet "\"foldable\"" } ", "
+          { $snippet "flushable" }
+      }
+      { $link "declarations" }
+  }
+  {
+      {
+          { $snippet "\"help\"" } ", "
+          { $snippet "\"help-loc\"" } ", "
+          { $snippet "\"help-parent\"" }
+      }
+      { "Where word help is stored - " { $link "writing-help" } }
+  }
+  {
+      { $snippet "\"intrinsic\"" }
+      { "Quotation run by the compiler during cfg building to emit the word inline." }
+  }
+  {
+      { $snippet "\"loc\"" }
+      { "Location information - " { $link where } }
+  }
+  {
+      { { $snippet "\"methods\"" } ", " { $snippet "\"combination\"" } }
+      { "Set on generic words - " { $link "generic" } }
+  }
+  {
+      {
+          { $snippet "\"outputs\"" } ", "
+          { $snippet "\"input-classes\"" } ", "
+          { $snippet "\"default-output-classes\"" }
+      }
+      { "A bunch of metadata used during the value propagation step of the compilation to produce type-optimized code." }
+  }
+  {
+      { $snippet "\"parsing\"" }
+      { $link "parsing-words" }
+  }
+  {
+      { $snippet "\"predicating\"" }
+      " Set on class predicates, stores the corresponding class word"
+  }
+  {
+      { { $snippet "\"reading\"" } ", " { $snippet "\"writing\"" } }
+      { "Set on slot accessor words - " { $link "slots" } }
+  }
+  {
+      { $snippet "\"specializer\"" }
+      { $link "hints" }
+  }
 }
 "Properties which are defined for classes only:"
 { $table
@@ -182,10 +220,15 @@ $nl
     "deferred"
     "declarations"
     "words.introspection"
+    "word-props"
 }
 { $see-also "vocabularies" "vocabs.loader" "definitions" "see" } ;
 
 ABOUT: "words"
+
+HELP: changed-effect
+{ $values { "word" word } }
+{ $description "Signals to the compilation unit that the word has changed. It causes all words that depend on it to be recompiled in response." } ;
 
 HELP: deferred
 { $class-description "The class of deferred words created by " { $link POSTPONE: DEFER: } "." } ;
@@ -217,6 +260,11 @@ HELP: remove-word-prop
 { $description "Removes a word property, so future lookups will output " { $link f } " until it is set again. Word property names are conventionally strings." }
 { $side-effects "word" } ;
 
+HELP: remove-word-props
+{ $values { "word" word } { "seq" "a sequence of word property names" } }
+{ $description "Removes all listed word properties from the word." }
+{ $side-effects "word" } ;
+
 HELP: word-code
 { $values { "word" word } { "start" "the word's start address" } { "end" "the word's end address" } }
 { $description "Outputs the memory range containing the word's machine code." } ;
@@ -225,11 +273,6 @@ HELP: define
 { $values { "word" word } { "def" quotation } }
 { $description "Defines the word to call a quotation when executed. This is the run time equivalent of " { $link POSTPONE: : } "." }
 { $notes "This word must be called from inside " { $link with-compilation-unit } "." }
-{ $side-effects "word" } ;
-
-HELP: reset-props
-{ $values { "word" word } { "seq" "a sequence of word property names" } }
-{ $description "Removes all listed word properties from the word." }
 { $side-effects "word" } ;
 
 HELP: reset-word
@@ -246,13 +289,13 @@ $low-level-note
 
 HELP: <word>
 { $values { "name" string } { "vocab" string } { "word" word } }
-{ $description "Allocates a word with the specified name and vocabulary. User code should call " { $link <uninterned-word> } " to create uninterned words and " { $link create } " to create interned words, instead of calling this constructor directly." }
+{ $description "Allocates a word with the specified name and vocabulary. User code should call " { $link <uninterned-word> } " to create uninterned words and " { $link create-word } " to create interned words, instead of calling this constructor directly." }
 { $notes "This word must be called from inside " { $link with-compilation-unit } "." } ;
 
 HELP: <uninterned-word>
 { $values { "name" string } { "word" word } }
 { $description "Creates an uninterned word with the specified name,  that is not equal to any other word in the system." }
-{ $notes "Unlike " { $link create } ", this word does not have to be called from inside " { $link with-compilation-unit } "." } ;
+{ $notes "Unlike " { $link create-word } ", this word does not have to be called from inside " { $link with-compilation-unit } "." } ;
 
 HELP: gensym
 { $values { "word" word } }
@@ -262,7 +305,7 @@ HELP: gensym
     "( gensym )"
     }
 }
-{ $notes "Unlike " { $link create } ", this word does not have to be called from inside " { $link with-compilation-unit } "." } ;
+{ $notes "Unlike " { $link create-word } ", this word does not have to be called from inside " { $link with-compilation-unit } "." } ;
 
 HELP: bootstrapping?
 { $var-description "Set by the library while bootstrap is in progress. Some parsing words need to behave differently during bootstrap." } ;
@@ -286,17 +329,17 @@ HELP: lookup-word
 
 HELP: reveal
 { $values { "word" word } }
-{ $description "Adds a newly-created word to the dictionary. Usually this word does not need to be called directly, and is only called as part of " { $link create } "." } ;
+{ $description "Adds a newly-created word to the dictionary. Usually this word does not need to be called directly, and is only called as part of " { $link create-word } "." } ;
 
 HELP: check-create
 { $values { "name" string } { "vocab" string } }
 { $description "Throws a " { $link check-create } " error if " { $snippet "name" } " or " { $snippet "vocab" } " is not a string." }
-{ $error-description "Thrown if " { $link create } " is called with invalid parameters." } ;
+{ $error-description "Thrown if " { $link create-word } " is called with invalid parameters." } ;
 
-HELP: create
+HELP: create-word
 { $values { "name" string } { "vocab" string } { "word" word } }
 { $description "Creates a new word. If the vocabulary already contains a word with the requested name, outputs the existing word. The vocabulary must exist already; if it does not, you must call " { $link create-vocab } " first." }
-{ $notes "This word must be called from inside " { $link with-compilation-unit } ". Parsing words should call " { $link create-in } " instead of this word." } ;
+{ $notes "This word must be called from inside " { $link with-compilation-unit } ". Parsing words should call " { $link create-word-in } " instead of this word." } ;
 
 HELP: constructor-word
 { $values { "name" string } { "vocab" string } { "word" word } }
@@ -346,7 +389,7 @@ HELP: deprecated?
 { $notes "Outputs " { $link f } " if the object is not a word." } ;
 
 HELP: inline?
-{ $values { "obj" object } { "?" "a boolean" } }
+{ $values { "obj" object } { "?" boolean } }
 { $description "Tests if an object is " { $link POSTPONE: inline } "." }
 { $notes "Outputs " { $link f } " if the object is not a word." } ;
 

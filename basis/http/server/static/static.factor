@@ -1,5 +1,8 @@
 ! Copyright (C) 2004, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
+IN: http.server.static
+DEFER: file-responder ! necessary for cgi-docs
+DEFER: <static> ! necessary for cgi-docs
 USING: calendar kernel math math.order math.parser namespaces
 parser sequences strings assocs hashtables debugger mime.types
 sorting logging calendar.format accessors splitting io io.files
@@ -7,8 +10,7 @@ io.files.info io.directories io.pathnames io.encodings.binary
 fry xml.entities destructors urls html xml.syntax
 html.templates.fhtml http http.server http.server.responses
 http.server.redirection xml.writer ;
-FROM: sets => adjoin ;
-IN: http.server.static
+QUALIFIED: sets
 
 TUPLE: file-responder root hook special index-names allow-listings ;
 
@@ -102,7 +104,7 @@ M: file-responder call-responder* ( path responder -- response )
     [ drop <400> ] [ "/" join serve-object ] if ;
 
 : add-index ( name responder -- )
-    index-names>> adjoin ;
+    index-names>> sets:adjoin ;
 
 : serve-fhtml ( path -- response )
     <fhtml> <html-content> ;

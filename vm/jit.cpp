@@ -38,8 +38,8 @@ void jit::emit_relocation(cell relocation_template_) {
   relocation_entry* relocations = relocation_template->data<relocation_entry>();
   for (cell i = 0; i < capacity; i++) {
     relocation_entry entry = relocations[i];
-    relocation_entry new_entry(entry.rel_type(), entry.rel_class(),
-                               entry.rel_offset() + code.count);
+    relocation_entry new_entry(entry.type(), entry.klass(),
+                               entry.offset() + code.count);
     relocation.append_bytes(&new_entry, sizeof(relocation_entry));
   }
 }
@@ -113,7 +113,7 @@ void jit::compute_position(cell offset_) {
   offset = offset_;
 }
 
-/* Allocates memory */
+/* Allocates memory (trim(), add_code_block) */
 code_block* jit::to_code_block(cell frame_size) {
   /* Emit dummy GC info */
   code.grow_bytes(alignment_for(code.count + 4, data_alignment));

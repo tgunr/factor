@@ -10,11 +10,10 @@ windows.kernel32 windows.gdi32 windows.user32 windows.opengl32
 windows.messages windows.types windows.offscreen windows threads
 libc combinators fry combinators.short-circuit continuations
 command-line shuffle opengl ui.render math.bitwise locals
-accessors math.rectangles math.order calendar ascii sets
+accessors math.rectangles math.order calendar ascii sets io.crlf
 io.encodings.utf16n windows.errors literals ui.pixel-formats
 ui.pixel-formats.private memoize classes colors
 specialized-arrays classes.struct ;
-FROM: namespaces => change-global set ;
 SPECIALIZED-ARRAY: POINT
 QUALIFIED-WITH: alien.c-types c
 IN: ui.backend.windows
@@ -23,9 +22,7 @@ SINGLETON: windows-ui-backend
 
 TUPLE: win-base hDC hRC ;
 TUPLE: win < win-base hWnd world title ;
-TUPLE: win-offscreen < win-base hBitmap bits ;
 C: <win> win
-C: <win-offscreen> win-offscreen
 
 <PRIVATE
 
@@ -172,12 +169,6 @@ PRIVATE>
 : GET_APPCOMMAND_LPARAM ( lParam -- appCommand )
     hi-word FAPPCOMMAND_MASK lo-word bitnot bitand ; inline
 
-: crlf>lf ( str -- str' )
-    CHAR: \r swap remove ;
-
-: lf>crlf ( str -- str' )
-    [ [ dup CHAR: \n = [ CHAR: \r , ] when , ] each ] "" make ;
-
 : enum-clipboard ( -- seq )
     0
     [ EnumClipboardFormats win32-error dup dup 0 > ]
@@ -209,7 +200,7 @@ PRIVATE>
         EmptyClipboard win32-error=0/f
         GMEM_MOVEABLE over length 1 + GlobalAlloc
             dup win32-error=0/f
-    
+
         dup GlobalLock dup win32-error=0/f
         rot binary-object memcpy
         dup GlobalUnlock win32-error=0/f
@@ -278,9 +269,9 @@ CONSTANT: window-control>ex-style
     [ get-RECT-top-left ] [ get-RECT-width/height ] bi ;
 
 : handle-wm-paint ( hWnd uMsg wParam lParam -- )
-    #! wParam and lParam are unused
-    #! only paint if width/height both > 0
-    3drop window relayout-1 yield ;
+    ! wParam and lParam are unused
+    ! only paint if width/height both > 0
+    3drop window 100 >>active? relayout-1 yield ;
 
 : handle-wm-size ( hWnd uMsg wParam lParam -- )
     2nip
@@ -420,9 +411,9 @@ CONSTANT: exclude-keys-wm-char
 
 : handle-wm-syscommand ( hWnd uMsg wParam lParam -- n )
     {
-        { [ over SC_MINIMIZE = ] [ f set-window-active ] }
-        { [ over SC_RESTORE = ] [ t set-window-active ] }
-        { [ over SC_MAXIMIZE = ] [ t set-window-active ] }
+        { [ over SC_MINIMIZE = ] [ 0 set-window-active ] }
+        { [ over SC_RESTORE = ] [ 100 set-window-active ] }
+        { [ over SC_MAXIMIZE = ] [ 100 set-window-active ] }
         { [ dup alpha? ] [ 4drop 0 ] }
         { [ t ] [ DefWindowProc ] }
     } cond ;
@@ -506,7 +497,7 @@ SYMBOL: nc-buttons
         { APPCOMMAND_BROWSER_FORWARD [ pick window right-action send-action ] }
         [ drop ]
     } case 3drop ;
-    
+
 : handle-wm-buttondown ( hWnd uMsg wParam lParam -- )
     [
         over set-capture
@@ -538,11 +529,11 @@ SYMBOL: nc-buttons
     wParam mouse-scroll hand-loc get-global hWnd window send-scroll ;
 
 : handle-wm-cancelmode ( hWnd uMsg wParam lParam -- )
-    #! message sent if windows needs application to stop dragging
+    ! message sent if windows needs application to stop dragging
     4drop release-capture ;
 
 : handle-wm-mouseleave ( hWnd uMsg wParam lParam -- )
-    #! message sent if mouse leaves main application 
+    ! message sent if mouse leaves main application
     4drop forget-rollover ;
 
 : system-background-color ( -- color )
@@ -741,20 +732,6 @@ M: win-base select-gl-context ( handle -- )
 M: win-base flush-gl-context ( handle -- )
     hDC>> SwapBuffers win32-error=0/f ;
 
-: setup-offscreen-gl ( world -- )
-    dup [ handle>> ] [ dim>> ] bi make-offscreen-dc-and-bitmap
-    [ >>hDC ] [ >>hBitmap ] [ >>bits ] tri* drop [
-        swap [ handle>> hDC>> set-pixel-format ] [ get-rc ] bi
-    ] with-world-pixel-format ;
-
-M: windows-ui-backend (open-offscreen-buffer) ( world -- )
-    win-offscreen new >>handle
-    setup-offscreen-gl ;
-
-M: windows-ui-backend (close-offscreen-buffer) ( handle -- )
-    [ hDC>> DeleteDC drop ]
-    [ hBitmap>> DeleteObject drop ] bi ;
-
 ! Windows 32-bit bitmaps don't actually use the alpha byte of
 ! each pixel; it's left as zero
 
@@ -765,9 +742,6 @@ M: windows-ui-backend (close-offscreen-buffer) ( handle -- )
 
 : (opaque-pixels) ( world -- pixels )
     [ handle>> bits>> ] [ dim>> ] bi bitmap>byte-array (make-opaque) ;
-
-M: windows-ui-backend offscreen-pixels ( world -- alien w h )
-    [ (opaque-pixels) ] [ dim>> first2 ] bi ;
 
 M: windows-ui-backend raise-window* ( world -- )
     handle>> [ hWnd>> SetFocus drop ] when* ;
@@ -868,4 +842,3 @@ M: windows-ui-backend ui-backend-available?
     t ;
 
 windows-ui-backend ui-backend set-global
-

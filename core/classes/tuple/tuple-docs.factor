@@ -200,6 +200,7 @@ ARTICLE: "tuple-introspection" "Tuple introspection"
     >tuple
     tuple>array
     tuple-slots
+    slots>tuple
 }
 "Tuples can be compared for slot equality even if the tuple class overrides " { $link equal? } ":"
 { $subsections tuple= }
@@ -417,6 +418,10 @@ $nl
 HELP: tuple>array
 { $values { "tuple" tuple } { "array" array } }
 { $description "Outputs an array having the tuple's slots as elements. The first element is the tuple class word and remainder are declared slots." } ;
+
+HELP: initial-values
+{ $values { "class" class } { "seq" sequence } }
+{ $description "Gets a sequence with the initial value for each tuple slot." } ;
 
 HELP: <tuple>
 { $values { "layout" "a tuple layout array" } { "tuple" tuple } }

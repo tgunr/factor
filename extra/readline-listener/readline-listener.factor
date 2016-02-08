@@ -1,8 +1,8 @@
 ! Copyright (C) 2011 Erik Charlebois.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs colors.constants combinators fry io
-kernel listener readline sequences splitting system threads
-tools.completion unicode.data vocabs vocabs.hierarchy ;
+USING: accessors assocs colors.constants combinators fry io kernel
+listener readline sequences splitting threads tools.completion
+unicode.data vocabs vocabs.hierarchy ;
 IN: readline-listener
 
 <PRIVATE
@@ -29,7 +29,7 @@ M: readline-reader prompt.
     all-words [ name>> ] map! prefixed ;
 
 : prefixed-vocabs ( prefix -- vocabs )
-    all-vocabs-recursive filter-vocabs [ name>> ] map! prefixed ;
+    all-disk-vocabs-recursive filter-vocabs [ name>> ] map! prefixed ;
 
 : prefixed-colors ( prefix -- colors )
     named-colors prefixed ;
@@ -54,9 +54,6 @@ PRIVATE>
         swap get-completions ?nth
         [ clear-completions f ] unless*
     ] set-completion
-    readline-reader new [ listener ] with-input-stream* ;
+    readline-reader new [ listener-main ] with-input-stream* ;
 
-: readline-listener-main ( -- )
-    version-info print flush readline-listener ;
-
-MAIN: readline-listener-main
+MAIN: readline-listener

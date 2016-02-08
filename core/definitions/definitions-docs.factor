@@ -1,4 +1,4 @@
-USING: help.markup help.syntax words math source-files
+USING: generic hash-sets help.markup help.syntax words math source-files
 parser quotations compiler.units ;
 IN: definitions
 
@@ -73,9 +73,8 @@ $nl
 
 ABOUT: "definitions"
 
-HELP: where
-{ $values { "defspec" "a definition specifier" } { "loc" "a " { $snippet "{ path line# }" } " pair" } }
-{ $description "Outputs the location of a definition. If the location is not known, will output " { $link f } "." } ;
+HELP: changed-effects
+{ $var-description "A set that contains all words whose stack effects have changed in the compilation unit." } ;
 
 HELP: set-where
 { $values { "loc" "a " { $snippet "{ path line# }" } " pair" } { "defspec" "a definition specifier" } }
@@ -91,3 +90,11 @@ HELP: forget-all
 { $values { "definitions" "a sequence of definition specifiers" } }
 { $description "Forgets every definition in a sequence." }
 { $notes "This word must be called from inside " { $link with-compilation-unit } "." } ;
+
+HELP: outdated-generics
+{ $var-description "A " { $link hash-set } " where newly defined generic words are kept until they are being remade." }
+{ $see-also remake-generic remake-generics } ;
+
+HELP: where
+{ $values { "defspec" "a definition specifier" } { "loc" "a " { $snippet "{ path line# }" } " pair" } }
+{ $description "Outputs the location of a definition. If the location is not known, will output " { $link f } "." } ;

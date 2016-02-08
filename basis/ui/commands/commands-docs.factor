@@ -3,35 +3,6 @@ hashtables quotations words classes sequences namespaces make
 arrays assocs ;
 IN: ui.commands
 
-: command-map-row ( gesture command -- seq )
-    [
-        [ gesture>string , ]
-        [
-            [ command-name , ]
-            [ command-word <$link> , ]
-            [ command-description , ]
-            tri
-        ] bi*
-    ] { } make ;
-
-: command-map. ( alist -- )
-    [ command-map-row ] { } assoc>map
-    { "Shortcut" "Command" "Word" "Notes" }
-    [ \ $strong swap ] { } map>assoc prefix
-    $table ;
-
-: $command-map ( element -- )
-    [ second (command-name) " commands" append $heading ]
-    [
-        first2 swap get-command-at
-        [ blurb>> print-element ] [ commands>> command-map. ] bi
-    ] bi ;
-
-: $command ( element -- )
-    reverse first3 get-command-at
-    commands>> value-at gesture>string
-    $snippet ;
-
 HELP: +nullary+
 { $description "A key which may be set in the hashtable passed to " { $link define-command } ". If set to a true value, the command does not take any inputs, and the value passed to " { $link invoke-command } " will be ignored. Otherwise, it takes one input." } ;
 
@@ -48,7 +19,7 @@ HELP: invoke-command
 { invoke-command +nullary+ } related-words
 
 HELP: command-name
-{ $values { "command" "a command" } { "str" "a string" } }
+{ $values { "command" "a command" } { "str" string } }
 { $description "Outputs a human-readable name for the command." }
 { $examples
     { $example
@@ -61,7 +32,7 @@ HELP: command-name
 } ;
 
 HELP: command-description
-{ $values { "command" "a command" } { "str/f" "a string or " { $link f } } }
+{ $values { "command" "a command" } { "str/f" { $maybe string } } }
 { $description "Outputs the command's description." } ;
 
 { command-description +description+ } related-words
@@ -97,7 +68,7 @@ HELP: $command
 { $description "Prints the keyboard shortcut associated with " { $snippet "command" } " in the command map named " { $snippet "map" } " on the class " { $snippet "class" } "." } ;
 
 HELP: define-command
-{ $values { "word" word } { "hash" hashtable } } 
+{ $values { "word" word } { "hash" hashtable } }
 { $description "Defines a command. The hashtable can contain the following keys:"
     { $list
         { { $link +nullary+ } " - if set to a true value, the word must have stack effect " { $snippet "( -- )" } "; otherwise it must have stack effect " { $snippet "( target -- )" } }

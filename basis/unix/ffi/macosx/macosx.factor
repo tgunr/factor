@@ -81,8 +81,6 @@ ALIAS: PF_INET AF_INET
 CONSTANT: IPPROTO_TCP 6
 CONSTANT: IPPROTO_UDP 17
 
-CONSTANT: AI_PASSIVE 1
-
 CONSTANT: SEEK_SET 0
 CONSTANT: SEEK_CUR 1
 CONSTANT: SEEK_END 2
@@ -134,4 +132,4 @@ STRUCT: sf_hdtr
     { trailers void* }
     { trl_cnt int } ;
 
-FUNCTION: int sendfile ( int fd, int s, off_t offset, off_t* len, sf_hdtr* hdtr, int flags ) ;
+FUNCTION: int sendfile ( int fd, int s, off_t offset, off_t* len, sf_hdtr* hdtr, int flags )

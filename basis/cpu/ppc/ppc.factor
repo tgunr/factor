@@ -1,18 +1,15 @@
 ! Copyright (C) 2011 Erik Charlebois
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs sequences kernel combinators
-classes.algebra byte-arrays make math math.order math.ranges
-system namespaces locals layouts words alien alien.accessors
-alien.c-types alien.complex alien.data alien.libraries
-literals cpu.architecture cpu.ppc.assembler
-compiler.cfg.registers compiler.cfg.instructions
-compiler.cfg.comparisons compiler.codegen.fixup
-compiler.cfg.intrinsics compiler.cfg.stack-frame
-compiler.cfg.build-stack-frame compiler.units compiler.constants
-compiler.codegen vm memory fry io prettyprint ;
+USING: accessors alien alien.accessors alien.c-types alien.complex alien.data
+alien.libraries assocs byte-arrays classes.algebra classes.struct combinators
+compiler.cfg compiler.cfg.build-stack-frame compiler.cfg.comparisons
+compiler.cfg.instructions compiler.cfg.intrinsics compiler.cfg.registers
+compiler.cfg.stack-frame compiler.codegen compiler.codegen.fixup
+compiler.constants compiler.units cpu.architecture cpu.ppc.assembler fry io
+kernel layouts literals locals make math math.order math.ranges memory
+namespaces prettyprint sequences system vm words ;
 QUALIFIED-WITH: alien.c-types c
 FROM: cpu.ppc.assembler => B ;
-FROM: layouts => cell ;
 FROM: math => float ;
 IN: cpu.ppc
 
@@ -184,13 +181,12 @@ M:: ppc %replace-imm ( src loc -- )
     } cond
     scratch-reg reg offset %store-cell ;
 
-! Increment data stack pointer by n cells.
-M: ppc %inc-d ( n -- )
-    [ ds-reg ds-reg ] dip cells ADDI ;
+M: ppc %clear ( loc -- )
+    297 swap %replace-imm ;
 
-! Increment retain stack pointer by n cells.
-M: ppc %inc-r ( n -- )
-    [ rs-reg rs-reg ] dip cells ADDI ;
+! Increment stack pointer by n cells.
+M: ppc %inc ( loc -- )
+    [ ds-loc? [ ds-reg ds-reg ] [ rs-reg rs-reg ] if ] [ n>> ] bi cells ADDI ;
 
 M: ppc stack-frame-size ( stack-frame -- i )
     (stack-frame-size)
@@ -410,9 +406,9 @@ M:: ppc %box-long-long ( dst src1 src2 func gc-map -- )
 
 M:: ppc %save-context ( temp1 temp2 -- )
     temp1 %context
-    1 temp1 "callstack-top" context-field-offset %store-cell
-    ds-reg temp1 "datastack" context-field-offset %store-cell
-    rs-reg temp1 "retainstack" context-field-offset %store-cell ;
+    1 temp1 "callstack-top" context offset-of %store-cell
+    ds-reg temp1 "datastack" context offset-of %store-cell
+    rs-reg temp1 "retainstack" context offset-of %store-cell ;
 
 M:: ppc %c-invoke ( name dll gc-map -- )
     11 0 %load-cell-imm name dll %load-cell-imm-rc rel-dlsym
@@ -491,8 +487,8 @@ M:: ppc %alien-indirect ( src reg-inputs stack-inputs
 
 M: ppc %alien-assembly ( reg-inputs stack-inputs reg-outputs
                          dead-outputs cleanup stack-size quot
-                         gc-map -- )
-    '[ _ _ gc-map set call( -- ) ] emit-alien-insn ;
+                         -- )
+    '[ _ call( -- ) ] emit-alien-insn ;
 
 M: ppc %callback-inputs ( reg-outputs stack-outputs -- )
     [ [ first3 load-reg-param ] each ]
@@ -528,25 +524,23 @@ M: ppc %unbox-alien ( dst src -- )
 ! else // Assume (src & tag_mask) == BYTE_ARRAY_TYPE
 !   dst = ((byte_array*)src) + 1;
 M:: ppc %unbox-any-c-ptr ( dst src -- )
-    [
-        "end" define-label
-        ! Is the object f?
-        dst 0 LI
-        0 src \ f type-number %compare-cell-imm
-        0 "end" get BEQ
+    <label> :> end
+    ! Is the object f?
+    dst 0 LI
+    0 src \ f type-number %compare-cell-imm
+    0 end BEQ
 
-        ! Is the object an alien?
-        dst src tag-mask get ANDI.
-        ! Assume unboxing a byte-array.
-        0 dst alien type-number %compare-cell-imm
-        dst src byte-array-offset ADDI
-        0 "end" get BNE
+    ! Is the object an alien?
+    dst src tag-mask get ANDI.
+    ! Assume unboxing a byte-array.
+    0 dst alien type-number %compare-cell-imm
+    dst src byte-array-offset ADDI
+    0 end BNE
 
-        ! Unbox the alien.
-        scratch-reg alien-offset LI
-        dst src scratch-reg %load-cell-x
-        "end" resolve-label
-    ] with-scope ;
+    ! Unbox the alien.
+    scratch-reg alien-offset LI
+    dst src scratch-reg %load-cell-x
+    end resolve-label ;
 
 ! Be very careful with this. It cannot be used as an immediate
 ! offset to a load or store.
@@ -563,25 +557,23 @@ M:: ppc %unbox-any-c-ptr ( dst src -- )
 !   dst->address = src;
 ! }
 M:: ppc %box-alien ( dst src temp -- )
-    [
-        "f" define-label
+    <label> :> f-label
 
-        ! Is the object f?
-        dst \ f type-number LI
-        0 src 0 %compare-cell-imm
-        0 "f" get BEQ
+    ! Is the object f?
+    dst \ f type-number LI
+    0 src 0 %compare-cell-imm
+    0 f-label BEQ
 
-        ! Allocate and initialize an alien object.
-        dst 5 cells alien temp %allot
-        temp \ f type-number LI
-        scratch-reg dst %clear-tag-bits
-        temp scratch-reg 1 cells %store-cell
-        temp scratch-reg 2 cells %store-cell
-        src scratch-reg 3 cells %store-cell
-        src scratch-reg 4 cells %store-cell
+    ! Allocate and initialize an alien object.
+    dst 5 cells alien temp %allot
+    temp \ f type-number LI
+    scratch-reg dst %clear-tag-bits
+    temp scratch-reg 1 cells %store-cell
+    temp scratch-reg 2 cells %store-cell
+    src scratch-reg 3 cells %store-cell
+    src scratch-reg 4 cells %store-cell
 
-        "f" resolve-label
-    ] with-scope ;
+    f-label resolve-label ;
 
 ! dst->base = base;
 ! dst->displacement = displacement;
@@ -630,26 +622,26 @@ M:: ppc %box-alien ( dst src temp -- )
 !   box_displaced_alien_alien(dst, displacement, base, temp);
 ! else
 !   box_displaced_alien_byte_array(dst, displacement, base, temp);
-:: box-displaced-alien/dynamic ( dst displacement base temp -- )
-    "not-f" define-label
-    "not-alien" define-label
+:: box-displaced-alien/dynamic ( dst displacement base temp end -- )
+    <label> :> not-f
+    <label> :> not-alien
 
     ! Is base f?
     0 base \ f type-number %compare-cell-imm
-    0 "not-f" get BNE
+    0 not-f BNE
     dst displacement base box-displaced-alien/f
-    "end" get B
+    end B
 
     ! Is base an alien?
-    "not-f" resolve-label
+    not-f resolve-label
     temp base tag-mask get ANDI.
     0 temp alien type-number %compare-cell-imm
-    0 "not-alien" get BNE
+    0 not-alien BNE
     dst displacement base temp box-displaced-alien/alien
-    "end" get B
+    end B
 
     ! Assume base is a byte array.
-    "not-alien" resolve-label
+    not-alien resolve-label
     dst displacement base temp box-displaced-alien/byte-array ;
 
 ! if (displacement == 0)
@@ -667,33 +659,31 @@ M:: ppc %box-alien ( dst src temp -- )
 !      box_displaced_alien_dynamic(dst, displacement, base, temp);
 ! }
 M:: ppc %box-displaced-alien ( dst displacement base temp base-class -- )
-    [
-        "end" define-label
+    <label> :> end
 
-        ! If displacement is zero, return the base.
-        dst base MR
-        0 displacement 0 %compare-cell-imm
-        0 "end" get BEQ
+    ! If displacement is zero, return the base.
+    dst base MR
+    0 displacement 0 %compare-cell-imm
+    0 end BEQ
 
-        ! Displacement is non-zero, we're going to be allocating a new
-        ! object
-        dst 5 cells alien temp %allot
+    ! Displacement is non-zero, we're going to be allocating a new
+    ! object
+    dst 5 cells alien temp %allot
 
-        ! Set expired to f
-        temp \ f type-number %load-immediate
-        scratch-reg 2 alien@ LI
-        temp dst scratch-reg %store-cell-x
+    ! Set expired to f
+    temp \ f type-number %load-immediate
+    scratch-reg 2 alien@ LI
+    temp dst scratch-reg %store-cell-x
 
-        dst displacement base temp
-        {
-            { [ base-class \ f class<= ] [ drop box-displaced-alien/f ] }
-            { [ base-class \ alien class<= ] [ box-displaced-alien/alien ] }
-            { [ base-class \ byte-array class<= ] [ box-displaced-alien/byte-array ] }
-            [ box-displaced-alien/dynamic ]
-        } cond
+    dst displacement base temp
+    {
+        { [ base-class \ f class<= ] [ drop box-displaced-alien/f ] }
+        { [ base-class \ alien class<= ] [ box-displaced-alien/alien ] }
+        { [ base-class \ byte-array class<= ] [ box-displaced-alien/byte-array ] }
+        [ end box-displaced-alien/dynamic ]
+    } cond
 
-        "end" resolve-label
-    ] with-scope ;
+    end resolve-label ;
 
 M:: ppc.32 %convert-integer ( dst src c-type -- )
     c-type {
@@ -881,7 +871,7 @@ M: ppc.64 %store-memory ( src base displacement scale offset rep c-type -- )
 
 M:: ppc %allot ( dst size class nursery-ptr -- )
     ! dst = vm->nursery.here;
-    nursery-ptr vm-reg "nursery" vm-field-offset ADDI
+    nursery-ptr vm-reg "nursery" vm offset-of ADDI
     dst nursery-ptr 0 %load-cell
     ! vm->nursery.here += align(size, data_alignment);
     scratch-reg dst size data-alignment get align ADDI
@@ -916,8 +906,8 @@ M:: ppc %write-barrier-imm ( src slot tag temp1 temp2 -- )
 
 M:: ppc %check-nursery-branch ( label size cc temp1 temp2 -- )
     ! if (vm->nursery.here + size >= vm->nursery.end) ...
-    temp1 vm-reg "nursery" vm-field-offset %load-cell
-    temp2 vm-reg "nursery" vm-field-offset 2 cells + %load-cell
+    temp1 vm-reg "nursery" vm offset-of %load-cell
+    temp2 vm-reg "nursery" vm offset-of 2 cells + %load-cell
     temp1 temp1 size ADDI
     0 temp1 temp2 %compare-cell
     cc {
