@@ -2,9 +2,9 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: accessors alien.c-types alien.data combinators db db.errors
-io.backend kernel mysql.ffi namespaces sequences ;
+io.backend kernel db.mysql.ffi namespaces sequences ;
 
-IN: mysql.lib
+IN: db.mysql.lib
 
 ERROR: mysql-error < db-error n string ;
 ERROR: mysql-sql-error < sql-error n string ;

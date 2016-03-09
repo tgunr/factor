@@ -3,9 +3,9 @@
 
 USING: accessors combinators constructors db db.private db.queries
 db.tuples db.tuples.private db.types destructors interpolate
-io.streams.string kernel locals math math.parser mysql.ffi mysql.lib
+io.streams.string kernel locals math math.parser functors db.mysql.ffi db.mysql.lib
 namespaces nmake random sequences sequences.deep slots.syntax strings
-;
+prettyprint ;
 
 IN: db.mysql
 
@@ -20,7 +20,7 @@ TUPLE: mysql-db
     { clientflag integer }
     resulthandle ;
 
-CONSTRUCTOR: mysql-db ( host user password -- mysql-db )
+CONSTRUCTOR: <mysql-db> mysql-db ( host user password -- mysql-db ) ;
 
 : init-with-db ( mysql-db db -- mysql-db )
     >>database ;
@@ -28,7 +28,6 @@ CONSTRUCTOR: mysql-db ( host user password -- mysql-db )
 TUPLE: mysql-db-connection < db-connection ;
 TUPLE: mysql-statement < statement ;
 TUPLE: mysql-result-set < result-set has-more? ;
-
 
 : <mysql-db-connection> ( -- db-connection )
     mysql-db-connection new-db-connection
@@ -44,19 +43,18 @@ M: mysql-db db-open  ( db -- db-connection )
     ;
 
 M: mysql-db-connection <prepared-statement> ( str in out -- obj )
-B    mysql-statement new-statement
-    ! db-connection get handle>>
-    ! >>handle
+    mysql-statement new-statement
+    db-connection get handle>>
+    >>handle
 ;
 
 M: mysql-db-connection <simple-statement> ( str in out -- obj )
-B    <prepared-statement> ;
+    <prepared-statement> ;
 
-M: mysql-db-connection db-close ( handle -- )
-B    mysql_close ;
+M: mysql-db-connection db-close ( handle -- )   mysql_close ;
 
 : mysql-maybe-prepare ( statement -- statement )
-B    dup handle>> [
+    dup handle>> [
         db-connection get handle>>
         >>handle
     ] unless ;
@@ -66,7 +64,7 @@ B    dup handle>> [
 !     [ [ mysql_reset drop ] keep mysql-finalize ] when* ;
 
 M: mysql-statement dispose ( statement -- )
-B    handle>> drop ;
+    handle>> drop ;
 
     ! [ [ mysql_reset drop ] keep mysql-finalize ] when* ;
 
@@ -142,7 +140,7 @@ M: mysql-result-set more-rows? ( result-set -- ? )
 B    has-more?>> ;
 
 M:: mysql-result-set query-results ( result-set -- result-set )
-B    result-set handle>> result-set sql>>
+    result-set handle>> result-set sql>>
      mysql_query result-set swap >>n
     ;
 
@@ -224,78 +222,78 @@ B    H{
         { random-generator { f f f } }
     } ;
 
-: insert-trigger ( -- string )
-B    [
-    """
-        CREATE TRIGGER fki_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
-        BEFORE INSERT ON ${table-name}
-        FOR EACH ROW BEGIN
-            SELECT RAISE(ROLLBACK, 'insert on table "${table-name}" violates foreign key constraint "fki_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
-            WHERE  (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
-        END;
-    """ interpolate
-    ] with-string-writer ;
+! : insert-trigger ( -- string )
+! B    [
+!     """
+!         CREATE TRIGGER fki_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
+!         BEFORE INSERT ON ${table-name}
+!         FOR EACH ROW BEGIN
+!             SELECT RAISE(ROLLBACK, 'insert on table "${table-name}" violates foreign key constraint "fki_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
+!             WHERE  (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
+!         END;
+!     """ interpolate
+!     ] with-string-writer ;
 
-: insert-trigger-not-null ( -- string )
-B    [
-    """
-        CREATE TRIGGER fki_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
-        BEFORE INSERT ON ${table-name}
-        FOR EACH ROW BEGIN
-            SELECT RAISE(ROLLBACK, 'insert on table "${table-name}" violates foreign key constraint "fki_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
-            WHERE NEW.${table-id} IS NOT NULL
-                AND (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
-        END;
-    """ interpolate
-    ] with-string-writer ;
+! : insert-trigger-not-null ( -- string )
+! B    [
+!     """
+!         CREATE TRIGGER fki_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
+!         BEFORE INSERT ON ${table-name}
+!         FOR EACH ROW BEGIN
+!             SELECT RAISE(ROLLBACK, 'insert on table "${table-name}" violates foreign key constraint "fki_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
+!             WHERE NEW.${table-id} IS NOT NULL
+!                 AND (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
+!         END;
+!     """ interpolate
+!     ] with-string-writer ;
 
-: update-trigger ( -- string )
-B    [
-    """
-        CREATE TRIGGER fku_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
-        BEFORE UPDATE ON ${table-name}
-        FOR EACH ROW BEGIN
-            SELECT RAISE(ROLLBACK, 'update on table "${table-name}" violates foreign key constraint "fku_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
-            WHERE (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
-        END;
-    """ interpolate
-    ] with-string-writer ;
+! : update-trigger ( -- string )
+! B    [
+!     """
+!         CREATE TRIGGER fku_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
+!         BEFORE UPDATE ON ${table-name}
+!         FOR EACH ROW BEGIN
+!             SELECT RAISE(ROLLBACK, 'update on table "${table-name}" violates foreign key constraint "fku_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
+!             WHERE (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
+!         END;
+!     """ interpolate
+!     ] with-string-writer ;
 
-: update-trigger-not-null ( -- string )
-B    [
-    """
-        CREATE TRIGGER fku_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
-        BEFORE UPDATE ON ${table-name}
-        FOR EACH ROW BEGIN
-            SELECT RAISE(ROLLBACK, 'update on table "${table-name}" violates foreign key constraint "fku_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
-            WHERE NEW.${table-id} IS NOT NULL
-                AND (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
-        END;
-    """ interpolate
-    ] with-string-writer ;
+! : update-trigger-not-null ( -- string )
+! B    [
+!     """
+!         CREATE TRIGGER fku_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
+!         BEFORE UPDATE ON ${table-name}
+!         FOR EACH ROW BEGIN
+!             SELECT RAISE(ROLLBACK, 'update on table "${table-name}" violates foreign key constraint "fku_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
+!             WHERE NEW.${table-id} IS NOT NULL
+!                 AND (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = NEW.${table-id}) IS NULL;
+!         END;
+!     """ interpolate
+!     ] with-string-writer ;
 
-: delete-trigger-restrict ( -- string )
-B    [
-    """
-        CREATE TRIGGER fkd_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
-        BEFORE DELETE ON ${foreign-table-name}
-        FOR EACH ROW BEGIN
-            SELECT RAISE(ROLLBACK, 'delete on table "${foreign-table-name}" violates foreign key constraint "fkd_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
-            WHERE (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = OLD.${foreign-table-id}) IS NOT NULL;
-        END;
-    """ interpolate
-    ] with-string-writer ;
+! : delete-trigger-restrict ( -- string )
+! B    [
+!     """
+!         CREATE TRIGGER fkd_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
+!         BEFORE DELETE ON ${foreign-table-name}
+!         FOR EACH ROW BEGIN
+!             SELECT RAISE(ROLLBACK, 'delete on table "${foreign-table-name}" violates foreign key constraint "fkd_${table-name}_$table-id}_${foreign-table-name}_${foreign-table-id}_id"')
+!             WHERE (SELECT ${foreign-table-id} FROM ${foreign-table-name} WHERE ${foreign-table-id} = OLD.${foreign-table-id}) IS NOT NULL;
+!         END;
+!     """ interpolate
+!     ] with-string-writer ;
 
-: delete-trigger-cascade ( -- string )
-B    [
-    """
-        CREATE TRIGGER fkd_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
-        BEFORE DELETE ON ${foreign-table-name}
-        FOR EACH ROW BEGIN
-            DELETE from ${table-name} WHERE ${table-id} = OLD.${foreign-table-id};
-        END;
-    """ interpolate
-    ] with-string-writer ;
+! : delete-trigger-cascade ( -- string )
+! B    [
+!     """
+!         CREATE TRIGGER fkd_${table-name}_${table-id}_${foreign-table-name}_${foreign-table-id}_id
+!         BEFORE DELETE ON ${foreign-table-name}
+!         FOR EACH ROW BEGIN
+!             DELETE from ${table-name} WHERE ${table-id} = OLD.${foreign-table-id};
+!         END;
+!     """ interpolate
+!     ] with-string-writer ;
 
 : can-be-null? ( -- ? )
 B    "sql-spec" get modifiers>> [ +not-null+ = ] any? not ;
@@ -306,36 +304,36 @@ B    "sql-spec" get modifiers>> { +on-delete+ +cascade+ } swap subseq? ;
 : mysql-trigger, ( string -- )
 B    { } { } <simple-statement> 3, ;
 
-: create-mysql-triggers ( -- )
-B    can-be-null? [
-        insert-trigger mysql-trigger,
-        update-trigger mysql-trigger,
-    ] [ 
-        insert-trigger-not-null mysql-trigger,
-        update-trigger-not-null mysql-trigger,
-    ] if
-    delete-cascade? [
-        delete-trigger-cascade mysql-trigger,
-    ] [
-        delete-trigger-restrict mysql-trigger,
-    ] if ;
+! : create-mysql-triggers ( -- )
+! B    can-be-null? [
+!         insert-trigger mysql-trigger,
+!         update-trigger mysql-trigger,
+!     ] [ 
+!         insert-trigger-not-null mysql-trigger,
+!         update-trigger-not-null mysql-trigger,
+!     ] if
+!     delete-cascade? [
+!         delete-trigger-cascade mysql-trigger,
+!     ] [
+!         delete-trigger-restrict mysql-trigger,
+!     ] if ;
 
-: create-db-triggers ( sql-specs -- )
-B    [ modifiers>> [ +foreign-id+ = ] deep-any? ] filter
-    [
-        [ class>> db-table-name "db-table" set ]
-        [
-            [ "sql-spec" set ]
-            [ column-name>> "table-id" set ]
-            [ ] tri
-            modifiers>> [ [ +foreign-id+ = ] deep-any? ] filter
-            [
-                [ second db-table-name "foreign-table-name" set ]
-                [ third "foreign-table-id" set ] bi
-                create-mysql-triggers
-            ] each
-        ] bi
-    ] each ;
+! : create-db-triggers ( sql-specs -- )
+! B    [ modifiers>> [ +foreign-id+ = ] deep-any? ] filter
+!     [
+!         [ class>> db-table-name "db-table" set ]
+!         [
+!             [ "sql-spec" set ]
+!             [ column-name>> "table-id" set ]
+!             [ ] tri
+!             modifiers>> [ [ +foreign-id+ = ] deep-any? ] filter
+!             [
+!                 [ second db-table-name "foreign-table-name" set ]
+!                 [ third "foreign-table-id" set ] bi
+!                 create-mysql-triggers
+!             ] each
+!         ] bi
+!     ] each ;
 
 : mysql-create-table ( sql-specs class-name -- )
 B    [
@@ -358,11 +356,11 @@ B    [
         ");" 0%
     ] 2bi ;
 
-M: mysql-db-connection create-sql-statement ( class -- statement )
-B    [
-        [ mysql-create-table ]
-        [ drop create-db-triggers ] 2bi
-    ] query-make ;
+! M: mysql-db-connection create-sql-statement ( class -- statement )
+! B    [
+!         [ mysql-create-table ]
+!         [ drop create-db-triggers ] 2bi
+!     ] query-make ;
 
 M: mysql-db-connection drop-sql-statement ( class -- statements )
 B    [ nip "drop table " 0% 0% ";" 0% ] query-make ;
@@ -381,22 +379,45 @@ B    dup n>> {
         [ drop ]
     } case ;
 
+: db-call ( quote -- x )
+    [ db-connection get handle>> ] swap compose ;
+
 SYMBOL: mysqlDB
 
 : db-args ( -- host user password ) "10.1.1.3" "root" "pplutonsonew" ;
 
-: testDB ( -- )   db-args <mysql-db>  "test" init-with-db mysqlDB set ;
+: testDB ( -- db )
+    mysqlDB get dup
+    [ drop
+      db-args <mysql-db>  "test" init-with-db
+      dup mysqlDB set
+    ] unless ;
 
-: mysql-test ( -- )
-    mysqlDB get [ 
+: mysql-test-create ( -- )
+    testDB [ 
         "create table if not exists person (name varchar(30), country varchar(30))" sql-command
         "insert into person values('JohnnyReb', 'America')" sql-command
         "insert into person values('JaneyReb', 'New Zealand')" sql-command
     ] with-db
 ;
 
-: mysql-dbs ( -- rows )
-    mysqlDB get [
-        "select * from person" sql-query
+: mysql-test-get ( -- rows )
+    testDB [
+        "select * from person;" sql-query
     ] with-db
 ;
+
+: with-handle ( db quot -- )
+    [ db-open db-connection ] dip [ [ handle>> ] ] dip compose
+    [ [ db-connection get ] ] dip [ with-disposal ] curry
+    compose with-variable ; inline
+
+: mysql-host-info ( -- string )   testDB [ mysql_get_host_info ] with-handle ;
+: mysql-client-info ( -- string )   testDB [ mysql_get_client_info nip ] with-handle ;
+: mysql-server-version ( -- string )   testDB [ mysql_get_server_version ] with-handle ;
+: mysql-proto-info ( -- string )   testDB [ mysql_get_proto_info ] with-handle ;
+: mysql-list-processes ( -- string )   testDB [ mysql_list_processes ] with-handle ;
+: mysql-list-dbs ( -- string )   testDB [ mysql_list_dbs ] with-handle ;
+: mysql-list-tables ( -- string )   testDB [ mysql_list_tables ] with-handle ;
+: mysql-ping ( -- value )   testDB [ mysql_ping ] with-handle ;
+
