@@ -131,29 +131,118 @@ STRUCT: st_used_mem
     { next st_used_mem* }
     { left uint } 
     { size uint } 
-;
-
+    ;
 TYPEDEF: st_used_mem USED_MEM
 
+STRUCT: st_mem_root
+{ row_count ulonglong }
+{ fields MYSQL_FIELD* }
+{ data MYSQL_DATA* }
+{ data_cursor MYSQL_ROWS* }
+{ lengths ulong* }
+{ handle MYSQL* }
+{ methods st_mysql_methods* }
+{ row MYSQL_ROW }
+{ current_row MYSQL_ROW }
+{ field_alloc MEM_ROOT }
+{ current_field uint }
+{ eof bool }
+{ unbuffered_fetch_cancelled bool }
+{ extension void* }
+{ free USED_MEM* }
+{ used USED_MEM* }
+{ pre_alloc USED_MEM* }
+{ min_malloc size_t }
+{ block_size size_t }
+{ block_num uint }
+{ first_block_usage uint }
+{ max_capacity size_t }
+{ allocated_size size_t }
+{ error_for_capacity_exceeded bool }
+{ m_psi_key PSI_memory_key }
+{ data MYSQL_ROWS* }
+{ embedded_info embedded_query_result* }
+{ alloc MEM_ROOT }
+{ rows ulonglong }
+{ fields uint }
+{ extension void* }
+{ free USED_MEM* }
+{ used USED_MEM* }
+{ pre_alloc USED_MEM* }
+{ min_malloc size_t }
+{ block_size size_t }
+{ block_num uint }
+{ first_block_usage uint }
+{ max_capacity size_t }
+{ allocated_size size_t }
+{ error_for_capacity_exceeded bool }
+{ m_psi_key PSI_memory_key }
+;
+TYPEDEF: st_mem_root MEM_ROOT
 
-typedef struct st_mem_root
-{
-  USED_MEM *free;                  /* blocks with free memory in it */
-  USED_MEM *used;                  /* blocks almost without free memory */
-  USED_MEM *pre_alloc;             /* preallocated block */
-  /* if block have less memory it will be put in 'used' list */
-  size_t min_malloc;
-  size_t block_size;               /* initial block size */
-  unsigned int block_num;          /* allocated blocks counter */
-  /* 
-     first free block in queue test counter (if it exceed 
-     MAX_BLOCK_USAGE_BEFORE_DROP block will be dropped in 'used' list)
-  */
-  unsigned int first_block_usage;
+STRUCT: st_mysql_data
+{ row_count ulonglong }
+{ fields MYSQL_FIELD* }
+{ data MYSQL_DATA* }
+{ data_cursor MYSQL_ROWS* }
+{ lengths ulong* }
+{ handle MYSQL* }
+{ methods void* }
+{ row MYSQL_ROW }
+{ current_row MYSQL_ROW }
+{ field_alloc MEM_ROOT }
+{ current_field uint }
+{ eof bool }
+{ unbuffered_fetch_cancelled bool }
+{ extension void* }
+{ free USED_MEM* }
+{ used USED_MEM* }
+{ pre_alloc USED_MEM* }
+{ min_malloc size_t }
+{ block_size size_t }
+{ block_num uint }
+{ first_block_usage uint }
+{ max_capacity size_t }
+{ allocated_size size_t }
+{ error_for_capacity_exceeded bool }
+{ m_psi_key PSI_memory_key }
+{ data MYSQL_ROWS* }
+{ embedded_info embedded_query_result* }
+{ alloc MEM_ROOT }
+{ rows ulonglong }
+{ fields uint }
+{ extension void* }
+;
+TYPEDEF: st_mysql_data MYSQL_DATA
 
-  void (*error_handler)(void);
-} MEM_ROOT;
-
+STRUCT: st_mem_root
+{ row_count ulonglong }
+{ fields MYSQL_FIELD* }
+{ data MYSQL_DATA* }
+{ data_cursor MYSQL_ROWS* }
+{ lengths ulong* }
+{ handle MYSQL* }
+{ methods st_mysql_methods* }
+{ row MYSQL_ROW }
+{ current_row MYSQL_ROW }
+{ field_alloc MEM_ROOT }
+{ current_field uint }
+{ eof bool }
+{ unbuffered_fetch_cancelled bool }
+{ extension void* }
+{ free USED_MEM* }
+{ used USED_MEM* }
+{ pre_alloc USED_MEM* }
+{ min_malloc size_t }
+{ block_size size_t }
+{ block_num uint }
+{ first_block_usage uint }
+{ max_capacity size_t }
+{ allocated_size size_t }
+{ error_for_capacity_exceeded bool }
+{ m_psi_key PSI_memory_key }
+;
+TYPEDEF: st_mem_root MEM_ROOT
 
 STRUCT: st_mysql_data 
     { data MYSQL_ROWS* }
@@ -165,23 +254,23 @@ STRUCT: st_mysql_data
     { extension void* }
 ;
 
-STRUCT: st_mysql_res {
-  ulonglong  row_count;
-  MYSQL_FIELD fields;
-  MYSQL_DATA	*data;
-  MYSQL_ROWS	*data_cursor;
-    ulong lengths;		/* column lengths of current row */
-  MYSQL		*handle;		/* for unbuffered reads */
-  const struct st_mysql_methods *methods;
-  MYSQL_ROW	row;			/* If unbuffered read */
-  MYSQL_ROW	current_row;		/* buffer to current row */
-  MEM_ROOT	field_alloc;
-  uint	field_count, current_field;
-    bool eof;			/* Used by mysql_fetch_row */
-  /* mysql_stmt_close() had to cancel this result */
-    bool unbuffered_fetch_cancelled;  
-    void* extension;
-} MYSQL_RES;
+STRUCT: st_mysql_res
+{ row_count ulonglong }
+{ fields MYSQL_FIELD* }
+{ data MYSQL_DATA* }
+{ data_cursor MYSQL_ROWS* }
+{ lengths ulong* }
+{ handle MYSQL* }
+{ methods st_mysql_methods* }
+{ row MYSQL_ROW }
+{ current_row MYSQL_ROW }
+{ field_alloc MEM_ROOT }
+{ current_field uint }
+{ eof bool }
+{ unbuffered_fetch_cancelled bool }
+{ extension void* }
+;
+TYPEDEF: st_mysql_res MYSQL_RES
 
 LIBRARY: mysql
 
