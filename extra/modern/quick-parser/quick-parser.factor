@@ -5,8 +5,8 @@ classes.tuple combinators combinators.short-circuit
 combinators.smart fry generalizations hashtables io
 io.encodings.utf8 io.files io.streams.string kernel lexer locals
 macros make math modern.paths multiline namespaces prettyprint
-sequences sequences.deep sequences.extras
-sequences.generalizations sets shuffle strings
+sequences sequences.deep sequences.extras inspector
+sequences.generalizations sets shuffle strings unicode.case
 unicode.categories vectors vocabs.loader words ;
 QUALIFIED: parser
 QUALIFIED: lexer
@@ -578,3 +578,24 @@ SYNTAX: PAREN-LITERAL:
 
 SYNTAX: LITERAL:
     scan-new-class define-literal ;
+
+
+
+! Experimenting with stuff
+: print-slices-for-vocabs ( seq -- )
+    [ dup qparse-vocab ] { } map>assoc
+    [ [ { [ slice? ] [ run-time-literal? ] [ compile-time-literal? ] } 1|| ] filter ] assoc-map
+    [ nip empty? not ] assoc-filter
+    [ [ . ] [ describe ] bi* ] assoc-each ;
+
+GENERIC: print-it ( obj -- )
+M: slice print-it >string print ;
+M: run-time-literal print-it slice>> >string print ;
+M: array print-it [ print-it ] each ;
+M: string print-it print ;
+
+: print-slices-for-vocabs2 ( seq -- )
+    [ dup qparse-vocab ] { } map>assoc
+    [ [ slice? ] filter [ >string ] map ] assoc-map
+    [ nip empty? not ] assoc-filter
+    [ [ "====vocab: " write . ] [ print-it ] bi* ] assoc-each ;

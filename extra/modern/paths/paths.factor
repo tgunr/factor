@@ -37,6 +37,29 @@ ERROR: not-a-source-path path ;
     no-prefixes [ name>> ] map ;
 
 : core-vocabs ( -- seq ) "resource:core" vocabs-from ;
+: less-core-test-vocabs ( seq -- seq' )
+    {
+        "vocabs.loader.test.a"
+        "vocabs.loader.test.b"
+        "vocabs.loader.test.c"
+        "vocabs.loader.test.d"
+        "vocabs.loader.test.e"
+        "vocabs.loader.test.f"
+        "vocabs.loader.test.g"
+        "vocabs.loader.test.h"
+        "vocabs.loader.test.i"
+        "vocabs.loader.test.j"
+        "vocabs.loader.test.k"
+        "vocabs.loader.test.l"
+        "vocabs.loader.test.m"
+        "vocabs.loader.test.n"
+        "vocabs.loader.test.o"
+        "vocabs.loader.test.p"
+    } diff ;
+
+: core-bootstrap-vocabs ( -- seq )
+    core-vocabs less-core-test-vocabs ;
+
 : basis-vocabs ( -- seq ) "resource:basis" vocabs-from ;
 : extra-vocabs ( -- seq ) "resource:extra" vocabs-from ;
 : all-vocabs ( -- seq )
