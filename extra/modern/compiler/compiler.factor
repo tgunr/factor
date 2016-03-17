@@ -232,7 +232,11 @@ M: modern:constant create-pass' object>> first >string get-in create-word drop ;
     object>> first [ >string ] map ;
 
 : string>parsed ( object -- number/string/obj )
-    dup string>number [ nip ] [ ] if* ;
+    dup string>number [
+        nip
+    ] [
+        ! lookup-word
+    ] if* ;
 
 
 GENERIC: define-pass' ( obj -- )
@@ -275,6 +279,8 @@ M: modern:constant define-pass'
 
 : qcompile>words ( string -- linear-state words )
     quick-compile-string dup dict>> values [ words>> values ] map-concat ;
+
+
 /*
 clear
 basis-source-files
