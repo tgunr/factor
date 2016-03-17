@@ -5,11 +5,46 @@ constructors hash-sets hashtables io kernel make math
 modern.paths modern.quick-parser modern.syntax multiline
 namespaces prettyprint sequences sequences.deep sets sorting
 strings words.private fry combinators quotations words.symbol
-math.parser words.constant sequences.extras ;
+math.parser words.constant sequences.extras splitting effects
+classes.builtin combinators.short-circuit ;
 QUALIFIED-WITH: modern.syntax modern
 FROM: syntax => f inline ;
 QUALIFIED: words
+QUALIFIED: vocabs
 IN: modern.compiler
+
+
+
+: words>named-hashtable ( seq -- hashtable )
+    [ { [ words:primitive? ] [ builtin-class? ] } 1|| ] filter
+    [ [ name>> ] keep ] H{ } map>assoc ;
+
+: prepopulate-vocab ( name -- public private )
+    ".private" ?tail drop
+    [ dup vocabs:vocab-words words>named-hashtable 2array ]
+    [ ".private" append dup vocabs:vocab-words words>named-hashtable 2array ] bi 2array ;
+
+
+: prepopulate-vocabs ( -- hashtable )
+    core-bootstrap-vocabs [ prepopulate-vocab ] map concat
+    [ nip assoc-empty? not ] assoc-filter ;
+
+SYMBOL: prepopulated-vocabs
+
+\ prepopulated-vocabs [
+    prepopulate-vocabs >hashtable
+] initialize
+
+SYMBOL: modern-vocabs
+
+DEFER: quick-compile-vocab
+
+: get-modern-vocab ( string -- vocab/f )
+    modern-vocabs get ?at [
+    ] [
+        [ quick-compile-vocab ] keep \ modern-vocabs get [ set-at ] 3keep 2drop
+    ] if ;
+
 
 : path>parsers ( name -- seq )
     quick-parse-path
@@ -137,11 +172,11 @@ M: object name-of drop f ;
     set-word-in transfer-decorators ;
 
 GENERIC: meta-pass' ( obj -- )
-M: object meta-pass'
-    dup name-of [
-        transfer-state
-        set-last-word
-    ] [ drop ] if ;
+! M: object meta-pass'
+!    dup name-of [
+!        transfer-state
+!        set-last-word
+!    ] [ drop ] if ;
 
 M: modern:using meta-pass' object>> first [ >string add-using ] each ;
 M: modern:use meta-pass' object>> first >string add-using ;
@@ -156,6 +191,10 @@ M: modern:inline meta-pass' add-decorator ;
 M: modern:recursive meta-pass' add-decorator ;
 M: modern:deprecated meta-pass' add-decorator ;
 M: modern:delimiter meta-pass' add-decorator ;
+
+
+M: builtin meta-pass' drop ;
+
 
 : meta-pass ( parsed -- )
     [ meta-pass' ] each transfer-state ;
@@ -217,6 +256,8 @@ ERROR: identifier-not-found name ;
 GENERIC: create-pass' ( obj -- )
 
 ! M: object create-pass' drop ;
+M: modern:use create-pass' drop ;
+M: modern:using create-pass' drop ;
 M: modern:in create-pass' drop ;
 
 M: modern:singleton create-pass' object>> first >string get-in create-class drop ;
@@ -224,6 +265,9 @@ M: modern:singletons create-pass' object>> first get-in '[ >string _ create-clas
 M: modern:symbol create-pass' object>> first >string get-in create-word drop ;
 M: modern:symbols create-pass' object>> first get-in '[ >string _ create-word drop ] each ;
 M: modern:constant create-pass' object>> first >string get-in create-word drop ;
+M: modern:function create-pass' object>> first >string get-in create-word drop ;
+
+! M: modern:builtin create-pass'     object>> first >string get-in words:lookup-word ;
 
 : create-pass ( parsed -- )
     [ create-pass' ] each ;
@@ -231,11 +275,16 @@ M: modern:constant create-pass' object>> first >string get-in create-word drop ;
 : get-strings-from ( obj -- seq )
     object>> first [ >string ] map ;
 
+GENERIC: lookup-modern-word ( object -- word )
+
+M: slice lookup-modern-word >string lookup-modern-word ;
+M: string lookup-modern-word B ;
+
 : string>parsed ( object -- number/string/obj )
     dup string>number [
         nip
     ] [
-        ! lookup-word
+        lookup-modern-word
     ] if* ;
 
 
@@ -246,6 +295,7 @@ M: slice create-pass'
     [ ] [ >string ] bi top-level-form-not-implemented ;
 
 M: modern:in define-pass' drop ;
+M: modern:use define-pass' drop ;
 M: modern:using define-pass' drop ;
 M: modern:symbol define-pass' name-first lookup-in-linear-state define-symbol ;
 M: modern:symbols define-pass' object>> first [ >string lookup-in-linear-state define-symbol ] each ;
@@ -254,6 +304,11 @@ M: modern:constant define-pass'
     object>> first2
     [ >string lookup-in-linear-state ]
     [ string>parsed ] bi* define-constant ;
+M: modern:function define-pass'
+    object>> first3 swap
+    [ >string lookup-in-linear-state ]
+    [ [ >string string>parsed ] map ]
+    [ object>> [ >string ] map { "--" } split1 <effect> ] tri* words:define-declared ;
 
 : define-pass ( parsed -- )
     [ define-pass' ] each ;
@@ -277,22 +332,17 @@ M: modern:constant define-pass'
 : quick-compile-string ( string -- linear-state )
     qparse quick-compile ;
 
+: linear-state>words ( linear-state -- words )
+    dict>> values [ words>> values ] map-concat ;
+
 : qcompile>words ( string -- linear-state words )
-    quick-compile-string dup dict>> values [ words>> values ] map-concat ;
+    quick-compile-string dup linear-state>words ;
 
 
 /*
-clear
-basis-source-files
-[
-    dup .
-    quick-parse-path
-    dup meta drop sift [ dup qsequence? [ in>> ] [ drop f ] if ] reject describe drop
-] each
+! Find all primitives/builtin classes
+core-bootstrap-vocabs [ prepopulate-vocab ] map concat
+[ nip assoc-empty? not ] assoc-filter .
 
 
-word def effect define-inline
-
-recompile - dup def>> { } map>assoc
-! modify-code-heap
 */
