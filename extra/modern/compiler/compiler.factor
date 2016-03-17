@@ -4,7 +4,8 @@ USING: accessors arrays assocs classes compiler.units
 constructors hash-sets hashtables io kernel make math
 modern.paths modern.quick-parser modern.syntax multiline
 namespaces prettyprint sequences sequences.deep sets sorting
-strings words.private fry combinators quotations words.symbol ;
+strings words.private fry combinators quotations words.symbol
+math.parser words.constant sequences.extras ;
 QUALIFIED-WITH: modern.syntax modern
 FROM: syntax => f inline ;
 QUALIFIED: words
@@ -72,8 +73,9 @@ CONSTRUCTOR: <linear-state> linear-state ( -- obj )
     [ linear-state get dict>> ] dip of ;
 
 : add-using ( in -- ) linear-state get using>> adjoin ;
-: set-in ( in -- ) linear-state get in<< ;
-: get-in ( -- obj ) linear-state get in>> ;
+: set-in ( in -- ) >string linear-state get in<< ;
+ERROR: no-in-form ;
+: get-in ( -- obj ) linear-state get in>> [ no-in-form ] unless* ;
 : get-dict ( -- obj ) linear-state get dict>> ;
 : set-private ( ? -- ) linear-state get private?<< ;
 : get-private ( -- obj ) linear-state get private?>> ;
@@ -204,7 +206,6 @@ ERROR: identifier-not-found name ;
     check-class check-word
     make-word [ record-word ] [ record-namespace ] [ ] tri ;
 
-
 : create-class ( string vocab -- class )
     check-class check-word
     make-class [ record-class ] [ record-namespace ] [ ] tri ;
@@ -215,19 +216,40 @@ ERROR: identifier-not-found name ;
 
 GENERIC: create-pass' ( obj -- )
 
-M: object create-pass' drop ;
-M: modern:singleton create-pass' [ object>> first >string ] [ in>> ] bi create-class drop ;
-M: modern:singletons create-pass' [ object>> first ] [ in>> ] bi '[ >string _ create-class drop ] each ;
-M: modern:symbol create-pass' [ object>> first >string ] [ in>> ] bi create-word drop ;
-M: modern:symbols create-pass' [ object>> first ] [ in>> ] bi '[ >string _ create-word drop ] each ;
+! M: object create-pass' drop ;
+M: modern:in create-pass' drop ;
+
+M: modern:singleton create-pass' object>> first >string get-in create-class drop ;
+M: modern:singletons create-pass' object>> first get-in '[ >string _ create-class drop ] each ;
+M: modern:symbol create-pass' object>> first >string get-in create-word drop ;
+M: modern:symbols create-pass' object>> first get-in '[ >string _ create-word drop ] each ;
+M: modern:constant create-pass' object>> first >string get-in create-word drop ;
 
 : create-pass ( parsed -- )
     [ create-pass' ] each ;
 
+: get-strings-from ( obj -- seq )
+    object>> first [ >string ] map ;
+
+: string>parsed ( object -- number/string/obj )
+    dup string>number [ nip ] [ ] if* ;
+
 
 GENERIC: define-pass' ( obj -- )
+
+ERROR: top-level-form-not-implemented slice string ;
+M: slice create-pass'
+    [ ] [ >string ] bi top-level-form-not-implemented ;
+
 M: modern:in define-pass' drop ;
+M: modern:using define-pass' drop ;
 M: modern:symbol define-pass' name-first lookup-in-linear-state define-symbol ;
+M: modern:symbols define-pass' object>> first [ >string lookup-in-linear-state define-symbol ] each ;
+M: modern:private-begin define-pass' drop ; !  define-pass' ;
+M: modern:constant define-pass'
+    object>> first2
+    [ >string lookup-in-linear-state ]
+    [ string>parsed ] bi* define-constant ;
 
 : define-pass ( parsed -- )
     [ define-pass' ] each ;
@@ -248,9 +270,11 @@ M: modern:symbol define-pass' name-first lookup-in-linear-state define-symbol ;
 : quick-compile-vocab ( name -- linear-state )
     qparse-vocab quick-compile ;
 
-: quick-compile-string ( name -- linear-state )
+: quick-compile-string ( string -- linear-state )
     qparse quick-compile ;
 
+: qcompile>words ( string -- linear-state words )
+    quick-compile-string dup dict>> values [ words>> values ] map-concat ;
 /*
 clear
 basis-source-files

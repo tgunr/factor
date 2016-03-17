@@ -7,7 +7,7 @@ io.encodings.utf8 io.files io.streams.string kernel lexer locals
 macros make math modern.paths multiline namespaces prettyprint
 sequences sequences.deep sequences.extras inspector
 sequences.generalizations sets shuffle strings unicode.case
-unicode.categories vectors vocabs.loader words ;
+unicode.categories vectors vocabs.loader words splitting ;
 QUALIFIED: parser
 QUALIFIED: lexer
 FROM: assocs => change-at ;
@@ -491,7 +491,9 @@ ERROR: token-expected-but-got-eof n string expected ;
 : quick-parse-vocab ( path -- sequence )
     modern-source-path quick-parse-path ;
 
+! XXX: better handling of .private?
 : qparse-vocab ( path -- seq )
+    ".private" ?tail drop
     vocab-source-path quick-parse-path ;
 
 GENERIC: >out ( obj -- string )
