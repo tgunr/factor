@@ -13,15 +13,6 @@ QUALIFIED: lexer
 FROM: assocs => change-at ;
 IN: modern.quick-parser
 
-/*
-clear
-0 "\"\\\"\""
-"!([{\"\s\r\n" take-until-either 1string .
-{ CHAR: \ CHAR: " } take-including-separator [ >string . ] 3dip 1string .
-drop read-string'
-*/
-
-
 SYMBOL: qparsers
 qparsers [ H{ } clone ] initialize
 
@@ -38,7 +29,6 @@ paren-literals [ H{ } clone ] initialize
     [ ?push members ] change-at ;
 
 : register-parser ( parser key -- ) qparsers get ?push-at ;
-
 : register-paren-literal ( parser -- ) dup name>> paren-literals get ?push-at ;
 : register-string-literal ( parser -- ) dup name>> string-literals get ?push-at ;
 : register-literal ( parser -- ) dup name>> literals get ?push-at ;
@@ -60,14 +50,11 @@ TUPLE: qsequence object slice in private? compilation-unit? decorators ;
         swap >>slice
         swap >>object ; inline
 
-TUPLE: literal < qsequence ;
+TUPLE: literal < qsequence opening ;
 TUPLE: paren-literal < literal ;
 
 TUPLE: compile-time-literal < literal ;
 TUPLE: run-time-literal < literal ;
-
-! TUPLE: character-literal < literal ;
-! TUPLE: escaped < literal ;
 
 TUPLE: string-literal < literal ;
 TUPLE: compile-time-long-string-literal < string-literal ;
@@ -147,27 +134,12 @@ DEFER: parse
 DEFER: parse-until'
 DEFER: parse-until
 : tag-lexed ( opening object ending class -- literal )
-    new
-    [
-        [ drop nip ] [
-            nip
-            [ from>> ]
-            [ [ to>> ] [ seq>> ] bi ] bi* <slice>
-        ] 3bi
-    ] dip
-        swap >>slice
-        swap >>object ; inline
-
-: tag-opening-lexed ( opening object class -- literal )
-    new
-    [
-        [ nip ] [
-            [ from>> ]
-            [ [ to>> ] [ seq>> ] bi ] bi* <slice>
-        ] 2bi
-    ] dip
-        swap >>slice
-        swap >>object ; inline
+    new [
+        [ nip [ from>> ] [ [ to>> ] [ seq>> ] bi ] bi* <slice> ] dip slice<<
+    ] 4keep
+        nip
+        swap >>object
+        swap >>opening ; inline
 
 ERROR: unknown-string-literal opening seq ending ;
 ERROR: unknown-character-literal opening seq ending ;
@@ -180,19 +152,6 @@ ERROR: unknown-long-string-literal opening seq ending ;
 : lookup-long-string ( obj -- class/f ) [ "[{=" member? ] trim-tail string-literals get choose-parser ;
 : lookup-literal ( obj -- class/f ) [ "{[(" member? ] trim-tail literals get choose-parser ;
 : lookup-paren-literal ( obj -- class/f ) [ CHAR: ( = ] trim-tail paren-literals get choose-parser ;
-
-/*
-: make-character ( opening contents ending -- seq/literal )
-    pick lookup-string [
-        character-literal tag-lexed
-    ] [
-        character-literal tag-lexed
-        ! unknown-string-literal
-    ] if ; inline
-
-: make-escaped ( opening contents -- literal )
-    escaped tag-opening-lexed ; inline
-*/
 
 : make-string ( opening contents ending -- seq/literal )
     pick lookup-string [
@@ -251,7 +210,7 @@ ERROR: closing-paren-expected last n string ;
         complete-token
     ] if ;
 
-: extend-slice ( slice n -- slice' )
+: modify-slice-length ( slice n -- slice' )
     [ [ from>> ] [ to>> ] [ seq>> ] tri ] dip
     swap [ + ] dip <slice> ;
 
@@ -265,16 +224,16 @@ ERROR: long-bracket-opening-mismatch tok n string ch ;
     ch {
         { CHAR: = [
             n string "[" take-including-separator :> ( tok2 n' string' ch )
-                ch CHAR: [ = [ tok n string ch long-bracket-opening-mismatch ]  unless
-        tok2 length 1 - CHAR: = <string> "]" "]" surround :> needle
+            ch CHAR: [ = [ tok n string ch long-bracket-opening-mismatch ]  unless
+            tok2 length 1 - CHAR: = <string> "]" "]" surround :> needle
 
             n' string' needle multiline-string-until' :> ( inside end n'' string'' )
-            tok tok2 length extend-slice  inside  end make-run-time-long-string n'' string
+            tok -1 modify-slice-length inside end make-run-time-long-string n'' string
 
         ] }
         { CHAR: [ [
             n 1 + string "]]" multiline-string-until' :> ( inside end n' string' )
-            tok 1 extend-slice  inside  end make-run-time-long-string n' string
+            tok -1 modify-slice-length  inside  end make-run-time-long-string n' string
         ] }
         [ [ tok n string ] dip long-bracket-opening-mismatch ]
     } case ;
@@ -289,11 +248,11 @@ ERROR: long-brace-opening-mismatch tok n string ch ;
             tok2 length 1 - CHAR: = <string> "}" "}" surround :> needle
 
             n' string' needle multiline-string-until' :> ( inside end n'' string'' )
-            tok tok2 length extend-slice  inside  end make-compile-time-long-string  n'' string
+            tok -1 modify-slice-length inside  end make-compile-time-long-string  n'' string
         ] }
         { CHAR: { [
             n 1 + string "}}" multiline-string-until' :> ( inside end n' string' )
-            tok 1 extend-slice  inside  end make-compile-time-long-string n' string
+            tok -1 modify-slice-length  inside  end make-compile-time-long-string n' string
         ] }
     } case ;
 
@@ -302,7 +261,7 @@ ERROR: closing-bracket-expected last n string ;
 : read-bracket ( last n string -- seq n' string )
     2dup ?nth [ closing-bracket-expected ] unless* {
         { [ dup "=[" member? ] [ read-long-bracket ] } ! double bracket, read [==[foo]==]
-        { [ dup blank? ] [ drop "]" parse-until' [ make-run-time-literal ] 2dip ] } ! regular[ word
+        { [ dup blank? ] [ drop "]" parse-until' [ [ -1 modify-slice-length ] 2dip make-run-time-literal ] 2dip ] } ! regular[ word
         [ drop complete-token ] ! something like [foo]
     } cond ;
 
@@ -310,7 +269,7 @@ ERROR: closing-brace-expected n string last ;
 : read-brace ( n string seq -- n' string seq )
     2dup ?nth [ closing-brace-expected ] unless* {
         { [ dup "={" member? ] [ read-long-brace ] } ! double brace read {=={foo}==}
-        { [ dup blank? ] [ drop "}" parse-until' [ make-compile-time-literal ] 2dip ] } ! regular{ word
+        { [ dup blank? ] [ drop "}" parse-until' [ [ -1 modify-slice-length ] 2dip make-compile-time-literal ] 2dip ] } ! regular{ word
         [ drop complete-token ] ! something like {foo}
     } cond ;
 
@@ -333,28 +292,6 @@ ERROR: string-expected-got-eof n string ;
     n' [ 1 - n' ] [ string length [ 2 - ] [ 1 - ] bi ] if* string <slice>
     make-string
     n' string ;
-
-/*
-ERROR: character-expected-got-eof n string ;
-: read-character' ( n string -- n' string )
-    over [
-        { CHAR: \ CHAR: ' } take-including-separator {
-            { f [ [ drop ] 2dip ] }
-            { CHAR: ' [ [ drop ] 2dip ] }
-            { CHAR: \ [ take-next-char drop [ drop ] 2dip read-character' ] }
-        } case
-    ] [
-        string-expected-got-eof
-    ] if ;
-
-:: read-character ( name n string -- seq n' string )
-    n string read-character' :> ( n' seq' )
-    name
-    n dup 1 + string <slice>
-    n' [ 1 - n' ] [ string length [ 2 - ] [ 1 - ] bi ] if* string <slice>
-    make-character
-    n' string ;
-*/
 
 : advance-1 ( n string -- n/f string )
     over [
@@ -508,7 +445,6 @@ M: string >out ;
     [ >out ] deep-map [ . ] each ;
 
 
-
 ! Writing
 GENERIC: write-parsed ( obj -- )
 M: qsequence write-parsed slice>> write ;
@@ -601,3 +537,47 @@ M: string print-it print ;
     [ [ slice? ] filter [ >string ] map ] assoc-map
     [ nip empty? not ] assoc-filter
     [ [ "====vocab: " write . ] [ print-it ] bi* ] assoc-each ;
+
+/*
+clear
+0 "\"\\\"\""
+"!([{\"\s\r\n" take-until-either 1string .
+{ CHAR: \ CHAR: " } take-including-separator [ >string . ] 3dip 1string .
+drop read-string'
+*/
+
+/*
+! TUPLE: character-literal < literal ;
+! TUPLE: escaped < literal ;
+
+: make-character ( opening contents ending -- seq/literal )
+    pick lookup-string [
+        character-literal tag-lexed
+    ] [
+        character-literal tag-lexed
+        ! unknown-string-literal
+    ] if ; inline
+
+: make-escaped ( opening contents -- literal )
+    escaped tag-opening-lexed ; inline
+
+ERROR: character-expected-got-eof n string ;
+: read-character' ( n string -- n' string )
+    over [
+        { CHAR: \ CHAR: ' } take-including-separator {
+            { f [ [ drop ] 2dip ] }
+            { CHAR: ' [ [ drop ] 2dip ] }
+            { CHAR: \ [ take-next-char drop [ drop ] 2dip read-character' ] }
+        } case
+    ] [
+        string-expected-got-eof
+    ] if ;
+
+:: read-character ( name n string -- seq n' string )
+    n string read-character' :> ( n' seq' )
+    name
+    n dup 1 + string <slice>
+    n' [ 1 - n' ] [ string length [ 2 - ] [ 1 - ] bi ] if* string <slice>
+    make-character
+    n' string ;
+*/

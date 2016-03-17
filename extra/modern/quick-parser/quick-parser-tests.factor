@@ -46,3 +46,27 @@ IN: modern.quick-parser.tests
 { t } [ "'a'" qparse length 1 = ] unit-test
 { t } [ "'\a'" qparse length 1 = ] unit-test
 { t } [ "'\aasdf'" qparse length 1 = ] unit-test
+
+
+{ "module" } [
+    "module[[IN: vocab0
+    : foo ( -- a ) 1 ;]]"
+    qparse first opening>> >string
+] unit-test
+
+{ "module" } [
+    "  module[==[IN: vocab0
+    : foo ( -- a ) 1 ;]==]"
+    qparse first opening>> >string
+] unit-test
+
+{ "data" } [ "data{{1 2 3}}" qparse first opening>> >string ] unit-test
+{ "data" } [ " data{{1 2 3}}" qparse first opening>> >string ] unit-test
+{ "data" } [ " data{ 1 2 3 }" qparse first opening>> >string ] unit-test
+{ "data" } [ " data[ 1 2 3 ]" qparse first opening>> >string ] unit-test
+
+{ "module" } [
+    "  module[==[IN: vocab0
+    : foo ( -- a ) 1 ;]==]"
+    qparse first opening>> >string
+] unit-test
