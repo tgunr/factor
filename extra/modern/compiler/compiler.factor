@@ -13,6 +13,20 @@ QUALIFIED: words
 QUALIFIED: vocabs
 IN: modern.compiler
 
+! dict is all vocabs
+TUPLE: linear-state { using hash-set } { namespace hashtable }
+in compilation-unit? private? last-word decorators dict ;
+CONSTRUCTOR: <linear-state> linear-state ( -- obj )
+    HS{ } clone >>using
+    H{ } clone >>namespace
+    V{ } clone >>decorators
+    10 <hashtable> >>dict ;
+
+: with-linear-state ( quot -- )
+    [ <linear-state> \ linear-state ] dip with-variable ; inline
+
+
+
 
 
 : words>named-hashtable ( seq -- hashtable )
@@ -85,15 +99,6 @@ CONSTRUCTOR: <qvocab> qvocab ( -- obj )
     100 <hashtable> >>words
     100 <hashtable> >>classes ;
 
-! dict is all vocabs
-TUPLE: linear-state { using hash-set } in compilation-unit? private? last-word decorators dict ;
-CONSTRUCTOR: <linear-state> linear-state ( -- obj )
-    HS{ } clone >>using
-    V{ } clone >>decorators
-    10 <hashtable> >>dict ;
-
-: with-linear-state ( quot -- )
-    [ <linear-state> \ linear-state ] dip with-variable ; inline
 
 : current-dict ( -- qvocab )
     linear-state get dict>> ;
@@ -107,7 +112,17 @@ CONSTRUCTOR: <linear-state> linear-state ( -- obj )
 : lookup-qvocab ( name -- qvocab )
     [ linear-state get dict>> ] dip of ;
 
-: add-using ( in -- ) linear-state get using>> adjoin ;
+: combine-namespaces ( namespace namespaces -- new-namespaces )
+    assoc-union
+    ;
+
+: add-old-to-namespace ( name -- )
+    vocabs:lookup-vocab words>> linear-state get
+    [ combine-namespaces ] change-namespace drop ;
+
+: add-using ( name -- )
+    [ linear-state get using>> adjoin ] [ add-old-to-namespace ] bi ;
+    
 : set-in ( in -- ) >string linear-state get in<< ;
 ERROR: no-in-form ;
 : get-in ( -- obj ) linear-state get in>> [ no-in-form ] unless* ;
@@ -172,11 +187,11 @@ M: object name-of drop f ;
     set-word-in transfer-decorators ;
 
 GENERIC: meta-pass' ( obj -- )
-! M: object meta-pass'
-!    dup name-of [
-!        transfer-state
-!        set-last-word
-!    ] [ drop ] if ;
+M: object meta-pass'
+   dup name-of [
+       transfer-state
+       set-last-word
+   ] [ drop ] if ;
 
 M: modern:using meta-pass' object>> first [ >string add-using ] each ;
 M: modern:use meta-pass' object>> first >string add-using ;
@@ -191,10 +206,6 @@ M: modern:inline meta-pass' add-decorator ;
 M: modern:recursive meta-pass' add-decorator ;
 M: modern:deprecated meta-pass' add-decorator ;
 M: modern:delimiter meta-pass' add-decorator ;
-
-
-M: builtin meta-pass' drop ;
-
 
 : meta-pass ( parsed -- )
     [ meta-pass' ] each transfer-state ;
@@ -277,8 +288,13 @@ M: modern:function create-pass' object>> first >string get-in create-word drop ;
 
 GENERIC: lookup-modern-word ( object -- word )
 
+ERROR: unknown-word word ;
 M: slice lookup-modern-word >string lookup-modern-word ;
-M: string lookup-modern-word B ;
+M: string lookup-modern-word
+    current-qvocab namespace>> ?at [
+    ] [
+        linear-state get namespace>> ?at [ unknown-word ] unless
+    ] if ;
 
 : string>parsed ( object -- number/string/obj )
     dup string>number [

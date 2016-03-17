@@ -491,13 +491,10 @@ ERROR: token-expected-but-got-eof n string expected ;
 : quick-parse-path ( path -- sequence )
     utf8 file-contents qparse ;
 
-: quick-parse-vocab ( path -- sequence )
-    modern-source-path quick-parse-path ;
-
 ! XXX: better handling of .private?
-: qparse-vocab ( path -- seq )
+: qparse-vocab ( path -- sequence )
     ".private" ?tail drop
-    vocab-source-path quick-parse-path ;
+    modern-source-path quick-parse-path ;
 
 GENERIC: >out ( obj -- string )
 
