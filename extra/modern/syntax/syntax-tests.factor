@@ -148,6 +148,13 @@ IN: modern.syntax.tests
 { 1 } [ 0 0 "SYMBOLS: a b c ;" qparse-symbols 2drop object>> length ] unit-test
 { 3 } [ 0 0 "SYMBOLS: a b c ;" qparse-symbols 2drop object>> first length ] unit-test
 
+{ } [ "CONSTANT: a b" qparse drop ] unit-test
+{ } [ "CONSTANT: a b " qparse drop ] unit-test
+{ } [ "CONSTANT: a \"b\"" qparse drop ] unit-test
+{ } [ "CONSTANT: a \"b\" " qparse drop ] unit-test
+{ } [ "CONSTANT: a 3" qparse drop ] unit-test
+{ } [ "CONSTANT: a 3 " qparse drop ] unit-test
+
 
 { t } [ "url\"factorcode.org\"" qparse first string-literal? ] unit-test
 { t } [ "url[[factorcode.org]]" qparse first run-time-long-string-literal? ] unit-test

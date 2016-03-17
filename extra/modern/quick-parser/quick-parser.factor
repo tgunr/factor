@@ -117,9 +117,12 @@ ERROR: subseq-expected-but-got-eof n string expected ;
 : multiline-string-until ( n string multi -- inside n' string )
     multiline-string-until' [ drop ] 2dip ; inline
 
-: take-next ( n string -- ch n string )
-    [ ?nth ]
-    [ [ 1 + ] dip ] 2bi ;
+: take-next-char ( n string -- n string ch )
+    2dup ?nth [
+        [ 1 + ] 2dip
+    ] [
+        f
+    ] if* ;
 
 : skip-blank ( n string -- n' string )
     [ [ blank? not ] find-from drop ] keep ; inline
@@ -317,7 +320,7 @@ ERROR: string-expected-got-eof n string ;
         { CHAR: \ CHAR: " } take-including-separator {
             { f [ [ drop ] 2dip ] }
             { CHAR: " [ [ drop ] 2dip ] }
-            { CHAR: \ [ take-next [ 2drop ] 2dip read-string' ] }
+            { CHAR: \ [ take-next-char drop [ drop ] 2dip read-string' ] }
         } case
     ] [
         string-expected-got-eof
@@ -338,7 +341,7 @@ ERROR: character-expected-got-eof n string ;
         { CHAR: \ CHAR: ' } take-including-separator {
             { f [ [ drop ] 2dip ] }
             { CHAR: ' [ [ drop ] 2dip ] }
-            { CHAR: \ [ take-next [ 2drop ] 2dip read-character' ] }
+            { CHAR: \ [ take-next-char drop [ drop ] 2dip read-character' ] }
         } case
     ] [
         string-expected-got-eof
@@ -373,7 +376,7 @@ DEFER: token
 
 ERROR: whitespace-expected-after-string n string ch ;
 : skip-space-after-string ( n string -- n' string )
-    take-next rot [
+    take-next-char [
         dup blank?
         [ drop ]
         [ whitespace-expected-after-string ] if
