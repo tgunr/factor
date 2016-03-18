@@ -1,6 +1,7 @@
 ! Copyright (C) 2015 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel modern.quick-parser sequences tools.test ;
+USING: accessors kernel modern.quick-parser sequences strings
+tools.test ;
 IN: modern.quick-parser.tests
 
 { t } [ "(a)" qparse length 1 = ] unit-test
