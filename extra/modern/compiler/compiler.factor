@@ -26,9 +26,6 @@ CONSTRUCTOR: <linear-state> linear-state ( -- obj )
     [ <linear-state> \ linear-state ] dip with-variable ; inline
 
 
-
-
-
 : words>named-hashtable ( seq -- hashtable )
     [ { [ words:primitive? ] [ builtin-class? ] } 1|| ] filter
     [ [ name>> ] keep ] H{ } map>assoc ;
@@ -278,6 +275,8 @@ M: modern:symbols create-pass' object>> first get-in '[ >string _ create-word dr
 M: modern:constant create-pass' object>> first >string get-in create-word drop ;
 M: modern:function create-pass' object>> first >string get-in create-word drop ;
 
+M: run-time-long-string-literal create-pass' drop ;
+
 ! M: modern:builtin create-pass'     object>> first >string get-in words:lookup-word ;
 
 : create-pass ( parsed -- )
@@ -325,6 +324,8 @@ M: modern:function define-pass'
     [ >string lookup-in-linear-state ]
     [ [ >string string>parsed ] map ]
     [ object>> [ >string ] map { "--" } split1 <effect> ] tri* words:define-declared ;
+
+M: run-time-long-string-literal define-pass' drop ;
 
 : define-pass ( parsed -- )
     [ define-pass' ] each ;
