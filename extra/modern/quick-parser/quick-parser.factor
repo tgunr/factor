@@ -80,10 +80,9 @@ TUPLE: run-time-long-string-literal < string-literal ;
     n n' string ?<slice>
     n' string ch ; inline
 
-! If it's whitespace or comment char, don't include it in the slice
 :: take-until-either ( n string tokens -- slice/f n' string ch )
     n string '[ tokens member? ] find-from
-    dup "!\s\r\n" member? [
+    dup "\s\r\n" member? [
         :> ( n' ch )
         n n' string ?<slice>
         n' string ch
@@ -303,7 +302,6 @@ ERROR: string-expected-got-eof n string ;
 
 DEFER: token
 : take-comment ( tok n string -- n' string )
-    [ 1 + ] dip
     2dup ?nth CHAR: [ = [
         [ 1 + ] dip 2dup ?nth read-long-bracket
         [ drop ] 2dip
@@ -329,7 +327,7 @@ DEFER: raw
             ! "\\!([{\"'\s\r\n" take-until-either {
             "!([{\"\s\r\n" take-until-either {
                 { f [ [ drop f ] dip ] } ! XXX: what here
-                { CHAR: ! [ pick { [ empty? ] [ "#" sequence= ] } 1|| [ take-comment token ] [ complete-token ] if ] }
+                { CHAR: ! [ pick { [ "!" sequence= ] [ "#!" sequence= ] } 1|| [ take-comment token ] [ complete-token ] if ] }
                 { CHAR: ( [ read-paren ] }
                 { CHAR: [ [ read-bracket ] }
                 { CHAR: { [ read-brace ] }
