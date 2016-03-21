@@ -3,16 +3,19 @@
 USING: accessors arrays assocs assocs.private classes.builtin
 combinators.short-circuit constructors hash-sets hashtables
 kernel locals modern.paths multiline namespaces sequences
-splitting ;
+splitting fry ;
 QUALIFIED: words
 QUALIFIED: vocabs
 IN: modern.vocabs
 
 ! dict is all vocabs
-TUPLE: linear-state { using hash-set } { namespace hashtable }
+TUPLE: linear-state { using hash-set }
+{ using-namespace hashtable }
+{ namespace hashtable }
 in compilation-unit? private? last-word decorators dict ;
 CONSTRUCTOR: <linear-state> linear-state ( -- obj )
     HS{ } clone >>using
+    H{ } clone >>using-namespace
     H{ } clone >>namespace
     V{ } clone >>decorators
     10 <hashtable> >>dict ;
@@ -51,8 +54,6 @@ DEFER: quick-compile-vocab
         [ quick-compile-vocab ] keep \ modern-vocabs get [ set-at ] 3keep 2drop
     ] if ;
 
-: hashtables>hashtable ( hashtables -- hashtable )
-    [ H{ } clone ] dip [ over [ push-at ] with-assoc assoc-each ] each ; inline
 
 ERROR: key-already-exists value key assoc ;
 : set-once-at ( value key assoc -- )

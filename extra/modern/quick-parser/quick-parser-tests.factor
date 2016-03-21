@@ -1,7 +1,8 @@
 ! Copyright (C) 2015 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel modern.compiler modern.quick-parser
-sequences strings tools.test ;
+USING: accessors arrays assocs kernel modern.compiler
+modern.quick-parser modern.vocabs multiline sequences strings
+tools.test ;
 IN: modern.quick-parser.tests
 
 { t } [ "(a)" qparse length 1 = ] unit-test

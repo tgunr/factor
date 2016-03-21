@@ -6,7 +6,7 @@ modern.paths modern.quick-parser modern.syntax multiline
 namespaces prettyprint sequences sequences.deep sets sorting
 strings words.private fry combinators quotations words.symbol
 math.parser words.constant sequences.extras splitting effects
-classes.builtin combinators.short-circuit modern.vocabs ;
+classes.builtin combinators.short-circuit modern.vocabs assocs.private ;
 QUALIFIED-WITH: modern.syntax modern
 FROM: syntax => f inline ;
 QUALIFIED: words
@@ -64,16 +64,21 @@ IN: modern.compiler
 : lookup-qvocab ( name -- qvocab )
     [ linear-state get dict>> ] dip of ;
 
-: combine-namespaces ( namespace namespaces -- new-namespaces )
-    assoc-union
-    ;
-
 : add-old-to-namespace ( name -- )
     vocabs:lookup-vocab words>> linear-state get
-    [ combine-namespaces ] change-namespace drop ;
+    [ assoc-union ] change-namespace drop ;
+
+: hashtables>hashtable ( hashtables -- hashtable )
+    [ H{ } clone ] dip [ over [ push-at ] with-assoc assoc-each ] each ; inline
+
+: make-using-namespace ( linear-state -- )
+    [
+        using>> members [ vocabs:lookup-vocab words>> ] map hashtables>hashtable
+    ] keep using-namespace<< ;
+    
 
 : add-using ( name -- )
-    [ linear-state get using>> adjoin ] [ add-old-to-namespace ] bi ;
+    linear-state get using>> adjoin ;
     
 : set-in ( in -- ) >string linear-state get in<< ;
 ERROR: no-in-form ;
@@ -241,14 +246,18 @@ M: run-time-long-string-literal create-pass drop ;
 
 GENERIC: lookup-modern-word ( object -- word )
 
+: lookup-in-using ( string -- word/f )
+    linear-state get
+    [ make-using-namespace ] [ using-namespace>> ] bi at ;
+
+: lookup-in-namespace ( string -- word/f )
+    linear-state get
+    namespace>> at ;
+
 ERROR: unknown-word word ;
 M: slice lookup-modern-word >string lookup-modern-word ;
 M: string lookup-modern-word
-    current-qvocab namespace>> ?at [
-    ] [
-        linear-state get namespace>> ?at [ unknown-word ] unless
-    ] if ;
-
+    [ lookup-in-using ] [ lookup-in-namespace ] bi [ suffix ] when* ; 
 
 DEFER: quick-compile-string
 ERROR: unknown-long-string payload tag ;
