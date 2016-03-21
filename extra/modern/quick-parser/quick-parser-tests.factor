@@ -1,7 +1,7 @@
 ! Copyright (C) 2015 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel modern.quick-parser sequences strings
-tools.test ;
+USING: accessors kernel modern.compiler modern.quick-parser
+sequences strings tools.test ;
 IN: modern.quick-parser.tests
 
 { t } [ "(a)" qparse length 1 = ] unit-test
@@ -70,4 +70,47 @@ IN: modern.quick-parser.tests
     "  module[==[IN: vocab0
     : foo ( -- a ) 1 ;]==]"
     qparse first opening>> >string
+] unit-test
+
+
+/*
+{ } [
+"IN: scratchpad
+
+CONSTANT: vocab0 vocab[[
+    IN: vocab0
+    CONSTANT: a 0
+]]
+
+CONSTANT: vocab1 vocab[[
+    IN: vocab1
+    CONSTANT: a 1
+]]
+
+CONSTANT: vocab2 vocab[[
+    IN: vocab2
+    CONSTANT: a 2
+]]
+
+CONSTANT: vocab3 vocab[[
+    IN: vocab3
+    CONSTANT: a 3
+]]
+" quick-compile-string drop
+] unit-test
+*/
+
+{ } [
+"IN: vocab0
+CONSTANT: a 0
+
+IN: vocab1
+CONSTANT: a 1
+
+IN: vocab2
+CONSTANT: a 2
+
+IN: vocab3
+CONSTANT: a 3
+" quick-compile-string
 ] unit-test

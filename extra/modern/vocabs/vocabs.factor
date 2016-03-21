@@ -1,6 +1,6 @@
 ! Copyright (C) 2016 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs classes.builtin
+USING: accessors arrays assocs assocs.private classes.builtin
 combinators.short-circuit constructors hash-sets hashtables
 kernel modern.paths namespaces sequences splitting ;
 QUALIFIED: words
@@ -49,10 +49,9 @@ DEFER: quick-compile-vocab
     ] [
         [ quick-compile-vocab ] keep \ modern-vocabs get [ set-at ] 3keep 2drop
     ] if ;
-TUPLE: qvocab namespace words classes ;
-CONSTRUCTOR: <qvocab> qvocab ( -- obj )
-    100 <hashtable> >>namespace
-    100 <hashtable> >>words
-    100 <hashtable> >>classes ;
 
+: hashtables>hashtable ( hashtables -- hashtable )
+    [ H{ } clone ] dip [ over [ push-at ] with-assoc assoc-each ] each ; inline
 
+: vocabs>namespace ( vocabs -- namespace )
+    [ words>> ] map hashtables>hashtable ;

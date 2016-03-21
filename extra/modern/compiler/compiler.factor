@@ -13,9 +13,6 @@ QUALIFIED: words
 QUALIFIED: vocabs
 IN: modern.compiler
 
-
-
-
 : path>parsers ( name -- seq )
     quick-parse-path
     [ [ class-of , ] deep-each ] { } make members ;
@@ -58,7 +55,7 @@ IN: modern.compiler
     linear-state get [ dict>> ] [ in>> ] bi of ;
 
 : make-qvocab ( name -- )
-    [ <qvocab> ] dip linear-state get dict>> set-at ;
+    [ H{ } clone ] dip linear-state get dict>> set-at ;
 
 : lookup-qvocab ( name -- qvocab )
     [ linear-state get dict>> ] dip of ;
@@ -137,45 +134,48 @@ M: object name-of drop f ;
     set-word-private
     set-word-in transfer-decorators ;
 
-GENERIC: meta-pass' ( obj -- )
-M: object meta-pass'
+GENERIC: meta-pass ( obj -- )
+M: object meta-pass
    dup name-of [
        transfer-state
        set-last-word
    ] [ drop ] if ;
 
-M: modern:using meta-pass' object>> first [ >string add-using ] each ;
-M: modern:use meta-pass' object>> first >string add-using ;
-M: modern:in meta-pass' object>> first >string [ set-in ] [ make-qvocab ] bi ;
-M: modern:private-begin meta-pass' drop t set-private ;
-M: modern:private-end meta-pass' drop f set-private ;
+M: modern:using meta-pass object>> first [ >string add-using ] each ;
+M: modern:use meta-pass object>> first >string add-using ;
+M: modern:in meta-pass object>> first >string [ set-in ] [ make-qvocab ] bi ;
+M: modern:private-begin meta-pass drop t set-private ;
+M: modern:private-end meta-pass drop f set-private ;
 
-M: modern:final meta-pass' add-decorator ;
-M: modern:foldable meta-pass' add-decorator ;
-M: modern:flushable meta-pass' add-decorator ;
-M: modern:inline meta-pass' add-decorator ;
-M: modern:recursive meta-pass' add-decorator ;
-M: modern:deprecated meta-pass' add-decorator ;
-M: modern:delimiter meta-pass' add-decorator ;
+M: modern:final meta-pass add-decorator ;
+M: modern:foldable meta-pass add-decorator ;
+M: modern:flushable meta-pass add-decorator ;
+M: modern:inline meta-pass add-decorator ;
+M: modern:recursive meta-pass add-decorator ;
+M: modern:deprecated meta-pass add-decorator ;
+M: modern:delimiter meta-pass add-decorator ;
 
-: meta-pass ( parsed -- )
-    [ meta-pass' ] each transfer-state ;
 
 
 ERROR: class-already-exists name vocaab ;
 ERROR: no-vocab name vocab ;
 : check-class ( name vocab -- name vocab )
-    dup [ no-vocab ] unless
+    ;
+    /* dup [ no-vocab ] unless
     2dup lookup-qvocab classes>> key? [
         class-already-exists
     ] when ;
+    */
 
 ERROR: word-already-exists name vocab ;
 : check-word ( name vocab -- name vocab )
+    ;
+    /*
     dup [ no-vocab ] unless
     2dup lookup-qvocab words>> key? [
         word-already-exists
     ] when ;
+    */
 
 ! XXX: module repository
 : word-hashcode ( name vocab -- hashcode )
@@ -188,17 +188,17 @@ ERROR: word-already-exists name vocab ;
     dup t "class" words:set-word-prop ;
 
 : record-word ( word -- )
-    dup name>> current-qvocab words>> set-at ;
+    dup name>> current-qvocab set-at ;
 
 : record-class ( word -- )
     dup name>> current-qvocab classes>> set-at ;
 
 : record-namespace ( word -- )
-    dup name>> current-qvocab namespace>> set-at ;
+    dup name>> current-qvocab set-at ;
 
 ERROR: identifier-not-found name ;
 : lookup-in-linear-state ( name -- word )
-    current-qvocab namespace>> ?at [ identifier-not-found ] unless ;
+    current-qvocab ?at [ identifier-not-found ] unless ;
 
 : make-class ( name vocab -- class )
     make-word add-class-prop ;
@@ -215,26 +215,24 @@ ERROR: identifier-not-found name ;
     check-class check-word
     make-class { [ record-word ] [ record-class ] [ record-namespace ] [ ] } cleave ;
 
-GENERIC: create-pass' ( obj -- )
+GENERIC: create-pass ( obj -- )
 
-! M: object create-pass' drop ;
-M: modern:use create-pass' drop ;
-M: modern:using create-pass' drop ;
-M: modern:in create-pass' drop ;
+! M: object create-pass drop ;
+M: modern:use create-pass drop ;
+M: modern:using create-pass drop ;
+M: modern:in create-pass drop ;
 
-M: modern:singleton create-pass' object>> first >string get-in create-class drop ;
-M: modern:singletons create-pass' object>> first get-in '[ >string _ create-class drop ] each ;
-M: modern:symbol create-pass' object>> first >string get-in create-word drop ;
-M: modern:symbols create-pass' object>> first get-in '[ >string _ create-word drop ] each ;
-M: modern:constant create-pass' object>> first >string get-in create-word drop ;
-M: modern:function create-pass' object>> first >string get-in create-word drop ;
+M: modern:singleton create-pass object>> first >string get-in create-class drop ;
+M: modern:singletons create-pass object>> first get-in '[ >string _ create-class drop ] each ;
+M: modern:symbol create-pass object>> first >string get-in create-word drop ;
+M: modern:symbols create-pass object>> first get-in '[ >string _ create-word drop ] each ;
+M: modern:constant create-pass object>> first >string get-in create-word drop ;
+M: modern:function create-pass object>> first >string get-in create-word drop ;
 
-M: run-time-long-string-literal create-pass' drop ;
+M: run-time-long-string-literal create-pass drop ;
 
-! M: modern:builtin create-pass'     object>> first >string get-in words:lookup-word ;
+! M: modern:builtin create-pass     object>> first >string get-in words:lookup-word ;
 
-: create-pass ( parsed -- )
-    [ create-pass' ] each ;
 
 : get-strings-from ( obj -- seq )
     object>> first [ >string ] map ;
@@ -254,7 +252,8 @@ DEFER: quick-compile-string
 ERROR: unknown-long-string payload tag ;
 : handle-long-string ( payload tag -- obj )
     {
-        { "module" [ quick-compile-string dict>> ] }
+        { "module" [ quick-compile-string ] }
+        { "vocab" [ quick-compile-string ] }
         [ unknown-long-string ]
     } case ;
 
@@ -269,50 +268,46 @@ M: run-time-long-string-literal string>parsed
 
 
 
-GENERIC: define-pass' ( obj -- )
+GENERIC: define-pass ( obj -- )
 
 ERROR: top-level-form-not-implemented slice string ;
-M: slice create-pass'
+M: slice create-pass
     [ ] [ >string ] bi top-level-form-not-implemented ;
 
-M: modern:in define-pass' drop ;
-M: modern:use define-pass' drop ;
-M: modern:using define-pass' drop ;
-M: modern:symbol define-pass' name-first lookup-in-linear-state define-symbol ;
-M: modern:symbols define-pass' object>> first [ >string lookup-in-linear-state define-symbol ] each ;
-M: modern:private-begin define-pass' drop ; !  define-pass' ;
-M: modern:constant define-pass'
+M: modern:in define-pass drop ;
+M: modern:use define-pass drop ;
+M: modern:using define-pass drop ;
+M: modern:symbol define-pass name-first lookup-in-linear-state define-symbol ;
+M: modern:symbols define-pass object>> first [ >string lookup-in-linear-state define-symbol ] each ;
+M: modern:private-begin define-pass drop ; !  define-pass ;
+M: modern:constant define-pass
     object>> first2
     [ >string lookup-in-linear-state ]
     [ string>parsed ] bi* define-constant ;
-M: modern:function define-pass'
+M: modern:function define-pass
     object>> first3 swap
     [ >string lookup-in-linear-state ]
     [ [ >string string>parsed ] map ]
     [ object>> [ >string ] map { "--" } split1 <effect> ] tri* words:define-declared ;
 
-M: run-time-long-string-literal define-pass' drop ;
+M: run-time-long-string-literal define-pass drop ;
 
-: define-pass ( parsed -- )
-    [ define-pass' ] each ;
 
-: quick-compile ( seq -- linear-state )
+: quick-compile ( seq -- vocabs )
     [
         [
-            [ meta-pass ]
-            [ create-pass ]
-            [ define-pass ] tri
-            current-qvocab namespace>> values
+            [ [ meta-pass ] [ create-pass ] [ define-pass ] tri ] each
+            current-qvocab values
             [ "compiling words:" print . ]
             [ compile ] bi
-            linear-state get
+            linear-state get dict>>
         ] with-linear-state
     ] with-compilation-unit ;
 
-: quick-compile-vocab ( name -- linear-state )
+: quick-compile-vocab ( name -- vocabs )
     qparse-vocab quick-compile ;
 
-: quick-compile-string ( string -- linear-state )
+: quick-compile-string ( string -- vocabs )
     qparse quick-compile ;
 
 : linear-state>words ( linear-state -- words )
