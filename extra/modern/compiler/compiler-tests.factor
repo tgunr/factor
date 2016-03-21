@@ -3,22 +3,38 @@
 USING: kernel modern.compiler tools.test ;
 IN: modern.compiler.tests
 
-
-{ } [
-"IN: scratchpad2
-SYMBOL: a"
-quick-compile-string drop
+{
+    H{ { "scratchpad2" { "a" } } }
+} [
+    "IN: scratchpad2
+    SYMBOL: a"
+    quick-compile-string vocab>printable
 ] unit-test
 
-{ } [
-"IN: scratchpad2
-SYMBOLS: b c ;"
-quick-compile-string drop
+{
+    H{ { "scratchpad2" { "b" "c" } } }
+} [
+    "IN: scratchpad2
+    SYMBOLS: b c ;"
+    quick-compile-string vocab>printable
 ] unit-test
 
-{ } [
-"IN: scratchpad2
-USE: math
-: add ( a b -- c ) + ;"
-quick-compile-string drop
+{
+    H{ { "scratchpad2" { "add" } } }
+} [
+    "IN: scratchpad2
+    USE: math
+    : add ( a b -- c ) + ;"
+    quick-compile-string vocab>printable
+] unit-test
+
+
+{
+    H{ { "omg" { "a" } } { "lol" { "b" } } }
+} [
+    "IN: omg
+    CONSTANT: a 1
+    IN: lol
+    CONSTANT: b 2 "
+    quick-compile-string vocab>printable
 ] unit-test

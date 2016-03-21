@@ -197,8 +197,7 @@ ERROR: no-vocab name vocab ;
 : record-word ( word -- )
     dup name>> current-qvocab set-at ;
 
-: record-class ( word -- )
-    dup name>> current-qvocab classes>> set-at ;
+! : record-class ( word -- ) dup name>> current-qvocab classes>> set-at ;
 
 : record-namespace ( word -- )
     dup name>> current-qvocab set-at ;
@@ -216,11 +215,11 @@ ERROR: identifier-not-found name ;
 
 : create-class ( string vocab -- class )
     check-class check-word
-    make-class [ record-class ] [ record-namespace ] [ ] tri ;
+    make-class [ record-namespace ] [ ] bi ;
 
 : create-class-word ( string vocab -- class )
     check-class check-word
-    make-class { [ record-word ] [ record-class ] [ record-namespace ] [ ] } cleave ;
+    make-class { [ record-word ] [ record-namespace ] [ ] } cleave ;
 
 GENERIC: create-pass ( obj -- )
 
@@ -327,6 +326,11 @@ M: run-time-long-string-literal define-pass drop ;
 : qcompile>words ( string -- linear-state words )
     quick-compile-string dup linear-state>words ;
 
+: vocab>printable ( hashtable -- hashtable )
+    [ keys ] assoc-map ;
+
+: vocabs>printable ( seq -- seq' )
+    [ vocab>printable ] map ;
 
 /*
 ! Find all primitives/builtin classes
