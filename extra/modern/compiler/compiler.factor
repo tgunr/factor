@@ -295,12 +295,24 @@ M: string lookup-modern-word
         linear-state get namespace>> ?at [ unknown-word ] unless
     ] if ;
 
-: string>parsed ( object -- number/string/obj )
-    dup string>number [
-        nip
-    ] [
-        lookup-modern-word
-    ] if* ;
+
+DEFER: quick-compile-string
+ERROR: unknown-long-string payload tag ;
+: handle-long-string ( payload tag -- obj )
+    {
+        { "module" [ quick-compile-string dict>> ] }
+        [ unknown-long-string ]
+    } case ;
+
+
+GENERIC: string>parsed ( object -- number/string/obj )
+M: slice string>parsed >string string>parsed ;
+M: string string>parsed
+    dup string>number [ nip ] [ lookup-modern-word ] if* ;
+
+M: run-time-long-string-literal string>parsed
+    [ object>> >string ] [ opening>> >string ] bi handle-long-string ;
+
 
 
 GENERIC: define-pass' ( obj -- )
