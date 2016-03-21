@@ -17,7 +17,6 @@ LEXER: regexp-# R# "#" multiline-string-until ;
 LEXER: regexp-' R' "'" multiline-string-until ;
 LEXER: regexp-( R( "(" multiline-string-until ;
 LEXER: regexp-@ R@ "@" multiline-string-until ;
-LEXER: regexp-` R` "`" multiline-string-until ;
 LEXER: regexp-| R| "|" multiline-string-until ;
 LEXER: regexp-! R! "!" multiline-string-until ;
 
