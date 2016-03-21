@@ -165,7 +165,6 @@ LEXER: ebnf-acute <EBNF token "EBNF>" multiline-string-until ; ! going away
 LEXER: literate <LITERATE "LITERATE>" multiline-string-until ;
 LEXER: xml-acute <XML "XML>" multiline-string-until ;
 
-LEXER: backtick ` "`" multiline-string-until ;
 LEXER: applescript APPLESCRIPT: new-word ";APPLESCRIPT" multiline-string-until ;
 LEXER: long-string STRING: token "\n;" multiline-string-until ;
 LEXER: glsl-shader GLSL-SHADER: token token "\n;" multiline-string-until ;
@@ -178,7 +177,7 @@ LEXER: c-array@ c-array@ parse parse parse ; ! [[ ]]
 ! words:
 LEXER: function : new-word parse body ;
 LEXER: function-locals :: new-word parse body ;
-LEXER: alias ALIAS: raw raw ;
+LEXER: alias ALIAS: new-word existing-word ;
 LEXER: typed TYPED: new-word parse body ;
 LEXER: typed-locals TYPED:: new-word parse body ;
 LEXER: memo MEMO: new-word parse body ;
@@ -199,8 +198,8 @@ LEXER: functor-syntax FUNCTOR-SYNTAX: token body ;
 LEXER: generic GENERIC: new-class parse ;
 LEXER: generic# GENERIC# new-class token parse ;
 LEXER: hook HOOK: new-class existing-word parse ;
-LEXER: method M: parse existing-word body ;
-LEXER: method-locals M:: parse existing-word body ;
+LEXER: method M: existing-class existing-word body ;
+LEXER: method-locals M:: existing-class existing-word body ;
 LEXER: math MATH: new-word parse ;
 LEXER: pair-generic PAIR-GENERIC: new-class parse ;
 LEXER: pair-m PAIR-M: existing-class existing-class existing-word body ;
@@ -214,8 +213,8 @@ LEXER: infix-locals INFIX:: new-word parse body ;
 
 
 LEXER: constant CONSTANT: token parse ;
-LEXER: symbol SYMBOL: token ;
-LEXER: symbols SYMBOLS: ";" raw-until ;
+LEXER: symbol SYMBOL: raw ;
+LEXER: symbols SYMBOLS: new-words ;
 LEXER: postpone POSTPONE: raw ;
 LEXER: defer DEFER: token ;
 LEXER: char CHAR: raw ;
@@ -377,7 +376,7 @@ LEXER: bind :> parse-bind ;
 
 ! words\
 LEXER: escaped \ raw ;
-LEXER: method-literal M\ token token ;
+LEXER: method-literal M\ existing-class existing-word ;
 
 ! funky readahead one, need this for things like CONSTANT: foo $ init-foo
 ! XXX: Maybe call it $: instead.

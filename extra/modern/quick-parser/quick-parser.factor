@@ -338,18 +338,22 @@ DEFER: raw
         [ drop f f ] dip
     ] if ; inline recursive
 
-: new-class ( n/f string -- token n'/f string ) token ;
-: new-word ( n/f string -- token n'/f string ) token ;
-: existing-class ( n/f string -- token n'/f string ) token ;
-: existing-word ( n/f string -- token n'/f string ) token ;
-: body ( n/f string -- seq n'/f string ) ";" parse-until ;
-
 : raw ( n/f string -- slice/f n'/f string )
     over [
         skip-blank take-until-whitespace drop
     ] [
         [ drop f f ] dip
     ] if ;
+
+: new-class ( n/f string -- token n'/f string ) raw ;
+: new-word ( n/f string -- token n'/f string ) raw ;
+: existing-class ( n/f string -- token n'/f string ) raw ;
+: existing-word ( n/f string -- token n'/f string ) raw ;
+DEFER: raw-until
+: new-words ( n/f string -- seq n'/f string ) ";" raw-until ;
+: body ( n/f string -- seq n'/f string ) ";" parse-until ;
+
+
 
 ! XXX: simplify
 ERROR: expected-error got expected ;

@@ -100,17 +100,20 @@ CONSTANT: vocab3 vocab[[
 ] unit-test
 */
 
-{ } [
+{
+    { "vocab0" "vocab1" "vocab2" "vocab3" }
+} [
 "IN: vocab0
 CONSTANT: a 0
 
 IN: vocab1
-CONSTANT: a 1
+CONSTANT: b 1" quick-compile-string
 
-IN: vocab2
-CONSTANT: a 2
+"IN: vocab2
+CONSTANT: c 2
 
 IN: vocab3
-CONSTANT: a 3
-" quick-compile-string
+CONSTANT: d 3" quick-compile-string
+
+2array join-vocabs keys
 ] unit-test

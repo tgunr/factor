@@ -2,7 +2,8 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs assocs.private classes.builtin
 combinators.short-circuit constructors hash-sets hashtables
-kernel modern.paths namespaces sequences splitting ;
+kernel locals modern.paths multiline namespaces sequences
+splitting ;
 QUALIFIED: words
 QUALIFIED: vocabs
 IN: modern.vocabs
@@ -53,5 +54,27 @@ DEFER: quick-compile-vocab
 : hashtables>hashtable ( hashtables -- hashtable )
     [ H{ } clone ] dip [ over [ push-at ] with-assoc assoc-each ] each ; inline
 
-: vocabs>namespace ( vocabs -- namespace )
-    [ words>> ] map hashtables>hashtable ;
+ERROR: key-already-exists value key assoc ;
+: set-once-at ( value key assoc -- )
+    2dup key? [ key-already-exists ] [ set-at ] if ;
+
+! Make a new hashtable where keys are vocab names and values are hashtables of name,word pairs
+:: join-vocabs ( vocabs -- vocabs' )
+    H{ } clone :> out
+    vocabs [
+        [
+            :> ( key value )
+            key out ?at [
+                :> vocab
+                value [ swap vocab set-once-at ] assoc-each
+            ] [
+                H{ } clone dup :> vocab swap out set-at
+                value [ swap vocab set-once-at ] assoc-each
+            ] if
+        ] assoc-each
+    ] each out ;
+
+: vocabs>namespace ( hashtable -- namespace )
+    [ H{ } clone ] dip over '[
+        nip [ swap _ push-at ] assoc-each
+    ] assoc-each ;

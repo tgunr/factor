@@ -55,7 +55,11 @@ IN: modern.compiler
     linear-state get [ dict>> ] [ in>> ] bi of ;
 
 : make-qvocab ( name -- )
-    [ H{ } clone ] dip linear-state get dict>> set-at ;
+    linear-state get dict>> ?at [
+        drop
+    ] [
+        [ H{ } clone ] dip linear-state get dict>> set-at
+    ] if ;
 
 : lookup-qvocab ( name -- qvocab )
     [ linear-state get dict>> ] dip of ;
@@ -158,24 +162,22 @@ M: modern:delimiter meta-pass add-decorator ;
 
 
 ERROR: class-already-exists name vocaab ;
+ERROR: word-already-exists name vocab ;
+ERROR: symbol-already-exists name vocab ;
+
 ERROR: no-vocab name vocab ;
 : check-class ( name vocab -- name vocab )
-    ;
-    /* dup [ no-vocab ] unless
-    2dup lookup-qvocab classes>> key? [
-        class-already-exists
-    ] when ;
-    */
-
-ERROR: word-already-exists name vocab ;
-: check-word ( name vocab -- name vocab )
-    ;
-    /*
     dup [ no-vocab ] unless
-    2dup lookup-qvocab words>> key? [
-        word-already-exists
+    2dup lookup-qvocab key? [
+        symbol-already-exists
     ] when ;
-    */
+
+: check-word ( name vocab -- name vocab )
+    dup [ no-vocab ] unless
+    2dup lookup-qvocab key? [
+        symbol-already-exists
+    ] when ;
+
 
 ! XXX: module repository
 : word-hashcode ( name vocab -- hashcode )
