@@ -1,0 +1,58 @@
+! Copyright (C) 2016 Doug Coleman.
+! See http://factorcode.org/license.txt for BSD license.
+USING: accessors arrays assocs classes.builtin
+combinators.short-circuit constructors hash-sets hashtables
+kernel modern.paths namespaces sequences splitting ;
+QUALIFIED: words
+QUALIFIED: vocabs
+IN: modern.vocabs
+
+! dict is all vocabs
+TUPLE: linear-state { using hash-set } { namespace hashtable }
+in compilation-unit? private? last-word decorators dict ;
+CONSTRUCTOR: <linear-state> linear-state ( -- obj )
+    HS{ } clone >>using
+    H{ } clone >>namespace
+    V{ } clone >>decorators
+    10 <hashtable> >>dict ;
+
+: with-linear-state ( quot -- )
+    [ <linear-state> \ linear-state ] dip with-variable ; inline
+
+
+: words>named-hashtable ( seq -- hashtable )
+    [ { [ words:primitive? ] [ builtin-class? ] } 1|| ] filter
+    [ [ name>> ] keep ] H{ } map>assoc ;
+
+: prepopulate-vocab ( name -- public private )
+    ".private" ?tail drop
+    [ dup vocabs:vocab-words words>named-hashtable 2array ]
+    [ ".private" append dup vocabs:vocab-words words>named-hashtable 2array ] bi 2array ;
+
+
+: prepopulate-vocabs ( -- hashtable )
+    core-bootstrap-vocabs [ prepopulate-vocab ] map concat
+    [ nip assoc-empty? not ] assoc-filter ;
+
+SYMBOL: prepopulated-vocabs
+
+\ prepopulated-vocabs [
+    prepopulate-vocabs >hashtable
+] initialize
+
+SYMBOL: modern-vocabs
+
+DEFER: quick-compile-vocab
+
+: get-modern-vocab ( string -- vocab/f )
+    modern-vocabs get ?at [
+    ] [
+        [ quick-compile-vocab ] keep \ modern-vocabs get [ set-at ] 3keep 2drop
+    ] if ;
+TUPLE: qvocab namespace words classes ;
+CONSTRUCTOR: <qvocab> qvocab ( -- obj )
+    100 <hashtable> >>namespace
+    100 <hashtable> >>words
+    100 <hashtable> >>classes ;
+
+

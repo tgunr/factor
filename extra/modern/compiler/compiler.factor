@@ -6,55 +6,14 @@ modern.paths modern.quick-parser modern.syntax multiline
 namespaces prettyprint sequences sequences.deep sets sorting
 strings words.private fry combinators quotations words.symbol
 math.parser words.constant sequences.extras splitting effects
-classes.builtin combinators.short-circuit ;
+classes.builtin combinators.short-circuit modern.vocabs ;
 QUALIFIED-WITH: modern.syntax modern
 FROM: syntax => f inline ;
 QUALIFIED: words
 QUALIFIED: vocabs
 IN: modern.compiler
 
-! dict is all vocabs
-TUPLE: linear-state { using hash-set } { namespace hashtable }
-in compilation-unit? private? last-word decorators dict ;
-CONSTRUCTOR: <linear-state> linear-state ( -- obj )
-    HS{ } clone >>using
-    H{ } clone >>namespace
-    V{ } clone >>decorators
-    10 <hashtable> >>dict ;
 
-: with-linear-state ( quot -- )
-    [ <linear-state> \ linear-state ] dip with-variable ; inline
-
-
-: words>named-hashtable ( seq -- hashtable )
-    [ { [ words:primitive? ] [ builtin-class? ] } 1|| ] filter
-    [ [ name>> ] keep ] H{ } map>assoc ;
-
-: prepopulate-vocab ( name -- public private )
-    ".private" ?tail drop
-    [ dup vocabs:vocab-words words>named-hashtable 2array ]
-    [ ".private" append dup vocabs:vocab-words words>named-hashtable 2array ] bi 2array ;
-
-
-: prepopulate-vocabs ( -- hashtable )
-    core-bootstrap-vocabs [ prepopulate-vocab ] map concat
-    [ nip assoc-empty? not ] assoc-filter ;
-
-SYMBOL: prepopulated-vocabs
-
-\ prepopulated-vocabs [
-    prepopulate-vocabs >hashtable
-] initialize
-
-SYMBOL: modern-vocabs
-
-DEFER: quick-compile-vocab
-
-: get-modern-vocab ( string -- vocab/f )
-    modern-vocabs get ?at [
-    ] [
-        [ quick-compile-vocab ] keep \ modern-vocabs get [ set-at ] 3keep 2drop
-    ] if ;
 
 
 : path>parsers ( name -- seq )
@@ -90,11 +49,6 @@ DEFER: quick-compile-vocab
     members natural-sort
     [ name>> "M: modern:" " precompile ;" surround print ] each ;
 
-TUPLE: qvocab namespace words classes ;
-CONSTRUCTOR: <qvocab> qvocab ( -- obj )
-    100 <hashtable> >>namespace
-    100 <hashtable> >>words
-    100 <hashtable> >>classes ;
 
 
 : current-dict ( -- qvocab )

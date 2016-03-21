@@ -322,25 +322,13 @@ DEFER: raw
     over [
         skip-blank over
         [
-            ! XXX: check bad escape sequences
             ! seq n string ch
-            ! "\\!([{\"'\s\r\n" take-until-either {
             "!([{\"\s\r\n" take-until-either {
                 { f [ [ drop f ] dip ] } ! XXX: what here
                 { CHAR: ! [ pick { [ "!" sequence= ] [ "#!" sequence= ] } 1|| [ take-comment token ] [ complete-token ] if ] }
                 { CHAR: ( [ read-paren ] }
                 { CHAR: [ [ read-bracket ] }
                 { CHAR: { [ read-brace ] }
-                ! { CHAR: \ [ raw [ make-escaped ] 2dip ] }
-                ! { CHAR: ' [
-                    ! pick length 1 = [
-                        ! "[" 2over head?-from [
-                            ! complete-token
-                        ! ] [
-                            ! read-character skip-space-after-string
-                        ! ] if
-                    ! ] [ complete-token ] if
-                ! ] }
                 { CHAR: " [ read-string skip-space-after-string ] }
                 [ drop ] ! "\s\r\n" found ! put LEXER: in the lexer? hmm
             } case
@@ -535,47 +523,3 @@ M: string print-it print ;
     [ [ slice? ] filter [ >string ] map ] assoc-map
     [ nip empty? not ] assoc-filter
     [ [ "====vocab: " write . ] [ print-it ] bi* ] assoc-each ;
-
-/*
-clear
-0 "\"\\\"\""
-"!([{\"\s\r\n" take-until-either 1string .
-{ CHAR: \ CHAR: " } take-including-separator [ >string . ] 3dip 1string .
-drop read-string'
-*/
-
-/*
-! TUPLE: character-literal < literal ;
-! TUPLE: escaped < literal ;
-
-: make-character ( opening contents ending -- seq/literal )
-    pick lookup-string [
-        character-literal tag-lexed
-    ] [
-        character-literal tag-lexed
-        ! unknown-string-literal
-    ] if ; inline
-
-: make-escaped ( opening contents -- literal )
-    escaped tag-opening-lexed ; inline
-
-ERROR: character-expected-got-eof n string ;
-: read-character' ( n string -- n' string )
-    over [
-        { CHAR: \ CHAR: ' } take-including-separator {
-            { f [ [ drop ] 2dip ] }
-            { CHAR: ' [ [ drop ] 2dip ] }
-            { CHAR: \ [ take-next-char drop [ drop ] 2dip read-character' ] }
-        } case
-    ] [
-        string-expected-got-eof
-    ] if ;
-
-:: read-character ( name n string -- seq n' string )
-    n string read-character' :> ( n' seq' )
-    name
-    n dup 1 + string <slice>
-    n' [ 1 - n' ] [ string length [ 2 - ] [ 1 - ] bi ] if* string <slice>
-    make-character
-    n' string ;
-*/
