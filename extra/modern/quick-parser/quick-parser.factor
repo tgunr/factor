@@ -60,6 +60,8 @@ TUPLE: string-literal < literal ;
 TUPLE: compile-time-long-string-literal < string-literal ;
 TUPLE: run-time-long-string-literal < string-literal ;
 
+TUPLE: backtick-string-literal < literal ;
+
 : ?<slice> ( n n' string -- slice )
     over [ nip [ length ] keep ] unless <slice> ; inline
 
@@ -272,6 +274,16 @@ ERROR: closing-brace-expected n string last ;
         [ drop complete-token ] ! something like {foo}
     } cond ;
 
+: read-backtick ( opening n string -- slice n' string )
+    take-until-whitespace drop
+    [
+        backtick-string-literal new
+            swap >>object
+            swap but-last-slice >>opening
+            dup [ opening>> from>> ]
+                [ object>> [ to>> ] [ seq>> ] bi ] bi <slice> >>slice
+    ] 2dip ;
+
 ERROR: string-expected-got-eof n string ;
 : read-string' ( n string -- n' string )
     over [
@@ -323,12 +335,13 @@ DEFER: raw
         skip-blank over
         [
             ! seq n string ch
-            "!([{\"\s\r\n" take-until-either {
+            "!`([{\"\s\r\n" take-until-either {
                 { f [ [ drop f ] dip ] } ! XXX: what here
                 { CHAR: ! [ pick { [ "!" sequence= ] [ "#!" sequence= ] } 1|| [ take-comment token ] [ complete-token ] if ] }
                 { CHAR: ( [ read-paren ] }
                 { CHAR: [ [ read-bracket ] }
                 { CHAR: { [ read-brace ] }
+                { CHAR: ` [ read-backtick ] }
                 { CHAR: " [ read-string skip-space-after-string ] }
                 [ drop ] ! "\s\r\n" found ! put LEXER: in the lexer? hmm
             } case

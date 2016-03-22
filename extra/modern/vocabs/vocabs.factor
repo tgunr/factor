@@ -46,8 +46,6 @@ SYMBOL: prepopulated-vocabs
 
 SYMBOL: modern-vocabs
 
-DEFER: quick-compile-vocab
-
 : get-modern-vocab ( string -- vocab/f )
     modern-vocabs get ?at [
     ] [
