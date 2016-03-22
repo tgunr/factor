@@ -253,10 +253,20 @@ GENERIC: lookup-modern-word ( object -- word )
     linear-state get
     namespace>> at ;
 
+ERROR: symbol-conflicts using ;
+ERROR: unhandled-symbol-conflict using namespace ;
+: validate-lookup ( using namespace -- word )
+    {
+        { [ 2dup [ length 1 = ] [ empty? ] bi* and ] [ drop first ] }
+        { [ over length 1 > ] [ drop symbol-conflicts ] }
+        [ unhandled-symbol-conflict ]
+    } cond ;
+
 ERROR: unknown-word word ;
 M: slice lookup-modern-word >string lookup-modern-word ;
 M: string lookup-modern-word
-    [ lookup-in-using ] [ lookup-in-namespace ] bi [ suffix ] when* ; 
+    [ lookup-in-using ] [ lookup-in-namespace ] bi
+    validate-lookup ;
 
 DEFER: quick-compile-string
 ERROR: unknown-long-string payload tag ;

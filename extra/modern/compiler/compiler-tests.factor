@@ -38,3 +38,12 @@ IN: modern.compiler.tests
     CONSTANT: b 2 "
     quick-compile-string vocab>printable
 ] unit-test
+
+
+{
+    H{ { "omg" { "add-subtract" } } }
+} [
+    "IN: omg
+    : add-subtract ( a b c -- d ) + - ;"
+    quick-compile-string vocab>printable
+] unit-test
