@@ -49,6 +49,42 @@ IN: modern.quick-parser.tests
 { t } [ "'\a'" qparse length 1 = ] unit-test
 { t } [ "'\aasdf'" qparse length 1 = ] unit-test
 
+{ "url" } [
+    "url\"https://google.com\"" qparse first opening>> >string
+] unit-test
+
+{ "https://google.com" } [
+    "url\"https://google.com\"" qparse first object>> >string
+] unit-test
+
+
+{ "url" } [
+    "url[[https://google.com]]" qparse first opening>> >string
+] unit-test
+
+{ "https://google.com" } [
+    "url[[https://google.com]]" qparse first object>> >string
+] unit-test
+
+
+{ "url" } [
+    "url`https://google.com" qparse first opening>> >string
+] unit-test
+
+{ "https://google.com" } [
+    "url`https://google.com" qparse first object>> >string
+] unit-test
+
+
+{ "" } [
+    "[[https://google.com]]" qparse first opening>> >string
+] unit-test
+
+{ "https://google.com" } [
+    "[[https://google.com]]" qparse first object>> >string
+] unit-test
+
+
 
 { "module" } [
     "module[[IN: vocab0

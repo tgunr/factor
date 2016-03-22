@@ -298,8 +298,8 @@ ERROR: string-expected-got-eof n string ;
 
 :: read-string ( name n string -- seq n' string )
     n string read-string' :> ( n' seq' )
-    name
-    n dup 1 + string <slice>
+    name [ from>> ] [ to>> 1 - ] [ seq>> ] tri <slice>
+    n n' 1 - string <slice>
     n' [ 1 - n' ] [ string length [ 2 - ] [ 1 - ] bi ] if* string <slice>
     make-string
     n' string ;
