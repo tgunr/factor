@@ -2,7 +2,11 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors kernel sequences assocs io.files io.pathnames
 io.sockets io.sockets.secure io.servers
-namespaces db db.tuples db.sqlite smtp urls
+namespaces smtp urls
+db2.connections
+orm.tuples
+sqlite.db2
+postgresql.db2
 logging.insomniac calendar timers
 html.templates.chloe
 http.server
@@ -32,6 +36,12 @@ websites.factorcode ;
 IN: websites.concatenative
 
 : website-db ( -- db ) home "website.db" append-path <sqlite-db> ;
+: website-db2 ( -- db )
+    <postgresql-db>
+        "localhost" >>host
+        "erg" >>username
+        "thepasswordistrust" >>password
+        "factor-test" >>database ;
 
 : init-factor-db ( -- )
     mason-db [ init-mason-db ] with-db
@@ -77,25 +87,27 @@ SYMBOLS: key-password key-file dh-file ;
     "noreply@concatenative.org" lost-password-from set-global
     init-factor-db ;
 
-: init-testing ( -- )
-    "vocab:openssl/test/dh1024.pem" dh-file set-global
-    "vocab:openssl/test/server.pem" key-file set-global
-    "password" key-password set-global
-    common-configuration
-    <concatenative-website>
-        <wiki> <factor-recaptcha> <login-config> <factor-boilerplate> "wiki" add-responder
-        <user-admin> <login-config> <factor-boilerplate> "user-admin" add-responder
-        <pastebin> <factor-recaptcha> <login-config> <factor-boilerplate> "pastebin" add-responder
-        <planet> <login-config> <factor-boilerplate> "planet" add-responder
-        <mason-app> <login-config> <factor-boilerplate> "mason" add-responder
-        "/tmp/docs/" <help-webapp> "docs" add-responder
-    website-db <alloy>
-    main-responder set-global ;
-
 : <gitweb> ( path -- responder )
     <dispatcher>
         swap <static> enable-cgi >>default
         URL" /gitweb.cgi" <redirect-responder> "" add-responder ;
+
+: init-testing-concatenative ( -- )
+    "vocab:openssl/test/dh1024.pem" dh-file set-global
+    "vocab:openssl/test/server.pem" key-file set-global
+    "password" key-password set-global
+    common-configuration
+    <dispatcher>
+        <concatenative-website>
+            <wiki> <factor-recaptcha> "wiki" add-responder
+            <user-admin> "user-admin" add-responder
+        <login-config> <factor-boilerplate> website-db <alloy> "concatenative" add-responder
+        <pastebin> <factor-recaptcha> <login-config> <factor-boilerplate> website-db <alloy> "paste" add-responder
+        <planet> <login-config> <factor-boilerplate> website-db <alloy> "planet" add-responder
+        <mason-app> <login-config> <factor-boilerplate> website-db <alloy> "builds" add-responder
+        home "docs" append-path <help-webapp> "docs" add-responder
+        home "cgi" append-path <gitweb> "gitweb" add-responder
+    main-responder set-global ;
 
 : init-production ( -- )
     common-configuration
