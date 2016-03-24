@@ -1,10 +1,11 @@
 ! Copyright (C) 2014 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data alien.strings arrays
-classes.struct combinators constructors continuations
-destructors forestdb.ffi forestdb.paths fry generalizations
-io.encodings.string io.encodings.utf8 io.pathnames kernel libc
-math multiline namespaces sequences ;
+byte-arrays classes.struct combinators constructors
+continuations destructors forestdb.ffi forestdb.paths fry
+generalizations io.encodings.string io.encodings.utf8
+io.pathnames kernel libc math multiline namespaces sequences
+strings ;
 QUALIFIED: sets
 IN: forestdb.lib
 
@@ -46,9 +47,14 @@ SYMBOL: current-fdb-kvs-handle
 : get-kvs-handle ( -- handle )
     current-fdb-kvs-handle get handle>> ;
 
+GENERIC: encode-kv ( object -- bytes )
+
+M: string encode-kv utf8 encode ;
+M: byte-array encode-kv ;
+
 : fdb-set-kv ( key value -- )
     [ get-kvs-handle ] 2dip
-    [ utf8 encode dup length ] bi@ fdb_set_kv fdb-check-error ;
+    [ encode-kv dup length ] bi@ fdb_set_kv fdb-check-error ;
 
 : <key-doc> ( key -- doc )
     fdb_doc malloc-struct
@@ -293,12 +299,8 @@ T{ doc
 
 PRIVATE>
 
-
 : get-kvs-default-config ( -- kvs-config )
-    S{ fdb_kvs_config
-        { create_if_missing t }
-        { custom_cmp f }
-    } clone ;
+    fdb_get_default_kvs_config ;
 
 : fdb-open ( path config -- file-handle )
     [ f void* <ref> ] 2dip
@@ -306,8 +308,11 @@ PRIVATE>
     [ fdb_open fdb-check-error ] 3keep
     2drop void* deref <fdb-file-handle> ;
 
+! Make SEQTREES by default
 : fdb-open-default-config ( path -- file-handle )
-    fdb_get_default_config fdb-open ;
+    fdb_get_default_config
+        FDB_SEQTREE_USE >>seqtree_opt
+    fdb-open ;
 
 : fdb-kvs-open-config ( name config -- kvs-handle )
     [
@@ -327,7 +332,7 @@ PRIVATE>
         _ &dispose handle>> [
             [ fdb-iterator-get ] keep swap
             [ _ with-doc swap _ execute check-iterate-result ]
-            [ drop f ] if* swap
+            [ drop f f ] if* swap
         ] curry collector-when [ loop ] dip
     ] with-destructors ; inline
 

@@ -73,6 +73,12 @@ HELP: ENUM:
     { $code "ENUM: color_t red { green 3 } blue ;" }
     "The following expression returns true:"
     { $code "3 <color_t> [ green = ] [ enum>number 3 = ] bi and" }
+
+    "Here is a version where the C-type takes a single byte:"
+    { $code "ENUM: tv_peripherals_1 < uchar\n{ appletv 1 } { chromecast 2 } { roku 4 } ;" }
+
+    "The same as above but four bytes instead of one:"
+    { $code "ENUM: tv_peripherals_4 < uint\n{ appletv 1 } { chromecast 2 } { roku 4 } ;" }
 } ;
 
 HELP: C-TYPE:
@@ -86,12 +92,12 @@ STRUCT: forward { x backward* } ;" } }
 { $notes "Primitive C types are displayed using " { $snippet "C-TYPE:" } " syntax when they are " { $link see } "n." } ;
 
 HELP: CALLBACK:
-{ $syntax "CALLBACK: return type ( parameters ) ;" }
+{ $syntax "CALLBACK: return type ( parameters )" }
 { $values { "return" "a C return type" } { "type" "a type name" } { "parameters" "a comma-separated sequence of type/name pairs; " { $snippet "type1 arg1, type2 arg2, ..." } } }
 { $description "Defines a new function pointer C type word " { $snippet "type" } ". The newly defined word works both as a C type and as a wrapper for " { $link alien-callback } " for callbacks that accept the given return type and parameters. The ABI of the callback is decided from the ABI of the active " { $link POSTPONE: LIBRARY: } " declaration." }
 { $examples
     { $code
-        "CALLBACK: bool FakeCallback ( int message, void* payload ) ;"
+        "CALLBACK: bool FakeCallback ( int message, void* payload )"
         ": MyFakeCallback ( -- alien )"
         "    [| message payload |"
         "        \"message #\" write"

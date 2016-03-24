@@ -1,7 +1,7 @@
 ! Copyright (C) 2007 Elie CHAFTARI
 ! Portions copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: alien alien.c-types alien.libraries alien.parser
+USING: alien alien.c-types alien.destructors alien.libraries alien.parser
 alien.syntax assocs classes.struct combinators kernel lexer
 literals namespaces openssl.libcrypto parser quotations
 sequences system words ;
@@ -9,7 +9,7 @@ sequences system words ;
 IN: openssl.libssl
 
 << "libssl" {
-    { [ os windows? ] [ "ssleay32.dll" ] }
+    { [ os windows? ] [ "libssl-38.dll" ] }
     { [ os macosx? ] [ "libssl.dylib" ] }
     { [ os unix? ] [ "libssl.so" ] }
 } cond cdecl add-library >>
@@ -62,6 +62,93 @@ CONSTANT: SSL_CTRL_GET_SESS_CACHE_MODE      45
 
 CONSTANT: SSL_CTRL_GET_MAX_CERT_LIST        50
 CONSTANT: SSL_CTRL_SET_MAX_CERT_LIST        51
+CONSTANT: SSL_CTRL_SET_MAX_SEND_FRAGMENT    52
+CONSTANT: SSL_CTRL_SET_TLSEXT_SERVERNAME_CB       53
+CONSTANT: SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG      54
+CONSTANT: SSL_CTRL_SET_TLSEXT_HOSTNAME            55
+CONSTANT: SSL_CTRL_SET_TLSEXT_DEBUG_CB            56
+CONSTANT: SSL_CTRL_SET_TLSEXT_DEBUG_ARG           57
+CONSTANT: SSL_CTRL_GET_TLSEXT_TICKET_KEYS         58
+CONSTANT: SSL_CTRL_SET_TLSEXT_TICKET_KEYS         59
+CONSTANT: SSL_CTRL_SET_TLSEXT_OPAQUE_PRF_INPUT_CB 61
+CONSTANT: SSL_CTRL_SET_TLSEXT_OPAQUE_PRF_INPUT_CB_ARG 62
+CONSTANT: SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB       63
+CONSTANT: SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB_ARG   64
+CONSTANT: SSL_CTRL_SET_TLSEXT_STATUS_REQ_TYPE     65
+CONSTANT: SSL_CTRL_GET_TLSEXT_STATUS_REQ_EXTS     66
+CONSTANT: SSL_CTRL_SET_TLSEXT_STATUS_REQ_EXTS     67
+CONSTANT: SSL_CTRL_GET_TLSEXT_STATUS_REQ_IDS      68
+CONSTANT: SSL_CTRL_SET_TLSEXT_STATUS_REQ_IDS      69
+CONSTANT: SSL_CTRL_GET_TLSEXT_STATUS_REQ_OCSP_RESP        70
+CONSTANT: SSL_CTRL_SET_TLSEXT_STATUS_REQ_OCSP_RESP        71
+CONSTANT: SSL_CTRL_SET_TLSEXT_TICKET_KEY_CB               72
+CONSTANT: SSL_CTRL_SET_TLS_EXT_SRP_USERNAME_CB            75
+CONSTANT: SSL_CTRL_SET_SRP_VERIFY_PARAM_CB                76
+CONSTANT: SSL_CTRL_SET_SRP_GIVE_CLIENT_PWD_CB             77
+CONSTANT: SSL_CTRL_SET_SRP_ARG                            78
+CONSTANT: SSL_CTRL_SET_TLS_EXT_SRP_USERNAME               79
+CONSTANT: SSL_CTRL_SET_TLS_EXT_SRP_STRENGTH               80
+CONSTANT: SSL_CTRL_SET_TLS_EXT_SRP_PASSWORD               81
+CONSTANT: SSL_CTRL_TLS_EXT_SEND_HEARTBEAT                 85
+CONSTANT: SSL_CTRL_GET_TLS_EXT_HEARTBEAT_PENDING          86
+CONSTANT: SSL_CTRL_SET_TLS_EXT_HEARTBEAT_NO_REQUESTS      87
+CONSTANT: SSL_CTRL_CHAIN                                  88
+CONSTANT: SSL_CTRL_CHAIN_CERT                             89
+CONSTANT: SSL_CTRL_GET_CURVES                             90
+CONSTANT: SSL_CTRL_SET_CURVES                             91
+CONSTANT: SSL_CTRL_SET_CURVES_LIST                        92
+CONSTANT: SSL_CTRL_GET_SHARED_CURVE                       93
+CONSTANT: SSL_CTRL_SET_ECDH_AUTO                          94
+CONSTANT: SSL_CTRL_SET_SIGALGS                            97
+CONSTANT: SSL_CTRL_SET_SIGALGS_LIST                       98
+CONSTANT: SSL_CTRL_CERT_FLAGS                             99
+CONSTANT: SSL_CTRL_CLEAR_CERT_FLAGS                       100
+CONSTANT: SSL_CTRL_SET_CLIENT_SIGALGS                     101
+CONSTANT: SSL_CTRL_SET_CLIENT_SIGALGS_LIST                102
+CONSTANT: SSL_CTRL_GET_CLIENT_CERT_TYPES                  103
+CONSTANT: SSL_CTRL_SET_CLIENT_CERT_TYPES                  104
+CONSTANT: SSL_CTRL_BUILD_CERT_CHAIN                       105
+CONSTANT: SSL_CTRL_SET_VERIFY_CERT_STORE                  106
+CONSTANT: SSL_CTRL_SET_CHAIN_CERT_STORE                   107
+CONSTANT: SSL_CTRL_GET_PEER_SIGNATURE_NID                 108
+CONSTANT: SSL_CTRL_GET_SERVER_TMP_KEY                     109
+CONSTANT: SSL_CTRL_GET_RAW_CIPHERLIST                     110
+CONSTANT: SSL_CTRL_GET_EC_POINT_FORMATS                   111
+CONSTANT: SSL_CTRL_GET_CHAIN_CERTS                        115
+CONSTANT: SSL_CTRL_SELECT_CURRENT_CERT                    116
+CONSTANT: SSL_CTRL_SET_CURRENT_CERT                       117
+CONSTANT: SSL_CTRL_CHECK_PROTO_VERSION                    119
+CONSTANT: DTLS_CTRL_SET_LINK_MTU                          120
+CONSTANT: DTLS_CTRL_GET_LINK_MIN_MTU                      121
+
+
+CONSTANT: TLSEXT_NAMETYPE_host_name 0
+CONSTANT: TLSEXT_STATUSTYPE_ocsp 1
+
+CONSTANT: TLSEXT_ECPOINTFORMAT_first                      0
+CONSTANT: TLSEXT_ECPOINTFORMAT_uncompressed               0
+CONSTANT: TLSEXT_ECPOINTFORMAT_ansiX962_compressed_prime  1
+CONSTANT: TLSEXT_ECPOINTFORMAT_ansiX962_compressed_char2  2
+CONSTANT: TLSEXT_ECPOINTFORMAT_last                       2
+
+CONSTANT: TLSEXT_signature_anonymous                      0
+CONSTANT: TLSEXT_signature_rsa                            1
+CONSTANT: TLSEXT_signature_dsa                            2
+CONSTANT: TLSEXT_signature_ecdsa                          3
+CONSTANT: TLSEXT_signature_num                            4
+
+CONSTANT: TLSEXT_hash_none                                0
+CONSTANT: TLSEXT_hash_md5                                 1
+CONSTANT: TLSEXT_hash_sha1                                2
+CONSTANT: TLSEXT_hash_sha224                              3
+CONSTANT: TLSEXT_hash_sha256                              4
+CONSTANT: TLSEXT_hash_sha384                              5
+CONSTANT: TLSEXT_hash_sha512                              6
+CONSTANT: TLSEXT_hash_num                                 7
+
+CONSTANT: TLSEXT_nid_unknown                              0x1000000
+
+
 
 CONSTANT: SSL_OP_NO_SSLv2 0x01000000
 CONSTANT: SSL_OP_NO_SSLv3 0x02000000
@@ -303,12 +390,18 @@ FUNCTION: ssl-method TLSv1_server_method (  )
 
 FUNCTION: ssl-method TLSv1_method (  )
 
+FUNCTION: ssl-method TLSv1_1_method (  )
+
+FUNCTION: ssl-method TLSv1_2_method (  )
+
 ! Creates the context
 FUNCTION: SSL_CTX* SSL_CTX_new ( ssl-method method )
 
 ! Load the certificates and private keys into the SSL_CTX
 FUNCTION: int SSL_CTX_use_certificate_chain_file ( SSL_CTX* ctx,
                                                    c-string file ) ! PEM type
+
+FUNCTION: int SSL_CTX_use_certificate ( SSL_CTX* ctx, X509* x )
 
 FUNCTION: SSL* SSL_new ( SSL_CTX* ctx )
 
@@ -326,13 +419,13 @@ FUNCTION: void SSL_set_connect_state ( SSL* ssl )
 
 FUNCTION: void SSL_set_accept_state ( SSL* ssl )
 
-FUNCTION: int SSL_connect ( SSL* ssl )
 
+FUNCTION: void SSL_free ( SSL* ssl )
 FUNCTION: int SSL_accept ( SSL* ssl )
-
-FUNCTION: int SSL_write ( SSL* ssl, void* buf, int num )
-
+FUNCTION: int SSL_connect ( SSL* ssl )
 FUNCTION: int SSL_read ( SSL* ssl, void* buf, int num )
+FUNCTION: int SSL_write ( SSL* ssl, void* buf, int num )
+FUNCTION: long SSL_ctrl ( SSL* ssl, int cmd, long larg, void* parg )
 
 FUNCTION: int SSL_shutdown ( SSL* ssl )
 
@@ -342,8 +435,6 @@ CONSTANT: SSL_RECEIVED_SHUTDOWN 2
 FUNCTION: int SSL_get_shutdown ( SSL* ssl )
 
 FUNCTION: int SSL_CTX_set_session_id_context ( SSL_CTX* ctx, c-string sid_ctx, uint len )
-
-FUNCTION: void SSL_free ( SSL* ssl )
 
 FUNCTION: void SSL_SESSION_free ( SSL_SESSION* ses )
 
@@ -409,6 +500,13 @@ FUNCTION: void SSL_CTX_set_tmp_dh_callback ( SSL_CTX* ctx, void* dh )
 FUNCTION: void SSL_CTX_set_tmp_rsa_callback ( SSL_CTX* ctx, void* rsa )
 
 FUNCTION: void* BIO_f_ssl (  )
+
+: SSL_set_tlsext_host_name ( ctx hostname -- n )
+    [ SSL_CTRL_SET_TLSEXT_HOSTNAME TLSEXT_NAMETYPE_host_name ] dip
+    SSL_ctrl ;
+
+: SSL_CTX_need_tmp_rsa ( ctx -- n )
+    SSL_CTRL_NEED_TMP_RSA 0 f SSL_CTX_ctrl ;
 
 : SSL_CTX_set_tmp_rsa ( ctx rsa -- n )
     [ SSL_CTRL_SET_TMP_RSA 0 ] dip SSL_CTX_ctrl ;
@@ -504,13 +602,13 @@ CONSTANT: NID_subject_alt_name  85
 CONSTANT: NID_issuer_alt_name   86
 
 ! ===============================================
-! On Windows, some of the functions making up libssl are placed in the
-! libeay32.dll and not in the similarily named ssleay32.dll file.
+! On Windows, some of the functions making up libressl
+! are placed in libcrypto-37.dll
 ! ===============================================
 
 << os windows? [
     "libssl-windows"
-    [ "libeay32.dll" cdecl add-library ] [ current-library set ] bi
+    [ "libcrypto-37.dll" cdecl add-library ] [ current-library set ] bi
 ] when >>
 
 ! x509.h
@@ -521,6 +619,26 @@ FUNCTION: X509_NAME* X509_get_issuer_name ( X509* a )
 FUNCTION: X509_NAME* X509_get_subject_name ( X509* a )
 FUNCTION: int X509_check_trust ( X509* a, int id, int flags )
 FUNCTION: X509_EXTENSION* X509_get_ext ( X509* a, int loc )
+FUNCTION: void X509_free ( X509 *a )
+DESTRUCTOR: X509_free
+
+C-TYPE: X509_STORE
+FUNCTION: X509_STORE* X509_STORE_new ( )
+
+CONSTANT: X509_R_CERT_ALREADY_IN_HASH_TABLE 101
+FUNCTION: int X509_STORE_add_cert ( X509_STORE* ctx, X509* x )
+
+! X509_NAME_oneline could return c-string but needs to be freed with OPENSSL_free
+FUNCTION: char* X509_NAME_oneline ( X509_NAME* a, char* buf, int size )
+
+FUNCTION: X509* d2i_X509 ( X509** px, uchar** in, int len )
+FUNCTION: int i2d_X509 ( X509* x, uchar** out )
+! FUNCTION: X509* d2i_X509_bio ( BIO* bp, X509** x )
+! FUNCTION: X509* d2i_X509_fp ( FILE* fp, X509** x )
+! FUNCTION: int i2d_X509_bio ( BIO* bp, X509* x )
+! FUNCTION: int i2d_X509_fp ( FILE* fp, X509* x )
+FUNCTION: int i2d_re_X509_tbs ( X509* x, uchar** out )
+
 
 ! stack.h
 FUNCTION: int sk_num ( _STACK *s )

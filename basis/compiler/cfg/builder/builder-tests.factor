@@ -1,13 +1,14 @@
 USING: accessors alien alien.accessors arrays assocs byte-arrays
-combinators.short-circuit compiler.cfg compiler.cfg.builder compiler.cfg.checker
-compiler.cfg.debugger compiler.cfg.instructions compiler.cfg.optimizer
-compiler.cfg.predecessors compiler.cfg.registers compiler.cfg.representations
-compiler.cfg.rpo compiler.cfg.stacks compiler.cfg.stacks.local
-compiler.cfg.utilities compiler.test compiler.tree compiler.tree.builder
-compiler.tree.optimizer cpu.architecture fry hashtables io kernel kernel.private
-locals make math math.partial-dispatch math.private namespaces prettyprint sbufs
-sequences sequences.private slots.private strings strings.private tools.test
-vectors words ;
+combinators.short-circuit compiler.cfg compiler.cfg.builder
+compiler.cfg.builder.blocks compiler.cfg.checker compiler.cfg.debugger
+compiler.cfg.instructions compiler.cfg.optimizer
+compiler.cfg.registers compiler.cfg.stacks.local
+compiler.cfg.utilities compiler.test compiler.tree
+compiler.tree.propagation.info cpu.architecture fry hashtables io
+kernel kernel.private locals make math math.intervals
+math.partial-dispatch math.private namespaces prettyprint sbufs
+sequences sequences.private slots.private strings strings.private
+tools.test vectors words ;
 FROM: alien.c-types => int ;
 IN: compiler.cfg.builder.tests
 
@@ -236,6 +237,13 @@ IN: compiler.cfg.builder.tests
     [ ##compare-integer-imm-branch? ] contains-insn?
 ] unit-test
 
+! begin-cfg
+SYMBOL: foo
+
+{ foo } [
+    \ foo f begin-cfg word>>
+] cfg-unit-test
+
 ! make-input-map
 {
     { { 37 D: 2 } { 81 D: 1 } { 92 D: 0 } }
@@ -243,38 +251,35 @@ IN: compiler.cfg.builder.tests
     T{ #shuffle { in-d { 37 81 92 } } } make-input-map
 ] unit-test
 
+! emit-branch
+{ 77 } [
+    { T{ #call { word + } } }
+    V{ } 77 insns>block
+    emit-branch
+    first predecessors>>
+    first predecessors>>
+    first predecessors>>
+    first  number>>
+] cfg-unit-test
+
 ! emit-call
 {
     V{ T{ ##call { word print } } T{ ##branch } }
 } [
-    [ \ print 4 emit-call ] V{ } make drop
-    basic-block get successors>> first instructions>>
+    <basic-block> dup set-basic-block \ print 4 emit-call
+    predecessors>> first instructions>>
 ] cfg-unit-test
+
+! emit-loop-call
+{ 1 "good" } [
+    V{ } 0 insns>block dup set-basic-block
+    V{ } "good" insns>block swap [ emit-loop-call ] keep
+    [ successors>> length ] [ successors>> first number>> ] bi
+] unit-test
 
 ! emit-node
-{
-    { T{ ##load-integer { dst 78 } { val 0 } } }
-} [
-    77 vreg-counter set-global
-    [
-        T{ #push { literal 0 } { out-d { 8537399 } } } emit-node
-    ] { } make
-] cfg-unit-test
 
-{
-    { { 1 1 } { 0 0 } }
-    H{ { D: -1 4 } { D: 0 4 } }
-} [
-    4 D: 0 replace-loc
-    T{ #shuffle
-       { mapping { { 2 4 } { 3 4 } } }
-       { in-d V{ 4 } }
-       { out-d V{ 2 3 } }
-    } emit-node
-    height-state get
-    replaces get
-] cfg-unit-test
-
+! ! #call
 {
     V{
         T{ ##load-integer { dst 3 } { val 0 } }
@@ -288,55 +293,108 @@ IN: compiler.cfg.builder.tests
         T{ ##box-alien { dst 7 } { src 5 } { temp 6 } }
     }
 } [
-    T{ #call
+    f T{ #call
        { word alien-cell }
        { in-d V{ 10 20 } }
        { out-d { 30 } }
-    } [ emit-node ] V{ } make
+    } [ emit-node drop ] V{ } make
 ] cfg-unit-test
 
-{ 1 } [
-    V{ } 0 insns>block basic-block set init-cfg-test
-    V{ } 1 insns>block [ basic-block get emit-loop-call ] V{ } make drop
-    basic-block get successors>> length
+: call-node-1 ( -- node )
+    T{ #call
+       { word set-slot }
+       { in-d V{ 1 2 3 } }
+       { out-d { } }
+       { info
+         H{
+             {
+                 1
+                 T{ value-info-state
+                    { class object }
+                    { interval full-interval }
+                 }
+             }
+             {
+                 2
+                 T{ value-info-state
+                    { class object }
+                    { interval full-interval }
+                 }
+             }
+             {
+                 3
+                 T{ value-info-state
+                    { class object }
+                    { interval full-interval }
+                 }
+             }
+         }
+       }
+    } ;
+
+{
+    V{ T{ ##call { word set-slot } } T{ ##branch } }
+} [
+    [ f call-node-1 emit-node ] V{ } make drop
+    predecessors>> first instructions>>
+] cfg-unit-test
+
+! ! #push
+{
+    { T{ ##load-integer { dst 78 } { val 0 } } }
+} [
+    77 vreg-counter set-global
+    [ f T{ #push { literal 0 } { out-d { 8537399 } } } emit-node drop ] { } make
+] cfg-unit-test
+
+! ! #shuffle
+{
+    { { 1 1 } { 0 0 } }
+    H{ { D: -1 4 } { D: 0 4 } }
+} [
+    4 D: 0 replace-loc
+    f T{ #shuffle
+       { mapping { { 2 4 } { 3 4 } } }
+       { in-d V{ 4 } }
+       { out-d V{ 2 3 } }
+    } emit-node drop
+    height-state get
+    replaces get
+] cfg-unit-test
+
+! ! #terminate
+
+{ f } [
+    <basic-block> dup set-basic-block
+    T{ #terminate { in-d { } } { in-r { } } } emit-node
+] cfg-unit-test
+
+! end-word
+{
+    V{
+        T{ ##safepoint }
+        T{ ##epilogue }
+        T{ ##return }
+    }
+} [
+    <basic-block> dup set-basic-block end-word instructions>>
 ] unit-test
 
-! emit-loop-call
-{ "bar" } [
-    V{ } "foo" insns>block basic-block set
-    init-cfg-test
-    [ V{ } "bar" insns>block basic-block get emit-loop-call ] V{ } make drop
-    basic-block get successors>> first number>>
-] unit-test
-
-! begin-cfg
-SYMBOL: foo
-
-{ foo } [
-    \ foo f begin-cfg word>>
-] cfg-unit-test
-
-! remember-loop
-{ 20 } [
-    H{ } clone loops set
-    "hello" { } 20 insns>block remember-loop
-    loops get "hello" of number>>
-] cfg-unit-test
 
 ! store-shuffle
 {
     H{ { D: 2 1 } }
 } [
-    T{ #shuffle { in-d { 7 3 0 } } { out-d { 55 } } { mapping { { 55 3 } } } }
-    emit-node replaces get
+    f T{ #shuffle { in-d { 7 3 0 } } { out-d { 55 } } { mapping { { 55 3 } } } }
+    emit-node drop replaces get
 ] cfg-unit-test
 
 {
     H{ { D: -1 1 } { D: 0 1 } }
 } [
-    T{ #shuffle
+    f T{ #shuffle
        { in-d { 7 } }
        { out-d { 55 77 } }
        { mapping { { 55 7 } { 77 7 } } }
-    } emit-node replaces get
+    } emit-node drop replaces get
 ] cfg-unit-test

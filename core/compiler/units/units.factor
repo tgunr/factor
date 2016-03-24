@@ -1,9 +1,9 @@
 ! Copyright (C) 2008, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs classes classes.private
-classes.tuple classes.tuple.private continuations definitions
-generic hash-sets init kernel kernel.private math namespaces
-sequences sets source-files.errors vocabs words ;
+classes.tuple.private continuations definitions generic
+hash-sets init kernel kernel.private math namespaces sequences
+sets source-files.errors vocabs words ;
 IN: compiler.units
 
 PRIMITIVE: modify-code-heap ( alist update-existing? reset-pics? -- )
@@ -129,8 +129,8 @@ M: object always-bump-effect-counter? drop f ;
     maybe-changed get union!
     dup changed-vocabs over adjoin-all ;
 
-: process-forgotten-definitions ( -- )
-    forgotten-definitions get members
+: process-forgotten-definitions ( forgotten-definitions -- )
+    members
     [ [ word? ] filter process-forgotten-words ]
     [ [ delete-definition-errors ] each ]
     bi ;
@@ -138,7 +138,8 @@ M: object always-bump-effect-counter? drop f ;
 : bump-effect-counter? ( -- ? )
     changed-effects get members
     maybe-changed get members
-    changed-definitions get members [ always-bump-effect-counter? ] filter
+    changed-definitions get members
+    [ always-bump-effect-counter? ] filter
     3array combine new-words get [ in? not ] curry any? ;
 
 : bump-effect-counter ( -- )
@@ -162,8 +163,8 @@ M: object always-bump-effect-counter? drop f ;
         remake-generics
         to-recompile [
             recompile
-            update-tuples
-            process-forgotten-definitions
+            outdated-tuples get update-tuples
+            forgotten-definitions get process-forgotten-definitions
         ] keep update-existing? reset-pics? modify-code-heap
         bump-effect-counter
         notify-observers
@@ -184,24 +185,24 @@ M: nesting-observer definitions-changed
 PRIVATE>
 
 : with-nested-compilation-unit ( quot -- )
-    [
-        HS{ } clone changed-definitions set
-        HS{ } clone maybe-changed set
-        HS{ } clone changed-effects set
-        HS{ } clone outdated-generics set
-        H{ } clone outdated-tuples set
-        HS{ } clone new-words set
+    H{ } clone
+    HS{ } clone changed-definitions pick set-at
+    HS{ } clone maybe-changed pick set-at
+    HS{ } clone changed-effects pick set-at
+    HS{ } clone outdated-generics pick set-at
+    H{ } clone outdated-tuples pick set-at
+    HS{ } clone new-words pick set-at [
         add-nesting-observer
         [
             remove-nesting-observer
             finish-compilation-unit
         ] [ ] cleanup
-    ] with-scope ; inline
+    ] with-variables ; inline
 
 : with-compilation-unit ( quot -- )
-    [
-        <definitions> new-definitions set
-        <definitions> old-definitions set
-        HS{ } clone forgotten-definitions set
+    H{ } clone
+    <definitions> new-definitions pick set-at
+    <definitions> old-definitions pick set-at
+    HS{ } clone forgotten-definitions pick set-at [
         with-nested-compilation-unit
-    ] with-scope ; inline
+    ] with-variables ; inline

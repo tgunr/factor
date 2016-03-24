@@ -1,27 +1,37 @@
 USING: accessors compiler.cfg compiler.cfg.builder.blocks
 compiler.cfg.instructions compiler.cfg.stacks.local
-compiler.cfg.utilities compiler.test kernel make namespaces sequences
+compiler.cfg.utilities compiler.test kernel namespaces sequences
 tools.test ;
 IN: compiler.cfg.builder.blocks.tests
 
 ! (begin-basic-block)
 { 20 } [
     { } 20 insns>block (begin-basic-block)
-    basic-block get predecessors>> first number>>
+    predecessors>> first number>>
 ] cfg-unit-test
 
 ! begin-branch
 { f } [
-    height-state get <basic-block> begin-branch height-state get eq?
+    height-state get <basic-block> begin-branch drop height-state get eq?
+] cfg-unit-test
+
+{ f } [
+    <basic-block> dup begin-branch eq?
 ] cfg-unit-test
 
 ! emit-trivial-block
 {
     V{ T{ ##no-tco } T{ ##branch } }
 } [
-    [ [ drop ##no-tco, ] emit-trivial-block ] V{ } make drop
-    basic-block get successors>> first instructions>>
+    <basic-block> dup set-basic-block
+    [ drop ##no-tco, ] emit-trivial-block
+    predecessors>> first instructions>>
 ] cfg-unit-test
+
+! end-basic-block
+{ } [
+    <basic-block> dup set-basic-block ##branch, end-basic-block
+] unit-test
 
 ! make-kill-block
 { t } [

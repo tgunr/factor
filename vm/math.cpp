@@ -1,4 +1,7 @@
 #include "master.hpp"
+#include <sstream>
+#include <iomanip>
+#include <stdexcept>
 
 namespace factor {
 
@@ -211,10 +214,43 @@ void factor_vm::primitive_fixnum_to_float() {
 
 /* Allocates memory */
 void factor_vm::primitive_format_float() {
-  byte_array* array = allot_byte_array(100);
+  char* locale = alien_offset(ctx->pop());
   char* format = alien_offset(ctx->pop());
+  fixnum precision = untag_fixnum(ctx->pop());
+  fixnum width = untag_fixnum(ctx->pop());
+  char* fill = alien_offset(ctx->pop());
   double value = untag_float_check(ctx->peek());
-  SNPRINTF(array->data<char>(), 99, format, value);
+  std::ostringstream localized_stream;
+  try {
+    localized_stream.imbue(std::locale(locale));
+  } catch (const runtime_error&) {
+    byte_array* array = allot_byte_array(1);
+    array->data<char>()[0] = '\0';
+    ctx->replace(tag<byte_array>(array));
+    return;
+  }
+  switch (format[0]) {
+    case 'f': localized_stream << std::fixed; break;
+    case 'e': localized_stream << std::scientific; break;
+  }
+  if (isupper(format[0])) {
+    localized_stream << std::uppercase;
+  }
+  if (fill[0] != '\0') {
+    localized_stream << std::setfill(fill[0]);
+  }
+  if (width >= 0) {
+    localized_stream << std::setw(width);
+  }
+  if (precision >= 0) {
+    localized_stream << std::setprecision(precision);
+  }
+  localized_stream << value;
+  const std::string& tmp = localized_stream.str();
+  const char* cstr = tmp.c_str();
+  size_t size = tmp.length()+1;
+  byte_array* array = allot_byte_array(size);
+  memcpy(array->data<char>(), cstr, size);
   ctx->replace(tag<byte_array>(array));
 }
 

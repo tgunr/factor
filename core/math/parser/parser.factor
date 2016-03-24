@@ -6,7 +6,7 @@ sequences.private splitting strings strings.private ;
 IN: math.parser
 
 <PRIVATE
-PRIMITIVE: (format-float) ( n format -- byte-array )
+PRIMITIVE: (format-float) ( n fill width precision format locale -- byte-array )
 PRIVATE>
 
 : digit> ( ch -- n )
@@ -488,12 +488,13 @@ M: ratio >base
 
 <PRIVATE
 
-: fix-float ( str -- newstr )
-    CHAR: e over index [
-        cut [ fix-float ] dip append
-    ] [
-        CHAR: . over member? [ ".0" append ] unless
-    ] if* ;
+: (fix-float) ( str-no-exponent -- newstr )
+    CHAR: . over member? [ ".0" append ] unless ; inline
+
+: fix-float ( str exponent-char -- newstr )
+    over index [
+        cut [ (fix-float) ] dip append
+    ] [ (fix-float) ] if* ; inline
 
 : mantissa-expt-normalize ( mantissa expt -- mantissa' expt' )
     [ dup log2 52 swap - [ shift 52 2^ 1 - bitand ] [ 1022 + neg ] bi ]
@@ -548,14 +549,18 @@ M: ratio >base
         ] 2curry each-integer
     ] keep ; inline
 
-: format-float ( n format -- string )
-    format-string (format-float)
-    dup [ 0 = ] find drop
-    format-head fix-float ; inline
+: format-float ( n fill width precision format locale -- string )
+    [
+        [ format-string ] 4dip [ format-string ] bi@ (format-float)
+        dup [ 0 = ] find drop format-head
+    ] [
+        "C" = [ [ "G" = ] [ "E" = ] bi or CHAR: E CHAR: e ? fix-float ]
+        [ drop ] if
+    ] 2bi ; inline
 
 : float>base ( n radix -- str )
     {
-        { 10 [ "%.16g" format-float ] }
+        { 10 [ "" -1 16 "" "C" format-float ] }
         [ bin-float>base ]
     } case ; inline
 
