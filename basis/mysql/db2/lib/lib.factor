@@ -11,14 +11,14 @@ IN: mysql.db2.lib
 ERROR: mysql-error < db-error n string ;
 ERROR: mysql-sql-error < sql-error n string ;
 
-: mysql-check-result ( mysql n -- )
+: mysql-check-result ( MYSQL n -- )
     dup { 0 f } member? [ 2drop ] [
         swap mysql_error mysql-error
     ] if ;
 
 ERROR: mysql-connect-fail string mysql ;
 
-: mysql-check-connect ( mysql1 mysql2 -- )
+: mysql-check-connect ( MYSQL1 mysql2 -- )
     dup net>> last_errno>> 0 = [
         2drop
     ] [
@@ -30,9 +30,9 @@ ERROR: mysql-connect-fail string mysql ;
         swap mysql_stmt_error mysql-error ! FIXME: mysql-sql-error
     ] if ;
 
-:: mysql-connect ( host user passwd db port -- mysql/f )
+:: mysql-real-connect ( host user passwd db port socket flag -- mysql/f )
     f mysql_init :> mysql
-    mysql host user passwd db port f 0 mysql_real_connect :> handle
+    mysql host user passwd db port socket flag mysql_real_connect :> handle
     mysql dup mysql-check-connect handle ;
 
 : mysql-#rows ( result -- n )
@@ -56,11 +56,11 @@ ERROR: mysql-connect-fail string mysql ;
     ] replicate nip ;
 
 ! returns a result or f
-: mysql-query ( mysql query -- result/f )
+: mysql-query ( MYSQL query -- result/f )
     dupd mysql_query dupd mysql-check-result mysql_store_result ;
 
 ! Throws if fails
-: mysql-command ( mysql query -- )
+: mysql-command ( MYSQL query -- )
     dupd mysql_query mysql-check-result ;
 
 : mysql-reset-statement ( statement -- )
@@ -158,16 +158,13 @@ PRIVATE>
         [ drop ]
     } case ;
 
-
-
-
-: create-db ( mysql db -- )
+: create-db ( MYSQL db -- )
     dupd mysql_create_db mysql-check-result ;
 
-: drop-db ( mysql db -- )
+: drop-db ( MYSQL db -- )
     dupd mysql_drop_db mysql-check-result ;
 
-: select-db ( mysql db -- )
+: select-db ( MYSQL db -- )
     dupd mysql_select_db mysql-check-result ;
 
 <PRIVATE
@@ -188,16 +185,16 @@ PRIVATE>
 
 PRIVATE>
 
-: list-dbs ( mysql -- seq )
+: list-dbs ( MYSQL -- seq )
     f mysql_list_dbs dup mysql_num_fields rows concat ;
 
-: list-tables ( mysql -- seq )
+: list-tables ( MYSQL -- seq )
     f mysql_list_tables dup mysql_num_fields rows concat ;
 
-: list-processes ( mysql -- seq )
+: list-processes ( MYSQL -- seq )
     mysql_list_processes dup mysql_num_fields rows ;
 
-: query-db ( mysql sql -- cols rows )
+: query-db ( MYSQL sql -- cols rows )
     mysql-query [
         dup mysql_num_fields [ cols ] [ rows ] 2bi
     ] [ mysql_free_result ] bi ;

@@ -1,23 +1,27 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors continuations db2 db2.debug db2.errors
-db2.result-sets db2.statements db2.types kernel multiline
-tools.test ;
+USING: accessors continuations db2 db2.result-sets db2.statements
+kernel mysql.db2 mysql.db2.lib tools.test ;
 IN: db2.statements.tests
 
 { 1 0 } [ [ drop ] result-set-each ] must-infer-as
 { 1 1 } [ [ ] result-set-map ] must-infer-as
 
-: create-computer-table ( -- )
-    [ "drop table computer;" sql-command ] ignore-errors
+: db-factor-test ( -- MYSQL )
+    "localhost" "root" "" "factor-test" 0 "/tmp/mysql.sock" 0
+    mysql-real-connect ;
+
+: create-computer-table ( -- )    
+    [ "USE `factor-test`" sql-command ] ignore-errors
+    [ "DROP IF EXISTS TABLE `computer`;" sql-command ] ignore-errors
 
     ! [ "drop table computer;" sql-command ]
     ! [ [ sql-table-missing? ] [ table>> "computer" = ] bi and ] must-fail-with
 
-    [ "drop table computer;" sql-command ] must-fail
+    [ "DROP TABLE `computer`;" sql-command ] must-fail
 
     [ ] [
-        "create table computer(name varchar, os varchar, version integer);"
+        "CREATE TABLE `computer` (name VARCHAR(255), version INTEGER);"
         sql-command
     ] unit-test ;
 
@@ -54,4 +58,4 @@ IN: db2.statements.tests
         sql-command
     ] unit-test ;
 
-[ test-sql-command ] test-dbs
+! [ test-sql-command ] test-dbs
