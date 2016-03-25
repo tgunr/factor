@@ -1,0 +1,2 @@
+*.image filter=lfs diff=lfs merge=lfs -crlf
+Factor.app/Contents/MacOS/factor filter=lfs diff=lfs merge=lfs -crlf
