@@ -82,10 +82,10 @@ in another window."
   :init-value nil
   :lighter fuel-autohelp-mode-string
   :group 'fuel-autohelp
-
-  (if fuel-autohelp-mode
-      (add-hook 'post-command-hook 'fuel-autohelp-schedule-timer nil t)
-    (remove-hook 'post-command-hook 'fuel-autohelp-schedule-timer)))
+)
+  ;; (if fuel-autohelp-mode
+  ;;     (add-hook 'post-command-hook 'fuel-autohelp-schedule-timer nil t)
+  ;;   (remove-hook 'post-command-hook 'fuel-autohelp-schedule-timer)))
 
 ;;;###autoload
 (defun turn-on-fuel-autohelp-mode ()
@@ -93,6 +93,12 @@ in another window."
 `fuel-autohelp-mode')."
   (interactive)
   (fuel-autohelp-mode 1))
+
+(defun turn-off-fuel-autohelp-mode ()
+  "Unequivocally turn off FUEL's Autohelp mode (see command
+`fuel-autohelp-mode')."
+  (interactive)
+  (fuel-autohelp-mode 0))
 
 
 (provide 'fuel-autohelp)

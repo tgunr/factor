@@ -1,10 +1,10 @@
 ! Copyright (C) 2005, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs classes combinators
-compiler.units continuations definitions effects io
-io.encodings.utf8 io.files kernel lexer math.parser namespaces
-parser.notes quotations sequences sets slots source-files
-vectors vocabs vocabs.parser words words.symbol ;
+USING: accessors arrays classes combinators compiler.units
+continuations definitions effects io io.encodings.utf8 io.files kernel
+lexer math math.parser namespaces parser.notes quotations sequences
+sets slots source-files vectors vocabs vocabs.parser words
+words.symbol ;
 IN: parser
 
 : location ( -- loc )
@@ -164,8 +164,25 @@ print-use-hook [ [ ] ] initialize
         auto-used? [ print-use-hook get call( -- ) ] when
     ] with-file-vocabs ;
 
-: parsing-file ( path -- )
-    parser-quiet? get [ drop ] [ "Loading " write print flush ] if ;
+SYMBOL: parsing-file-level
+parsing-file-level [ 0 ] initialize
+
+: (parsing-file-level) ( -- string )
+    parsing-file-level get dup
+    [ "" swap iota [ drop "." append ] each ]
+    [ drop "" ] if
+    ;
+
+FROM: namespaces => set ; 
+: parsing-file-level++ ( -- )
+    parsing-file-level get  1 +  parsing-file-level set ;
+ 
+: parsing-file-level-- ( -- )
+      parsing-file-level get  1 -  parsing-file-level set ;
+      
+: parsing-file ( file -- )
+    parser-quiet? get [ drop ]
+    [ (parsing-file-level) "Loading " append write print flush ] if ;
 
 : filter-moved ( set1 set2 -- seq )
     swap diff members [
@@ -226,10 +243,15 @@ print-use-hook [ [ ] ] initialize
     [
         [ parsing-file ] keep
         [ utf8 <file-reader> ] keep
+        parsing-file-level++
         parse-stream
-    ] [
+        parsing-file-level--
+    ] [ 
         over parse-file-restarts rethrow-restarts
-        drop parse-file
+        drop
+        parsing-file-level++
+        parse-file
+        parsing-file-level--
     ] recover ;
 
 : run-file ( path -- )

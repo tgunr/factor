@@ -3,8 +3,9 @@
 
 USING: accessors alien alien.accessors alien.c-types alien.data
 alien.enums alien.strings arrays assocs combinators fry
-io.encodings.string io.encodings.utf8 kernel literals math
-math.bitwise pcre.ffi sequences splitting strings ;
+io.encodings.string io.encodings.utf8 kernel lexer literals math
+math.bitwise namespaces pcre.ffi sequences splitting strings ;
+
 QUALIFIED: regexp
 IN: pcre
 
@@ -155,3 +156,29 @@ M: regexp:regexp findall
 
 : split ( subject obj -- strings )
     dupd findall [ first second ] map split-subseqs ;
+
+: take-until ( end lexer -- string )
+    dup skip-blank [
+        [ index-from ] 2keep
+        [ swapd subseq ]
+        [ 2drop 1 + ] 3bi
+    ] change-lexer-column ;
+
+: parse-noblank-token ( lexer -- str/f )
+    dup still-parsing-line? [ (parse-token) ] [ drop f ] if ;
+
+: (parse-regexp) ( end -- regexp option|f )
+    lexer get [ take-until ] [ parse-noblank-token ] bi ;
+
+: parsing-regexp ( accum end -- accum )
+    (parse-regexp) drop <compiled-pcre> suffix! ;
+
+SYNTAX: P/ CHAR: / parsing-regexp ;
+SYNTAX: P! CHAR: ! parsing-regexp ;
+SYNTAX: P# CHAR: # parsing-regexp ;
+SYNTAX: P' CHAR: ' parsing-regexp ;
+SYNTAX: P( CHAR: ) parsing-regexp ;
+SYNTAX: P@ CHAR: @ parsing-regexp ;
+SYNTAX: P` CHAR: ` parsing-regexp ;
+SYNTAX: P| CHAR: | parsing-regexp ;
+
