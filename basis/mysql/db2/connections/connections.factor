@@ -10,6 +10,8 @@ IN: mysql.db2.connections
 
 TUPLE: mysql-db-connection < db-connection ;
 
+GENERIC: db>db-connection-generic ( db -- db-connection )
+
 : <mysql-db-connection> ( handle -- db-connection )
     mysql-db-connection new-db-connection ; inline
 

@@ -45,7 +45,7 @@ IN: db2.debug
         "factor-test" >>database ;
 
 : set-myql-db ( -- )
-    mysql-test-db db>db-connection db-connection set ;
+    mysql-db db>db-connection db-connection set ;
 
 : test-mysql-quot ( quot -- quot' )
     '[

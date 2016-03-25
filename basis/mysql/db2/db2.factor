@@ -1,7 +1,7 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 
-USING: accessors combinators db2.connections kernel lexer
+USING: accessors combinators mysql.db2.connections kernel lexer
 mysql.db2.lib namespaces regexp.private sequences vocabs ;
 
 IN: mysql.db2
@@ -37,8 +37,7 @@ M: mysql-db db>db-connection-generic
         over user>> >>user
         over passwd>> >>password
     db>db-connection-generic
-    db-connection set
-    drop
+    2drop
     ;
 
 SYNTAX: mysql{ CHAR: } lexer get take-until suffix! ;
