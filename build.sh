@@ -347,7 +347,7 @@ find_word_size() {
 set_factor_binary() {
     case $OS in
         windows) FACTOR_BINARY=factor.com;;
-        *) FACTOR_BINARY=factor;;
+        *) FACTOR_BINARY=$(dirname $0)/factor;;
     esac
 }
 
@@ -634,8 +634,10 @@ copy_fresh_image() {
 }
 
 bootstrap() {
-    ./$FACTOR_BINARY -i=$BOOT_IMAGE
-    copy_fresh_image
+    if [[ -e  $FACTOR_BINARY ]] ; then
+	$FACTOR_BINARY -i=$BOOT_IMAGE
+	copy_fresh_image
+    fi
 }
 
 install() {
@@ -674,13 +676,13 @@ net_bootstrap_no_pull() {
 }
 
 refresh_image() {
-    ./$FACTOR_BINARY -script -e="USING: vocabs.loader vocabs.refresh system memory ; refresh-all save 0 exit"
+    $FACTOR_BINARY -script -e="USING: vocabs.loader vocabs.refresh system memory ; refresh-all save 0 exit"
     check_ret factor
 }
 
 make_boot_image() {
-    echo ./$FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
-    ./$FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
+    echo $FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
+    $FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
     check_ret factor
 }
 
