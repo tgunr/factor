@@ -9,7 +9,6 @@ compiler.cfg.gvn.graph
 compiler.cfg.predecessors
 compiler.cfg.renaming.functor
 compiler.cfg.rpo ;
-QUALIFIED: assocs
 IN: compiler.cfg.gvn.avail
 
 : defined ( bb -- vregs )
@@ -20,7 +19,7 @@ IN: compiler.cfg.gvn.avail
 
 FORWARD-ANALYSIS: avail
 
-M: avail-analysis transfer-set drop defined assoc-union ;
+M: avail transfer-set drop defined assoc-union ;
 
 : available? ( vn -- ? ) basic-block get avail-in key? ;
 

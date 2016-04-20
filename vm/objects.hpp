@@ -11,7 +11,6 @@ enum special_object {
   OBJ_CALLCC_1,        /* used to pass the value in callcc1 */
 
   ERROR_HANDLER_QUOT = 5, /* quotation called when VM throws an error */
-  OBJ_ERROR,              /* a marker consed onto kernel errors */
 
   OBJ_CELL_SIZE = 7, /* sizeof(cell) */
   OBJ_CPU,           /* CPU architecture */
@@ -33,7 +32,7 @@ enum special_object {
   OBJ_GLOBAL,            /* global namespace */
   OBJ_SHUTDOWN_QUOT,     /* shutdown quotation */
 
-  /* Quotation compilation in quotations.c */
+  /* Quotation compilation in quotations.cpp */
   JIT_PROLOG = 23,
   JIT_PRIMITIVE_WORD,
   JIT_PRIMITIVE,
@@ -74,7 +73,7 @@ enum special_object {
   /* Callback stub generation in callbacks.cpp */
   CALLBACK_STUB = 53,
 
-  /* Polymorphic inline cache generation in inline_cache.c */
+  /* Polymorphic inline cache generation in inline_cache.cpp */
   PIC_LOAD = 54,
   PIC_TAG,
   PIC_TUPLE,
@@ -84,7 +83,7 @@ enum special_object {
   PIC_MISS_WORD,
   PIC_MISS_TAIL_WORD,
 
-  /* Megamorphic cache generation in dispatch.c */
+  /* Megamorphic cache generation in dispatch.cpp */
   MEGA_LOOKUP = 62,
   MEGA_LOOKUP_WORD,
   MEGA_MISS_WORD,

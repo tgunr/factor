@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: lists lists.lazy promises kernel sequences strings math
 arrays splitting quotations combinators namespaces locals
-unicode.case unicode.categories sequences.deep accessors ;
+unicode sequences.deep accessors ;
 IN: parser-combinators
 
 ! Parser combinator protocol
@@ -151,8 +151,8 @@ TUPLE: and-parser parsers ;
             [ parsed>> ] dip
             [ parsed>> 2array ] keep
             unparsed>> <parse-result>
-        ] with lazy-map
-    ] with lazy-map lconcat ;
+        ] with lmap-lazy
+    ] with lmap-lazy lconcat ;
 
 M: and-parser parse ( input parser -- list )
     ! Parse 'input' by sequentially combining the
@@ -175,7 +175,7 @@ M: or-parser parse ( input parser1 -- list )
     ! of parser1 and parser2 being applied to the same
     ! input. This implements the choice parsing operator.
     parsers>> sequence>list
-    [ parse ] with lazy-map lconcat ;
+    [ parse ] with lmap-lazy lconcat ;
 
 : trim-head-slice ( string -- string )
     ! Return a new string without any leading whitespace
@@ -220,7 +220,7 @@ M: apply-parser parse ( input parser -- result )
     -rot parse [
         [ parsed>> swap call ] keep
         unparsed>> <parse-result>
-    ] with lazy-map ;
+    ] with lmap-lazy ;
 
 TUPLE: some-parser p1 ;
 

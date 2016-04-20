@@ -1,7 +1,6 @@
-USING: arrays generic assocs kernel math namespaces
-sequences tools.test words definitions parser quotations
-vocabs continuations classes.tuple compiler.units
-io.streams.string accessors eval words.symbol grouping ;
+USING: accessors arrays compiler.units definitions eval generic
+io.streams.string kernel math namespaces parser sequences
+tools.test vocabs words words.symbol ;
 IN: words.tests
 
 { 4 } [
@@ -31,11 +30,11 @@ DEFER: plist-test
     "create-test" "scratchpad" lookup-word "testing" word-prop
 ] unit-test
 
-[
+H{ } clone [
     [ t ] [ \ array? "array?" "arrays" lookup-word = ] unit-test
 
     [ ] [ [ "test-scope" "scratchpad" create-word drop ] with-compilation-unit ] unit-test
-] with-scope
+] with-variables
 
 { "test-scope" } [
     "test-scope" "scratchpad" lookup-word name>>

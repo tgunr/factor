@@ -1,12 +1,12 @@
 ! Copyright (C) 2009 Joe Groff, 2013 John Benediktsson
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors byte-arrays combinators kernel kernel.private
-layouts make math math.private namespaces sbufs sequences
-sequences.private splitting strings strings.private ;
+layouts make math math.private sbufs sequences sequences.private
+strings strings.private ;
 IN: math.parser
 
 <PRIVATE
-PRIMITIVE: (format-float) ( n format -- byte-array )
+PRIMITIVE: (format-float) ( n fill width precision format locale -- byte-array )
 PRIVATE>
 
 : digit> ( ch -- n )
@@ -69,7 +69,8 @@ TUPLE: number-parse
     digit> pick radix>> over > ; inline
 
 : ?make-ratio ( num denom/f -- ratio/f )
-    [ / ] [ drop f ] if* ; inline
+    ! don't use number= to allow 0. for "1/0."
+    [ dup 0 = [ 2drop f ] [ / ] if ] [ drop f ] if* ; inline
 
 TUPLE: float-parse
     { radix fixnum }
@@ -86,7 +87,7 @@ TUPLE: float-parse
 : ?store-exponent ( float-parse n expt/f -- float-parse' n/f )
     [ store-exponent ] [ drop f ] if* ; inline
 
-: ((pow)) ( base x -- base^x )
+: pow-until ( base x -- base^x )
     [ 1 ] 2dip
     [ dup zero? ] [
         dup odd? [ [ [ * ] keep ] [ 1 - ] bi* ] when
@@ -95,7 +96,7 @@ TUPLE: float-parse
 
 : (pow) ( base x -- base^x )
     integer>fixnum-strict
-    dup 0 >= [ ((pow)) ] [ [ recip ] [ neg ] bi* ((pow)) ] if ; inline
+    dup 0 >= [ pow-until ] [ [ recip ] [ neg ] bi* pow-until ] if ; inline
 
 : add-mantissa-digit ( float-parse i number-parse n digit quot -- float-parse' n/f )
     [ (add-digit)
@@ -488,12 +489,13 @@ M: ratio >base
 
 <PRIVATE
 
-: fix-float ( str -- newstr )
-    CHAR: e over index [
-        cut [ fix-float ] dip append
-    ] [
-        CHAR: . over member? [ ".0" append ] unless
-    ] if* ;
+: (fix-float) ( str-no-exponent -- newstr )
+    CHAR: . over member? [ ".0" append ] unless ; inline
+
+: fix-float ( str exponent-char -- newstr )
+    over index [
+        cut [ (fix-float) ] dip append
+    ] [ (fix-float) ] if* ; inline
 
 : mantissa-expt-normalize ( mantissa expt -- mantissa' expt' )
     [ dup log2 52 swap - [ shift 52 2^ 1 - bitand ] [ 1022 + neg ] bi ]
@@ -548,14 +550,18 @@ M: ratio >base
         ] 2curry each-integer
     ] keep ; inline
 
-: format-float ( n format -- string )
-    format-string (format-float)
-    dup [ 0 = ] find drop
-    format-head fix-float ; inline
+: format-float ( n fill width precision format locale -- string )
+    [
+        [ format-string ] 4dip [ format-string ] bi@ (format-float)
+        dup [ 0 = ] find drop format-head
+    ] [
+        "C" = [ [ "G" = ] [ "E" = ] bi or CHAR: E CHAR: e ? fix-float ]
+        [ drop ] if
+    ] 2bi ; inline
 
 : float>base ( n radix -- str )
     {
-        { 10 [ "%.16g" format-float ] }
+        { 10 [ "" -1 16 "" "C" format-float ] }
         [ bin-float>base ]
     } case ; inline
 
@@ -572,3 +578,23 @@ M: float >base
     } cond ;
 
 : # ( n -- ) number>string % ; inline
+
+: hex-string>bytes ( hex-string -- bytes )
+    dup length 2/ <byte-array> [
+        [
+            [ digit> ] 2dip over even? [
+                [ 16 * ] [ 2/ ] [ set-nth ] tri*
+            ] [
+                [ 2/ ] [ [ + ] change-nth ] bi*
+            ] if
+        ] curry each-index
+    ] keep ;
+
+: bytes>hex-string ( bytes -- hex-string )
+    dup length 2 * CHAR: 0 <string> [
+        [
+            [ 16 /mod [ >digit ] bi@ ]
+            [ 2 * dup 1 + ]
+            [ [ set-nth ] curry bi-curry@ bi* ] tri*
+        ] curry each-index
+    ] keep ;

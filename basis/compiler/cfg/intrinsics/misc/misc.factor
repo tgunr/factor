@@ -14,14 +14,14 @@ IN: compiler.cfg.intrinsics.misc
     node-input-infos first2 [ class>> fixnum class<= ] both?
     [ [ cc= ^^compare-integer ] binary-op ] [ [ cc= ^^compare ] binary-op ] if ;
 
-: emit-special-object ( node -- )
+: emit-special-object ( block node -- block' )
     dup node-input-infos first literal>> [
         ds-drop
         vm-special-object-offset ^^vm-field
         ds-push
     ] [ emit-primitive ] ?if ;
 
-: emit-set-special-object ( node -- )
+: emit-set-special-object ( block node -- block' )
     dup node-input-infos second literal>> [
         ds-drop
         [ ds-pop ] dip vm-special-object-offset ##set-vm-field,
@@ -30,7 +30,7 @@ IN: compiler.cfg.intrinsics.misc
 : context-object-offset ( n -- n )
     cells "context-objects" context offset-of + ;
 
-: emit-context-object ( node -- )
+: emit-context-object ( block node -- block' )
     dup node-input-infos first literal>> [
         "ctx" vm offset-of ^^vm-field
         ds-drop swap context-object-offset cell /i 0 ^^slot-imm ds-push
@@ -44,11 +44,10 @@ IN: compiler.cfg.intrinsics.misc
         hashcode-shift ^^shr-imm
     ] unary-op ;
 
-: emit-local-allot ( node -- )
+: emit-local-allot ( block node -- block' )
     dup node-input-infos first2 [ literal>> ] bi@ 2dup [ integer? ] both?
     [ ds-drop ds-drop f ^^local-allot ^^box-alien ds-push drop ]
-    [ 2drop emit-primitive ]
-    if ;
+    [ 2drop emit-primitive ] if ;
 
-: emit-cleanup-allot ( -- )
-    [ drop ##no-tco, ] emit-trivial-block ;
+: emit-cleanup-allot ( block node -- block' )
+    drop [ drop ##no-tco, ] emit-trivial-block ;

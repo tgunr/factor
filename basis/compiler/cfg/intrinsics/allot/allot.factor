@@ -1,10 +1,10 @@
 ! Copyright (C) 2008, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays byte-arrays compiler.cfg.builder.blocks
-compiler.cfg.hats compiler.cfg.instructions compiler.cfg.registers
-compiler.cfg.stacks compiler.constants compiler.tree.propagation.info
-cpu.architecture fry kernel layouts locals math math.order
-sequences ;
+USING: accessors arrays byte-arrays compiler.cfg
+compiler.cfg.builder.blocks compiler.cfg.hats
+compiler.cfg.instructions compiler.cfg.registers compiler.cfg.stacks
+compiler.constants compiler.tree.propagation.info cpu.architecture fry
+kernel layouts locals math math.order namespaces sequences ;
 IN: compiler.cfg.intrinsics.allot
 
 : ##set-slots, ( regs obj class -- )
@@ -21,7 +21,7 @@ IN: compiler.cfg.intrinsics.allot
 : ^^allot-tuple ( n -- dst )
     2 + cells tuple ^^allot ;
 
-: emit-<tuple-boa> ( node -- )
+: emit-<tuple-boa> ( block #call -- block' )
     dup node-input-infos last literal>>
     dup array? [
         nip
@@ -42,7 +42,7 @@ IN: compiler.cfg.intrinsics.allot
 : ^^allot-array ( n -- dst )
     2 + cells array ^^allot ;
 
-:: emit-<array> ( node -- )
+:: emit-<array> ( block node -- block' )
     node node-input-infos first literal>> :> len
     len expand-<array>? [
         ds-pop :> elt
@@ -50,8 +50,8 @@ IN: compiler.cfg.intrinsics.allot
         ds-drop
         len reg array store-length
         len reg elt array store-initial-element
-        reg ds-push
-    ] [ node emit-primitive ] if ;
+        reg ds-push block
+    ] [ block node emit-primitive ] if ;
 
 : expand-(byte-array)? ( obj -- ? )
     dup integer? [ 0 1024 between? ] [ drop f ] if ;
@@ -67,9 +67,10 @@ IN: compiler.cfg.intrinsics.allot
 : emit-allot-byte-array ( len -- dst )
     ds-drop ^^allot-byte-array dup ds-push ;
 
-: emit-(byte-array) ( node -- )
-    dup node-input-infos first literal>> dup expand-(byte-array)?
-    [ nip emit-allot-byte-array drop ] [ drop emit-primitive ] if ;
+: emit-(byte-array) ( block node -- block' )
+    dup node-input-infos first literal>> dup expand-(byte-array)? [
+        nip emit-allot-byte-array drop
+    ] [ drop emit-primitive ] if ;
 
 :: zero-byte-array ( len reg -- )
     0 ^^load-literal :> elt
@@ -78,9 +79,9 @@ IN: compiler.cfg.intrinsics.allot
         [ elt reg ] dip cells byte-array-offset + int-rep f ##store-memory-imm,
     ] each ;
 
-:: emit-<byte-array> ( node -- )
-    node node-input-infos first literal>> dup expand-<byte-array>? [
+:: emit-<byte-array> ( block #call -- block' )
+    #call node-input-infos first literal>> dup expand-<byte-array>? [
         :> len
         len emit-allot-byte-array :> reg
-        len reg zero-byte-array
-    ] [ drop node emit-primitive ] if ;
+        len reg zero-byte-array block
+    ] [ drop block #call emit-primitive ] if ;

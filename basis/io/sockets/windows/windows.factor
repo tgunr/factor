@@ -67,7 +67,7 @@ M: object (get-remote-address) ( socket addrspec -- sockaddr )
 : bind-socket ( win32-socket sockaddr len -- )
     [ handle>> ] 2dip bind socket-error ;
 
-M: object ((client)) ( addrspec -- handle )
+M: object remote>handle ( addrspec -- handle )
     [ SOCK_STREAM open-socket ] keep
     [
         bind-local-address get
@@ -152,7 +152,7 @@ TUPLE: ConnectEx-args port
     winsock-error ; inline
 
 M: object establish-connection ( client-out remote -- )
-    make-sockaddr/size <ConnectEx-args>
+    make-sockaddr/size-outgoing <ConnectEx-args>
         swap >>port
         dup port>> handle>> handle>> >>s
         dup s>> get-ConnectEx-ptr >>ptr
@@ -292,7 +292,7 @@ TUPLE: WSASendTo-args port
     WSASendTo-args new
         swap >>port
         dup port>> handle>> handle>> >>s
-        swap make-sockaddr/size
+        swap make-sockaddr/size-outgoing
             [ malloc-byte-array &free ] dip
             [ >>lpTo ] [ >>iToLen ] bi*
         swap make-send-buffer >>lpBuffers

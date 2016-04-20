@@ -1,10 +1,10 @@
 ! Copyright (C) 2008, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors classes.algebra classes.builtin
-combinators.short-circuit compiler.cfg.builder.blocks
+combinators.short-circuit compiler.cfg compiler.cfg.builder.blocks
 compiler.cfg.hats compiler.cfg.instructions compiler.cfg.registers
 compiler.cfg.stacks compiler.tree.propagation.info cpu.architecture
-kernel layouts locals math namespaces sequences slots.private ;
+kernel layouts locals math namespaces sequences ;
 IN: compiler.cfg.intrinsics.slots
 
 : class-tag ( class -- tag/f )
@@ -30,7 +30,7 @@ IN: compiler.cfg.intrinsics.slots
 : immediate-slot-offset? ( object -- ? )
     { [ fixnum? ] [ cell * immediate-arithmetic? ] } 1&& ;
 
-: emit-slot ( node -- )
+: emit-slot ( block node -- block' )
     dup node-input-infos
     dup first value-tag [
         nip
@@ -68,7 +68,7 @@ IN: compiler.cfg.intrinsics.slots
         (emit-set-slot-imm)
     ] [ drop (emit-set-slot) ] if ;
 
-: emit-set-slot ( node -- )
+: emit-set-slot ( block #call -- block' )
     dup node>set-slot-data over [
         emit-intrinsic-set-slot drop
     ] [ 3drop emit-primitive ] if ;

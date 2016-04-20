@@ -4,8 +4,7 @@ USING: accessors arrays assocs calendar combinators
 combinators.smart fry generalizations io io.streams.string
 kernel macros math math.functions math.parser namespaces
 peg.ebnf present prettyprint quotations sequences
-sequences.generalizations strings unicode.case
-unicode.categories vectors ;
+sequences.generalizations strings unicode vectors ;
 FROM: math.parser.private => format-float ;
 IN: formatting
 
@@ -30,8 +29,7 @@ IN: formatting
     [ 0 ] [ string>number ] if-empty ;
 
 : format-simple ( x digits string -- string )
-    [ [ >float ] [ number>string ] bi* "%." ] dip
-    surround format-float ;
+    [ >float "" -1 ] 2dip "C" format-float ;
 
 : format-scientific ( x digits -- string ) "e" format-simple ;
 

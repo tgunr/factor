@@ -47,8 +47,7 @@ TUPLE: anonymous-complement { class read-only } ;
 INSTANCE: anonymous-complement classoid
 
 : <anonymous-complement> ( object -- classoid )
-    dup classoid? [ 1array not-classoids ] unless
-    anonymous-complement boa ;
+    check-classoid anonymous-complement boa ;
 
 M: anonymous-complement rank-class drop 3 ;
 
@@ -78,14 +77,6 @@ M: object normalize-class ;
     [ 2dup [ rank-class ] bi@ > [ swap ] when ] 2dip 2cache ; inline
 
 PRIVATE>
-
-GENERIC: valid-classoid? ( obj -- ? )
-
-M: word valid-classoid? class? ;
-M: anonymous-union valid-classoid? members>> [ valid-classoid? ] all? ;
-M: anonymous-intersection valid-classoid? participants>> [ valid-classoid? ] all? ;
-M: anonymous-complement valid-classoid? class>> valid-classoid? ;
-M: object valid-classoid? drop f ;
 
 : only-classoid? ( obj -- ? )
     dup classoid? [ class? not ] [ drop f ] if ;
@@ -242,7 +233,7 @@ M: anonymous-complement (classes-intersect?)
 : anonymous-union-or ( first second -- class )
     members>> swap suffix <anonymous-union> ;
 
-: ((class-or)) ( first second -- class )
+: classes>anonymous-union ( first second -- class )
     [ normalize-class ] bi@ {
         { [ dup anonymous-union? ] [ anonymous-union-or ] }
         { [ over anonymous-union? ] [ swap anonymous-union-or ] }
@@ -250,7 +241,7 @@ M: anonymous-complement (classes-intersect?)
     } cond ;
 
 : anonymous-complement-or ( first second -- class )
-    2dup class>> swap class<= [ 2drop object ] [ ((class-or)) ] if ;
+    2dup class>> swap class<= [ 2drop object ] [ classes>anonymous-union ] if ;
 
 : (class-or) ( first second -- class )
     2dup compare-classes {
@@ -261,7 +252,7 @@ M: anonymous-complement (classes-intersect?)
             {
                 { [ dup anonymous-complement? ] [ anonymous-complement-or ] }
                 { [ over anonymous-complement? ] [ swap anonymous-complement-or ] }
-                [ ((class-or)) ]
+                [ classes>anonymous-union ]
             } cond
         ] }
     } case ;

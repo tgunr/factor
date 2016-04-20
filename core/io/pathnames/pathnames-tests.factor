@@ -1,8 +1,6 @@
-USING: io.pathnames io.files.temp io.directories
-continuations math io.files.private kernel
-namespaces sequences system tools.test
-io.backend io.pathnames.private ;
-IN: io.pathnames.tests
+USING: io.backend io.directories io.files.private io.files.temp
+io.files.unique io.pathnames kernel locals math namespaces
+system tools.test ;
 
 { "passwd" } [ "/etc/passwd" file-name ] unit-test
 { "awk" } [ "/usr/libexec/awk/" file-name ] unit-test
@@ -54,17 +52,19 @@ IN: io.pathnames.tests
 { t } [ "resource:core" absolute-path? ] unit-test
 { f } [ "" absolute-path? ] unit-test
 
-[ "touch-twice-test" temp-file delete-file ] ignore-errors
-{ } [ 2 [ "touch-twice-test" temp-file touch-file ] times ] unit-test
+[| path |
+    { } [ 2 [ path touch-file ] times ] unit-test
+] with-test-file
 
 ! aum's bug
-[
-    "." current-directory set
-    ".." "resource-path" set
+H{
+    { current-directory "." }
+    { "resource-path" ".." }
+} [
     [ "../core/bootstrap/stage2.factor" ]
     [ "resource:core/bootstrap/stage2.factor" absolute-path ]
     unit-test
-] with-scope
+] with-variables
 
 { t } [ cwd "misc" resource-path [ ] with-directory cwd = ] unit-test
 

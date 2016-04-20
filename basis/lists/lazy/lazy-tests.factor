@@ -17,15 +17,15 @@ IN: lists.lazy.tests
 ] unit-test
 
 { { 5 6 6 7 7 8 } } [
-  { 1 2 3 } >list { 4 5 } >list 2list [ first2 + ] lcomp list>array
+  { 1 2 3 } >list { 4 5 } >list 2list [ + ] lcartesian-map list>array
 ] unit-test
 
 { { 5 6 7 8 } } [
-  { 1 2 3 } >list { 4 5 } >list 2list { [ first odd? ] } [ first2 + ] lcomp* list>array
+  { 1 2 3 } >list { 4 5 } >list 2list { [ drop odd? ] } [ + ] lcartesian-map* list>array
 ] unit-test
 
 { { 4 5 6 } } [
-    3 { 1 2 3 } >list [ + ] with lazy-map list>array
+    3 { 1 2 3 } >list [ + ] with lmap-lazy list>array
 ] unit-test
 
 { { 1 2 4 8 16 } } [
@@ -42,12 +42,12 @@ IN: lists.lazy.tests
 { { 1 2 3 } } [ { 1 2 3 4 5 } >list [ 2 > ] luntil list>array ] unit-test
 
 { } [
-    "resource:license.txt" utf8 <file-reader> [
+    "resource:LICENSE.txt" utf8 <file-reader> [
         llines list>array drop
     ] with-disposal
 ] unit-test
 { } [
-    "resource:license.txt" utf8 <file-reader> [
+    "resource:LICENSE.txt" utf8 <file-reader> [
         lcontents list>array drop
     ] with-disposal
 ] unit-test

@@ -1,5 +1,6 @@
-USING: accessors arrays continuations debugger eval io kernel kernel.private
-math memory namespaces parser sequences system tools.test vectors words ;
+USING: accessors continuations debugger eval io kernel
+kernel.private math memory namespaces sequences tools.test
+vectors words ;
 IN: continuations.tests
 
 : (callcc1-test) ( n obj -- n' obj )
@@ -16,9 +17,9 @@ IN: continuations.tests
     [
         "test-cc" set
         5 "x" set
-        [
+        H{ } clone [
             6 "x" set "test-cc" get continue
-        ] with-scope
+        ] with-variables
     ] callcc0 "x" get 5 = ;
 
 { t } [ 10 callcc1-test 10 iota reverse >vector = ] unit-test
@@ -64,9 +65,10 @@ IN: continuations.tests
 SYMBOL: always-counter
 SYMBOL: error-counter
 
-[
-    0 always-counter set
-    0 error-counter set
+H{
+    { always-counter 0 }
+    { error-counter 0 }
+} [
 
     [ ] [ always-counter inc ] [ error-counter inc ] cleanup
 
@@ -90,7 +92,7 @@ SYMBOL: error-counter
 
     [ 3 ] [ always-counter get ] unit-test
     [ 1 ] [ error-counter get ] unit-test
-] with-scope
+] with-variables
 
 { } [ [ return ] with-return ] unit-test
 

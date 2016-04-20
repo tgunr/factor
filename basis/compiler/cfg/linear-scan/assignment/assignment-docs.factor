@@ -19,31 +19,35 @@ HELP: assign-gc-roots
 
 HELP: assign-registers-in-block
 { $values { "bb" basic-block } }
-{ $description "Assigns registers and also inserts " { $link ##reload } " and " { $link ##spill } " instructions." } ;
+{ $description "Assigns registers to vregs and also inserts " { $link ##reload } " and " { $link ##spill } " instructions." } ;
 
 HELP: assign-registers
 { $values { "cfg" cfg } { "live-intervals" sequence } }
 { $description "Uses the live intervals in the sequence to assign physical registers to all instructions in the cfg. The live intervals must first have had their physical registers assigned by " { $link allocate-registers } "." } ;
 
-HELP: assign-registers-in-insn
+HELP: assign-all-registers
 { $values { "insn" insn } }
-{ $description "Assigns physical registers and spill slots for the virtual registers used by the instruction." } ;
+{ $description "Assigns physical registers for the virtual registers used and defined by the instruction." } ;
 
 HELP: compute-live-in
 { $values { "bb" basic-block } }
 { $description "Computes the live in registers for a basic block." }
 { $see-also machine-live-ins } ;
 
+HELP: expire-old-intervals
+{ $values { "n" integer } { "pending-heap" min-heap } }
+{ $description "Expires all intervals older than the cutoff point." } ;
+
 HELP: insert-reload
 { $values { "live-interval" live-interval-state } }
 { $description "Inserts a " { $link ##reload } " instruction for a live interval." }
-{ $see-also insert-spill } ;
+{ $see-also handle-reload insert-spill } ;
 
 HELP: machine-edge-live-ins
 { $var-description "Mapping from basic blocks to predecessors to values which are live on a particular incoming edge." } ;
 
 HELP: machine-live-ins
-{ $var-description "Mapping from basic blocks to values which are live at the start on all incoming CFG edges. It's like " { $link live-ins } " except the registers are physical instead of virtual." } ;
+{ $var-description "Mapping from basic blocks to values which are live at the start on all incoming CFG edges. Each value is a sequence of 2-tuples where the first element is the vreg and the second the register or " { $link spill-slot } " which contains its value. It's like " { $link live-ins } " except the registers are physical instead of virtual." } ;
 
 HELP: machine-live-outs
 { $var-description "Mapping from " { $link basic-block } " to an " { $link assoc } " of pairs which are the values that are live at the end. The keys of the pairs are virtual registers and the values are either real registers or spill slots." } ;
@@ -62,7 +66,7 @@ HELP: vreg>reg
 { $see-also lookup-spill-slot pending-interval-assoc } ;
 
 HELP: vregs>regs
-{ $values { "vregs" "a sequence of virtual registers" } { "assoc" assoc } }
+{ $values { "assoc" "an " { $link assoc } " (set) of virtual registers" } { "assoc" assoc } }
 { $description "Creates a mapping of virtual registers to registers." } ;
 
 HELP: vreg>spill-slot

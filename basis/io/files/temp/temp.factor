@@ -1,16 +1,27 @@
 ! (c)2012 Joe Groff bsd license
-USING: combinators io.directories io.pathnames kernel system
-vocabs ;
+USING: combinators init io.directories io.pathnames kernel
+namespaces system vocabs ;
 IN: io.files.temp
 
-HOOK: temp-directory os ( -- path )
-HOOK: cache-directory os ( -- path )
+HOOK: default-temp-directory os ( -- path )
+
+SYMBOL: current-temp-directory
+
+: temp-directory ( -- path )
+    current-temp-directory get ;
 
 : temp-file ( name -- path )
     temp-directory prepend-path ;
 
 : with-temp-directory ( quot -- )
     [ temp-directory ] dip with-directory ; inline
+
+HOOK: default-cache-directory os ( -- path )
+
+SYMBOL: current-cache-directory
+
+: cache-directory ( -- path )
+    current-cache-directory get ;
 
 : cache-file ( name -- path )
     cache-directory prepend-path ;
@@ -23,3 +34,11 @@ HOOK: cache-directory os ( -- path )
     { [ os macosx? ] [ "io.files.temp.macosx" ] }
     { [ os unix? ] [ "io.files.temp.unix" ] }
 } cond require
+
+[
+    default-temp-directory dup make-directories
+    current-temp-directory set-global
+
+    default-cache-directory dup make-directories
+    current-cache-directory set-global
+] "io.files.temp" add-startup-hook

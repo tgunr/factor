@@ -166,19 +166,18 @@ these lines in your .emacs:
 
 (defun factor-beginning-of-symbol ()
   "Move point to the beginning of the current symbol."
-  (skip-syntax-backward "w_()"))
+  (skip-syntax-backward "w_()\""))
 
 (defun factor-end-of-symbol ()
   "Move point to the end of the current symbol."
-  (skip-syntax-forward "w_()"))
+  (skip-syntax-forward "w_()\""))
 
 (put 'factor-symbol 'end-op 'factor-end-of-symbol)
 (put 'factor-symbol 'beginning-op 'factor-beginning-of-symbol)
 
-(defsubst factor-symbol-at-point ()
-  (let* ((thing (thing-at-point 'factor-symbol))
-         (s (when thing (substring-no-properties thing))))
-    (and (> (length s) 0) s)))
+(defun factor-symbol-at-point ()
+  (let ((thing (thing-at-point 'factor-symbol t)))
+    (and (> (length thing) 0) thing)))
 
 
 ;;; Regexps galore:
@@ -225,13 +224,13 @@ these lines in your .emacs:
     "GIR:"
     "GLSL-SHADER:" "GLSL-PROGRAM:"
     "HINTS:"
-    "initial:" "INTERSECTION:" "IMPLEMENT-STRUCTS:"
+    "initial:" "IMPLEMENT-STRUCTS:"
     "MATH:"
     "METHOD:"
     "PRIVATE>" "PROTOCOL:" "PROVIDE:"
-    "read-only" "REQUIRE:"  "REQUIRES:"
+    "read-only"
     "SLOT:"
-    "SPECIALIZED-ARRAYS:" "STRING:" "SYNTAX:"
+    "STRING:" "SYNTAX:"
     "UNIFORM-TUPLE:"
     "VARIANT:" "VERTEX-FORMAT:"))
 
@@ -309,7 +308,9 @@ these lines in your .emacs:
   (concat (syntax-begin '("SYMBOLS")) ws+ symbols-to-semicolon))
 
 (defconst factor-types-lines-regex
-  (concat (syntax-begin '("SINGLETONS")) ws+ symbols-to-semicolon))
+  (concat
+   (syntax-begin '("INTERSECTION" "SINGLETONS" "SPECIALIZED-ARRAYS"))
+   ws+ symbols-to-semicolon))
 
 (defconst factor-type-definition-regex
   (syntax-and-1-symbol

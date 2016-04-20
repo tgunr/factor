@@ -26,7 +26,7 @@ HELP: LIBRARY:
 { $notes "Logical library names are defined with the " { $link add-library } " word." } ;
 
 HELP: FUNCTION:
-{ $syntax "FUNCTION: return name ( parameters ) ;" }
+{ $syntax "FUNCTION: return name ( parameters )" }
 { $values { "return" "a C return type" } { "name" "a C function name" } { "parameters" "a comma-separated sequence of type/name pairs; " { $snippet "type1 arg1, type2 arg2, ..." } } }
 { $description "Defines a new word " { $snippet "name" } " which calls the C library function with the same " { $snippet "name" } " in the logical library given by the most recent " { $link POSTPONE: LIBRARY: } " declaration."
 $nl
@@ -40,17 +40,12 @@ $nl
 }
 "You can define a word for invoking it:"
 { $unchecked-example
-    "LIBRARY: foo\nFUNCTION: void the_answer ( c-string question, int value ) ;"
+    "LIBRARY: foo\nFUNCTION: void the_answer ( c-string question, int value )"
     "\"the question\" 42 the_answer"
     "The answer to the question is 42."
 } }
 "Using the " { $link c-string } " type instead of " { $snippet "char*" } " causes the FFI to automatically convert Factor strings to C strings. See " { $link "c-strings" } " for more information on using strings with the FFI."
-{ $notes "Note that the parentheses and commas are only syntax sugar and can be omitted; they serve no purpose other than to make the declaration easier to read. The following definitions are equivalent:"
-{ $code
-    "FUNCTION: void glHint ( GLenum target, GLenum mode ) ;"
-    "FUNCTION: void glHint GLenum target GLenum mode ;"
-}
-"To make a Factor word with a name different from the C function, use " { $link POSTPONE: FUNCTION-ALIAS: } "." } ;
+{ $notes "To make a Factor word with a name different from the C function, use " { $link POSTPONE: FUNCTION-ALIAS: } "." } ;
 
 HELP: FUNCTION-ALIAS:
 { $syntax "FUNCTION-ALIAS: factor-name
@@ -78,6 +73,12 @@ HELP: ENUM:
     { $code "ENUM: color_t red { green 3 } blue ;" }
     "The following expression returns true:"
     { $code "3 <color_t> [ green = ] [ enum>number 3 = ] bi and" }
+
+    "Here is a version where the C-type takes a single byte:"
+    { $code "ENUM: tv_peripherals_1 < uchar\n{ appletv 1 } { chromecast 2 } { roku 4 } ;" }
+
+    "The same as above but four bytes instead of one:"
+    { $code "ENUM: tv_peripherals_4 < uint\n{ appletv 1 } { chromecast 2 } { roku 4 } ;" }
 } ;
 
 HELP: C-TYPE:
@@ -91,12 +92,12 @@ STRUCT: forward { x backward* } ;" } }
 { $notes "Primitive C types are displayed using " { $snippet "C-TYPE:" } " syntax when they are " { $link see } "n." } ;
 
 HELP: CALLBACK:
-{ $syntax "CALLBACK: return type ( parameters ) ;" }
+{ $syntax "CALLBACK: return type ( parameters )" }
 { $values { "return" "a C return type" } { "type" "a type name" } { "parameters" "a comma-separated sequence of type/name pairs; " { $snippet "type1 arg1, type2 arg2, ..." } } }
 { $description "Defines a new function pointer C type word " { $snippet "type" } ". The newly defined word works both as a C type and as a wrapper for " { $link alien-callback } " for callbacks that accept the given return type and parameters. The ABI of the callback is decided from the ABI of the active " { $link POSTPONE: LIBRARY: } " declaration." }
 { $examples
     { $code
-        "CALLBACK: bool FakeCallback ( int message, void* payload ) ;"
+        "CALLBACK: bool FakeCallback ( int message, void* payload )"
         ": MyFakeCallback ( -- alien )"
         "    [| message payload |"
         "        \"message #\" write"

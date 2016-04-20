@@ -81,7 +81,7 @@ M: array >insecure [ >insecure ] map ;
 M: f >insecure ;
 
 : >secure ( addrspec -- addrspec' )
-    >insecure [ dup secure? [ <secure> ] unless ] map ;
+    >insecure [ dup secure? [ f <secure> ] unless ] map ;
 
 : configurable-addrspecs ( addrspecs -- addrspecs' )
     [ inet6? not ipv6-supported? or ] filter ;
@@ -101,7 +101,7 @@ M: f >insecure ;
 
 : log-connection ( remote local -- )
     [ accepted-connection ]
-    [ [ remote-address set ] [ local-address set ] bi* ]
+    [ [ remote-address namespaces:set ] [ local-address namespaces:set ] bi* ]
     2bi ;
 
 M: threaded-server handle-client* handler>> call( -- ) ;
@@ -230,7 +230,7 @@ M: inet4 connect-addr [ "127.0.0.1" ] dip port>> <inet4> ;
 
 M: inet6 connect-addr [ "::1" ] dip port>> <inet6> ;
 
-M: secure connect-addr addrspec>> connect-addr <secure> ;
+M: secure connect-addr addrspec>> connect-addr f <secure> ;
 
 M: local connect-addr ;
 

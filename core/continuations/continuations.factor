@@ -117,18 +117,14 @@ PRIVATE>
 
 GENERIC: error-in-thread ( error thread -- * )
 
-SYMBOL: thread-error-hook ! ( error thread -- )
+SYMBOL: thread-error-hook ! ( error thread -- * )
 
-thread-error-hook [ [ die ] ] initialize
-
-M: object error-in-thread ( error thread -- * )
+M: object error-in-thread
     thread-error-hook get-global call( error thread -- * ) ;
 
 : in-callback? ( -- ? ) CONTEXT-OBJ-IN-CALLBACK-P context-object ;
 
 SYMBOL: callback-error-hook ! ( error -- * )
-
-callback-error-hook [ [ die ] ] initialize
 
 : rethrow ( error -- * )
     dup save-error
@@ -138,6 +134,10 @@ callback-error-hook [ [ die ] ] initialize
         [ OBJ-CURRENT-THREAD special-object error-in-thread ]
         if
     ] [ pop continue-with ] if-empty ;
+
+thread-error-hook [ [ die drop rethrow ] ] initialize
+
+callback-error-hook [ [ die rethrow ] ] initialize
 
 : recover ( ..a try: ( ..a -- ..b ) recovery: ( ..a error -- ..b ) -- ..b )
     [
@@ -204,9 +204,6 @@ M: condition compute-restarts
         OBJ-CURRENT-THREAD special-object error-thread set-global
         current-continuation error-continuation set-global
         [ original-error set-global ] [ rethrow ] bi
-    ] ERROR-HANDLER-QUOT set-special-object
-    ! VM adds this to kernel errors, so that user-space
-    ! can identify them
-    "kernel-error" OBJ-ERROR set-special-object ;
+    ] ERROR-HANDLER-QUOT set-special-object ;
 
 PRIVATE>

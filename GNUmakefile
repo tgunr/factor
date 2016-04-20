@@ -7,6 +7,7 @@ ifdef CONFIG
 	include $(CONFIG)
 
 	CFLAGS = -Wall \
+		-pedantic \
 		-DFACTOR_VERSION="$(VERSION)" \
 		-DFACTOR_GIT_LABEL="$(GIT_LABEL)" \
 		$(SITE_CFLAGS)
@@ -133,7 +134,7 @@ ifdef CONFIG
 endif
 
 default:
-	$(MAKE) `./build-support/factor.sh make-target`
+	$(MAKE) `./build.sh make-target`
 
 help:
 	@echo "Run '$(MAKE)' with one of the following parameters:"

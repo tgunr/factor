@@ -5,12 +5,16 @@ arrays byte-arrays classes.struct combinators destructors
 io.backend.unix io.encodings.ascii io.encodings.utf8 io.files
 io.pathnames io.sockets.private kernel libc locals math
 namespaces sequences system unix unix.ffi vocabs ;
-EXCLUDE: io => read write ;
 EXCLUDE: io.sockets => accept ;
 IN: io.sockets.unix
 
 : socket-fd ( domain type protocol -- fd )
     socket dup io-error <fd> init-fd |dispose ;
+
+: get-socket-option ( fd level opt -- val )
+    [ handle-fd ] 2dip -1 int <ref> [
+        dup byte-length int <ref> getsockopt io-error
+    ] keep int deref ;
 
 : set-socket-option ( fd level opt -- )
     [ handle-fd ] 2dip 1 int <ref> dup byte-length setsockopt io-error ;
@@ -46,19 +50,10 @@ M: object (get-remote-address)
 : init-client-socket ( fd -- )
     SOL_SOCKET SO_OOBINLINE set-socket-option ;
 
-DEFER: wait-to-connect
-
-: wait-for-output ( port -- )
-    dup +output+ wait-for-port wait-to-connect ; inline
-
 : wait-to-connect ( port -- )
-    dup handle>> handle-fd f 0 write 0 = [ drop ] [
-        errno {
-            { EAGAIN [ wait-for-output ] }
-            { EINTR [ wait-to-connect ] }
-            [ (throw-errno) ]
-        } case
-    ] if ;
+    dup +output+ wait-for-port
+    dup handle>> SOL_SOCKET SO_ERROR get-socket-option
+    [ drop ] [ (throw-errno) ] if-zero ; inline
 
 M: object establish-connection
     2dup
@@ -66,7 +61,7 @@ M: object establish-connection
     connect 0 = [ 2drop ] [
         errno {
             { EINTR [ establish-connection ] }
-            { EINPROGRESS [ drop wait-for-output ] }
+            { EINPROGRESS [ drop wait-to-connect ] }
             [ (throw-errno) ]
         } case
     ] if ;
@@ -79,7 +74,7 @@ M: object establish-connection
         drop
     ] if* ; inline
 
-M: object ((client))
+M: object remote>handle
     [ protocol-family SOCK_STREAM ] [ protocol ] bi socket-fd
     [ init-client-socket ] [ ?bind-client ] [ ] tri ;
 
@@ -163,7 +158,7 @@ M: unix (receive-unsafe)
     ] when ; inline recursive
 
 M: unix (send)
-    [ make-sockaddr/size ] [ [ handle>> ] keep ] bi* do-send ;
+    [ make-sockaddr/size-outgoing ] [ [ handle>> ] keep ] bi* do-send ;
 
 ! Unix domain sockets
 M: local protocol-family drop PF_UNIX ;

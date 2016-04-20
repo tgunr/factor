@@ -1,11 +1,9 @@
 ! Copyright (C) 2008, 2011 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-
-USING: accessors arrays assocs combinators fry hashtables io.pathnames
-io.sockets kernel lexer linked-assocs make math.parser namespaces
-peg.ebnf present sequences splitting strings strings.parser
-urls.encoding vocabs.loader ;
-
+USING: accessors arrays assocs combinators fry io.pathnames
+io.sockets io.sockets.secure kernel lexer linked-assocs make
+math.parser namespaces peg.ebnf present sequences splitting
+strings strings.parser urls.encoding vocabs.loader ;
 IN: urls
 
 TUPLE: url protocol username password host port path query anchor ;
@@ -170,20 +168,16 @@ PRIVATE>
 : secure-protocol? ( protocol -- ? )
     "https" = ;
 
-<PRIVATE
-
-GENERIC: >secure-addr ( addrspec -- addrspec' )
-
-PRIVATE>
-
 : url-addr ( url -- addr )
     [
         [ host>> ]
         [ port>> ]
         [ protocol>> protocol-port ]
         tri or <inet>
-    ] [ protocol>> ] bi
-    secure-protocol? [ >secure-addr ] when ;
+    ] [
+        dup protocol>> secure-protocol?
+        [ host>> <secure> ] [ drop ] if
+    ] bi ;
 
 : set-url-addr ( url addr -- url )
     [ host>> >>host ] [ port>> >>port ] bi ;
@@ -192,7 +186,6 @@ PRIVATE>
     clone dup protocol>> '[ _ protocol-port or ] change-port ;
 
 ! Literal syntax
-SYNTAX: URL" lexer get skip-blank parse-short-string >url suffix! ;
+SYNTAX: URL" lexer get skip-blank parse-string >url suffix! ;
 
 { "urls" "prettyprint" } "urls.prettyprint" require-when
-{ "urls" "io.sockets.secure" } "urls.secure" require-when

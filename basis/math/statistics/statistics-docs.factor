@@ -105,7 +105,7 @@ HELP: histogram-by
 { $description "Returns a hashtable where the keys are the elements of the sequence binned by being passed through " { $snippet "quot" } ", and the values are the number of times members of each bin appeared in that sequence." }
 { $examples
     { $unchecked-example "! Count the number of times letters and non-letters appear in a sequence."
-               "USING: prettyprint math.statistics unicode.categories ;"
+               "USING: prettyprint math.statistics unicode ;"
                "\"aaa123bc\" [ letter? ] histogram-by ."
                "H{ { t 5 } { f 3 } }"
     }
@@ -188,6 +188,16 @@ HELP: cum-sum
     }
 } ;
 
+HELP: cum-sum0
+{ $values { "seq" sequence } { "seq'" sequence } }
+{ $description "Returns the cumulative sum of " { $snippet "seq" } " starting with 0 and not including the whole sum." }
+{ $examples
+    { $example "USING: math.statistics prettyprint ;"
+               "{ 1 -1 2 -1 4 } cum-sum0 ."
+               "{ 0 1 0 2 1 }"
+    }
+} ;
+
 HELP: cum-count
 { $values { "seq" sequence } { "quot" quotation } { "seq'" sequence } }
 { $description "Returns the cumulative count of how many times " { $snippet "quot" } " returns true." }
@@ -206,6 +216,16 @@ HELP: cum-product
     { $example "USING: math.statistics prettyprint ;"
                "{ 1 2 3 4 } cum-product ."
                "{ 1 2 6 24 }"
+    }
+} ;
+
+HELP: cum-product1
+{ $values { "seq" sequence } { "seq'" sequence } }
+{ $description "Returns the cumulative product of " { $snippet "seq" } " starting with 1 and not including the whole product." }
+{ $examples
+    { $example "USING: math.statistics prettyprint ;"
+               "{ 2 3 4 } cum-product1 ."
+               "{ 1 2 6 }"
     }
 } ;
 
@@ -302,15 +322,14 @@ ARTICLE: "histogram" "Computing histograms"
 } ;
 
 ARTICLE: "cumulative" "Computing cumulative sequences"
-"Cumulative mapping combinators:"
-{ $subsections
-    cum-map
-}
+"Cumulative words build on " { $link accumulate } " and " { $link accumulate* } "."
+$nl
 "Cumulative math:"
 { $subsections
     cum-sum
     cum-sum0
     cum-product
+    cum-product1
 }
 "Cumulative comparisons:"
 { $subsections

@@ -1,6 +1,6 @@
 USING: bootstrap.image tools.test system io io.encodings.ascii
 io.pathnames io.files io.files.info io.files.temp kernel
-tools.deploy.config tools.deploy.config.editor
+tools.deploy.config tools.deploy.config.editor literals
 tools.deploy.backend math sequences io.launcher arrays
 namespaces continuations layouts accessors urls math.parser
 io.directories splitting tools.deploy tools.deploy.test vocabs ;
@@ -18,24 +18,27 @@ delete-staging-images
 
 { } [ "hello-world" shake-and-bake 550000 small-enough? ] unit-test
 
+! XXX: deploy-path is "resource:" by default, but deploying there in a
+! test would pollute the Factor directory, so deploy test to temp.
 { { "Hello world" } } [
-    f open-directory-after-deploy? [
+    H{
+        { open-directory-after-deploy? f }
+        { deploy-directory $[ temp-directory ] }
+    } [
         "hello-world" deploy
         "hello-world" deploy-path 1array
         ascii [ lines ] with-process-reader
-    ] with-variable
+    ] with-variables
 ] unit-test
 
 { } [ "sudoku" shake-and-bake 800000 small-enough? ] unit-test
 
 ! [ ] [ "hello-ui" shake-and-bake 1605000 small-enough? ] unit-test
-{ } [ "hello-ui" shake-and-bake 2241000 small-enough? ] unit-test
+{ } [ "hello-ui" shake-and-bake 2242000 small-enough? ] unit-test
 
 { "math-threads-compiler-io-ui" } [
-    "hello-ui" deploy-config [
-        bootstrap-profile staging-image-name file-name
-        "." split second
-    ] with-variables
+    "hello-ui" deploy-config config>profile
+    staging-image-name file-name "." split second
 ] unit-test
 
 ! [ ] [ "maze" shake-and-bake 1520000 small-enough? ] unit-test
@@ -45,17 +48,17 @@ delete-staging-images
 { } [ "tetris" shake-and-bake 2462008 small-enough? ] unit-test
 
 ! [ ] [ "spheres" shake-and-bake 1557000 small-enough? ] unit-test
-{ } [ "spheres" shake-and-bake 2183500 small-enough? ] unit-test
+{ } [ "spheres" shake-and-bake 2184500 small-enough? ] unit-test
 
 ! [ ] [ "terrain" shake-and-bake 2053000 small-enough? ] unit-test
-{ } [ "terrain" shake-and-bake 2683300 small-enough? ] unit-test
+{ } [ "terrain" shake-and-bake 2685300 small-enough? ] unit-test
 
 ! [ ] [ "gpu.demos.raytrace" shake-and-bake 2764000 small-enough? ] unit-test
 { } [ "gpu.demos.raytrace" shake-and-bake 3557800 small-enough? ] unit-test
 
-{ } [ "bunny" shake-and-bake 2551640 small-enough? ] unit-test
+{ } [ "bunny" shake-and-bake 2559640 small-enough? ] unit-test
 
-{ } [ "gpu.demos.bunny" shake-and-bake 3560344 small-enough? ] unit-test
+{ } [ "gpu.demos.bunny" shake-and-bake 3563344 small-enough? ] unit-test
 
 os macosx? [
     [ ] [ "webkit-demo" shake-and-bake 600000 small-enough? ] unit-test
@@ -152,10 +155,10 @@ os macosx? [
 { t } [
     "tools.deploy.test.18" shake-and-bake
     deploy-test-command ascii [ readln ] with-process-reader
-    test-image temp-file =
+    test-image-path =
 ] unit-test
 
-{ } [ "resource:license.txt" "license.txt" temp-file copy-file ] unit-test
+{ } [ "resource:LICENSE.txt" "license.txt" temp-file copy-file ] unit-test
 
 { } [ "tools.deploy.test.19" shake-and-bake run-temp-image ] unit-test
 

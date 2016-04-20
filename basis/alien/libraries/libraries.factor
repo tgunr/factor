@@ -29,6 +29,11 @@ C: <library> library
 
 : lookup-library ( name -- library ) libraries get at ;
 
+ERROR: no-library-named name ;
+GENERIC: dlsym? ( name string/dll -- ? )
+M: string dlsym? dup lookup-library [ nip dll>> dlsym? ] [ no-library-named ] if* ;
+M: dll dlsym? dlsym >boolean ;
+
 : open-dll ( path -- dll dll-error/f )
     [ dlopen dup dll-valid? [ f ] [ dlerror ] if ]
     [ f f ] if* ;
@@ -73,7 +78,9 @@ M: library dispose dll>> [ dispose ] when* ;
     pick lookup-library [
         [ 2over same-library? not ] keep swap
         [ change-dll drop ] [ 4drop ] if
-    ] [ add-library ] if* ;
+    ] [
+        make-library swap libraries get set-at
+    ] if* ;
 
 : library-abi ( library -- abi )
     lookup-library [ abi>> ] [ cdecl ] if* ;

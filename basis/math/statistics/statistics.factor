@@ -60,7 +60,7 @@ PRIVATE>
 
 <PRIVATE
 
-:: ((kth-object)) ( seq k nth-quot exchange-quot quot: ( x y -- ? ) -- elt )
+:: kth-object-impl ( seq k nth-quot exchange-quot quot: ( x y -- ? ) -- elt )
     ! Wirth's method, Algorithm's + Data structues = Programs p. 84
     k seq bounds-check 2drop
     0 :> i!
@@ -91,7 +91,7 @@ PRIVATE>
 
 : (kth-object) ( seq k nth-quot exchange-quot quot: ( x y -- ? ) -- elt )
     ! The algorithm modifiers seq, so we clone it
-    [ >array ] 4dip ((kth-object)) ; inline
+    [ >array ] 4dip kth-object-impl ; inline
 
 : kth-object-unsafe ( seq k quot: ( x y -- ? ) -- elt )
     [ [ nth-unsafe ] [ exchange-unsafe ] ] dip (kth-object) ; inline
@@ -302,24 +302,22 @@ ALIAS: std sample-std
 
 : sample-ste ( seq -- x ) 1 ste-ddof ;
 
-: ((r)) ( x-mean y-mean x-seq y-seq -- (r) )
+<PRIVATE
+: r-sum-diffs ( x-mean y-mean x-seq y-seq -- (r) )
     ! finds sigma((xi-mean(x))(yi-mean(y))
     0 [ [ [ pick ] dip swap - ] bi@ * + ] 2reduce 2nip ;
 
 : (r) ( x-mean y-mean x-seq y-seq x-std y-std -- r )
-    * recip [ [ ((r)) ] keep length 1 - / ] dip * ;
+    * recip [ [ r-sum-diffs ] keep length 1 - / ] dip * ;
 
-: [r] ( xy-pairs -- x-mean y-mean x-seq y-seq x-std y-std )
+: r-stats ( xy-pairs -- x-mean y-mean x-seq y-seq x-std y-std )
     first2 [ [ [ mean ] bi@ ] 2keep ] 2keep [ population-std ] bi@ ;
+PRIVATE>
 
-: r ( xy-pairs -- r )
-    [r] (r) ;
-
-: r^2 ( xy-pairs -- r )
-    r sq ;
+: pearson-r ( xy-pairs -- r ) r-stats (r) ;
 
 : least-squares ( xy-pairs -- alpha beta )
-    [r] { [ 2dup ] [ ] [ ] [ ] [ ] } spread
+    r-stats [ 2dup ] 4 ndip
     ! stack is x-mean y-mean x-mean y-mean x-seq y-seq x-std y-std
     [ (r) ] 2keep ! stack is mean(x) mean(y) r sx sy
     swap / * ! stack is mean(x) mean(y) beta
@@ -340,29 +338,29 @@ ALIAS: std sample-std
 
 : sample-corr ( x-seq y-seq -- corr ) 1 corr-ddof ; inline
 
-: cum-map ( seq identity quot: ( prev elt -- next ) -- seq' )
-    swapd [ dup ] compose map nip ; inline
-
 : cum-sum ( seq -- seq' )
-    0 [ + ] cum-map ;
+    0 [ + ] accumulate* ;
 
 : cum-sum0 ( seq -- seq' )
     0 [ + ] accumulate nip ;
 
 : cum-product ( seq -- seq' )
-    1 [ * ] cum-map ;
+    1 [ * ] accumulate* ;
+
+: cum-product1 ( seq -- seq' )
+    1 [ * ] accumulate nip ;
 
 : cum-mean ( seq -- seq' )
     0 swap [ [ + dup ] dip 1 + / ] map-index nip ;
 
 : cum-count ( seq quot -- seq' )
-    [ 0 ] dip '[ _ call [ 1 + ] when ] cum-map ; inline
+    [ 0 ] dip '[ _ call [ 1 + ] when ] accumulate* ; inline
 
 : cum-min ( seq -- seq' )
-    dup ?first [ min ] cum-map ;
+    dup ?first [ min ] accumulate* ;
 
 : cum-max ( seq -- seq' )
-    dup ?first [ max ] cum-map ;
+    dup ?first [ max ] accumulate* ;
 
 : entropy ( probabilities -- n )
     dup sum '[ _ / dup log * ] map-sum neg ;

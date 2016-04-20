@@ -26,11 +26,6 @@ $nl
 $nl
 "While parsing words supporting arbitrary syntax can be defined, the default set is found in the " { $vocab-link "syntax" } " vocabulary and provides the basis for all further syntactic interaction with Factor." ;
 
-ARTICLE: "syntax-comments" "Comments"
-{ $subsections
-    POSTPONE: !
-} ;
-
 ARTICLE: "syntax-immediate" "Parse time evaluation"
 "Code can be evaluated at parse time. This is a rarely-used feature; one use-case is " { $link "loading-libs" } ", where you want to execute some code before the words in a source file are compiled."
 { $subsections
@@ -260,7 +255,6 @@ ARTICLE: "syntax" "Syntax"
     "parser-algorithm"
     "word-search"
     "top-level-forms"
-    "syntax-comments"
     "syntax-literals"
     "syntax-immediate"
 } ;
@@ -453,7 +447,7 @@ HELP: SYMBOL:
 
 HELP: SYMBOLS:
 { $syntax "SYMBOLS: words... ;" }
-{ $values { "words" "a sequence of new words to define" } }
+{ $values { "words" { $sequence "new words to define" } } }
 { $description "Creates a new symbol for every token until the " { $snippet ";" } "." }
 { $examples { $example "USING: prettyprint ;" "IN: scratchpad" "SYMBOLS: foo bar baz ;\nfoo . bar . baz ." "foo\nbar\nbaz" } } ;
 
@@ -471,7 +465,7 @@ HELP: SINGLETON:
 
 HELP: SINGLETONS:
 { $syntax "SINGLETONS: words... ;" }
-{ $values { "words" "a sequence of new words to define" } }
+{ $values { "words" { $sequence "new words to define" } } }
 { $description "Creates a new singleton for every token until the " { $snippet ";" } "." } ;
 
 HELP: ALIAS:
@@ -657,11 +651,6 @@ HELP: (
 }
 { $see-also "effects" }
 ;
-
-HELP: !
-{ $syntax "! comment..." }
-{ $values { "comment" "characters" } }
-{ $description "Discards all input until the end of the line." } ;
 
 HELP: NAN:
 { $syntax "NAN: payload" }

@@ -203,6 +203,7 @@ M: anonymous-intersection initial-value*
         { [ dup "initial-value" word-prop ] [ dup "initial-value" word-prop t ] }
         { [ \ f bootstrap-word over class<= ] [ f t ] }
         { [ \ array-capacity bootstrap-word over class<= ] [ 0 t ] }
+        { [ \ integer-array-capacity bootstrap-word over class<= ] [ 0 t ] }
         { [ bignum bootstrap-word over class<= ] [ 0 >bignum t ] }
         { [ float bootstrap-word over class<= ] [ 0.0 t ] }
         { [ string bootstrap-word over class<= ] [ "" t ] }
@@ -228,9 +229,7 @@ M: string make-slot
 : peel-off-class ( slot-spec array -- slot-spec array )
     dup empty? [
         dup first classoid? [
-            [ first init-slot-class ]
-            [ rest ]
-            bi
+            [ first init-slot-class ] [ rest ] bi
         ] when
     ] unless ;
 

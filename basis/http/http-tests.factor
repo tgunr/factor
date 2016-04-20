@@ -38,6 +38,7 @@ blah
 {
     T{ request
         { url T{ url { path "/bar" } } }
+        { proxy-url T{ url } }
         { method "POST" }
         { version "1.1" }
         { header H{ { "some-header" "1; 2" } { "content-length" "4" } { "content-type" "application/octet-stream" } } }
@@ -77,6 +78,7 @@ Host: www.sex.com
 {
     T{ request
         { url T{ url { host "www.sex.com" } { path "/bar" } } }
+        { proxy-url T{ url } }
         { method "HEAD" }
         { version "1.1" }
         { header H{ { "host" "www.sex.com" } } }
@@ -98,6 +100,7 @@ Host: www.sex.com:101
 {
     T{ request
         { url T{ url { host "www.sex.com" } { port 101 } { path "/bar" } } }
+        { proxy-url T{ url } }
         { method "HEAD" }
         { version "1.1" }
         { header H{ { "host" "www.sex.com:101" } } }
@@ -153,7 +156,6 @@ blah
 STRING: read-response-test-1'
 HTTP/1.1 404 not found
 content-type: text/html; charset=UTF-8
-
 
 ;
 
@@ -443,7 +445,7 @@ test-db <db-persistence> [
     "resource:basis/http/test/" <static> enable-fhtml >>default
     add-quit-action [
 
-    [ "OK\n\n" ] [ "http://localhost/" add-addr http-get nip ] unit-test
+    [ "OK\n" ] [ "http://localhost/" add-addr http-get nip ] unit-test
 
     [ ] [ stop-test-httpd ] unit-test
 
