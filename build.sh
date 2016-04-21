@@ -347,7 +347,7 @@ find_word_size() {
 set_factor_binary() {
     case $OS in
         windows) FACTOR_BINARY=factor.com;;
-        *) FACTOR_BINARY=factor;;
+        *) FACTOR_BINARY=$(dirname $0)/factor;;
     esac
 }
 
@@ -478,7 +478,7 @@ update_script() {
 }
 
 update_script_changed() {
-    invoke_git diff --stat `invoke_git merge-base HEAD FETCH_HEAD` FETCH_HEAD | grep 'build-support.factor\.sh' >/dev/null 
+    invoke_git diff --stat `invoke_git merge-base HEAD FETCH_HEAD` FETCH_HEAD | grep 'build\.sh' >/dev/null
 }
 
 git_fetch_factorcode() {
@@ -599,7 +599,7 @@ update_boot_images() {
 
 get_boot_image() {
     $ECHO "Downloading boot image $BOOT_IMAGE."
-	if [[ ! $($DOWNLOADER http://downloads.factorcode.org/images/latest/$BOOT_IMAGE) ]] ; then
+	if [[ $($DOWNLOADER http://downloads.factorcode.org/images/latest/$BOOT_IMAGE) ]] ; then
 		$ECHO "Download complete."
 	else
 		$ECHO "Could not connect to server to download image."
@@ -674,13 +674,13 @@ net_bootstrap_no_pull() {
 }
 
 refresh_image() {
-    ./$FACTOR_BINARY -script -e="USING: vocabs.loader vocabs.refresh system memory ; refresh-all save 0 exit"
+    $FACTOR_BINARY -script -e="USING: vocabs.loader vocabs.refresh system memory ; refresh-all save 0 exit"
     check_ret factor
 }
 
 make_boot_image() {
-    echo ./$FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
-    ./$FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
+    echo $FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
+    $FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
     check_ret factor
 }
 
@@ -722,7 +722,7 @@ usage() {
     $ECHO "  deps-macosx - install git on MacOSX using port"
     $ECHO "  self-update - git pull, recompile, make local boot image, bootstrap"
     $ECHO "  quick-update - git pull, refresh-all, save"
-    $ECHO "  update - git pull, recompile, download a boot image, bootstrap"
+    $ECHO "  update|latest - git pull, recompile, download a boot image, bootstrap"
     $ECHO "  bootstrap - bootstrap with existing boot image"
     $ECHO "  net-bootstrap - recompile, download a boot image, bootstrap"
     $ECHO "  make-target - find and print the os-arch-cpu string"
@@ -760,6 +760,7 @@ case "$1" in
     quick-update) update; refresh_image ;;
     update) update; download_and_bootstrap ;;
     thiscommit) thiscommit; download_and_bootstrap ;;
+    latest) update; download_and_bootstrap ;;
     bootstrap) get_config_info; bootstrap ;;
     net-bootstrap) net_bootstrap_no_pull ;;
     make-target) FIND_MAKE_TARGET=true; ECHO=false; find_build_info; exit_script ;;

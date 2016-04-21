@@ -1,8 +1,7 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: classes.maybe eval generic.single kernel tools.test
-math classes accessors slots classes.algebra
-classes.algebra.private ;
+USING: accessors classes classes.algebra classes.algebra.private
+classes.maybe eval generic.single kernel math slots tools.test ;
 IN: classes.maybe.tests
 
 { t } [ 3 maybe{ integer } instance? ] unit-test
@@ -62,9 +61,6 @@ M: f lol2 drop "lol22" ;
 { "lol2" } [ foo new lol2 ] unit-test
 { "lol22" } [ f lol2 ] unit-test
 [ 3 lol2 ] [ no-method? ] must-fail-with
-
-{ t } [ \ + <maybe> classoid? ] unit-test
-{ f } [ \ + <maybe> valid-classoid? ] unit-test
 
 [ "IN: classes-tests maybe{ 1 2 3 }" eval( -- ) ]
 [ error>> not-classoids? ] must-fail-with

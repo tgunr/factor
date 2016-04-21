@@ -1,45 +1,46 @@
-USING: accessors arrays db db.tuples db.types kernel mysql sequences
-sorting tools.test ;
+USING: io io.files io.files.temp io.directories io.launcher
+kernel namespaces prettyprint tools.test db.sqlite db sequences
+continuations db.types db.tuples unicode accessors arrays
+sorting layouts math.parser ;
+IN: db.sqlite.tests
 
-IN: mysql.tests
+: db-path ( -- path ) "test-" cell number>string ".db" 3append temp-file ;
+: test.db ( -- sqlite-db ) db-path <sqlite-db> ;
 
-: db-args ( -- {host user passwd} ) "10.1.1.3" "root" "pplutonsonew" ;
-: test.db ( -- mysql-db ) db-args <mysql-db>  "test" init-with-db: ;
+{ } [ [ db-path delete-file ] ignore-errors ] unit-test
 
-[ ] [
+{ } [
     test.db [
-      "CREATE DATABASE IF NOT EXISTS test" sql-command
-      "DROP TABLE person" sql-command
-      "create table person (name varchar(30), country varchar(30))" sql-command
-      "insert into person values('John', 'America')" sql-command
-      "insert into person values('Jane', 'New Zealand')" sql-command
+        "create table person (name varchar(30), country varchar(30))" sql-command
+        "insert into person values('John', 'America')" sql-command
+        "insert into person values('Jane', 'New Zealand')" sql-command
     ] with-db
 ] unit-test
 
 
-[ { { "John" "America" } { "Jane" "New Zealand" } } ] [
+{ { { "John" "America" } { "Jane" "New Zealand" } } } [
     test.db [
         "select * from person" sql-query
     ] with-db
 ] unit-test
 
-[ { { "1" "John" "America" } { "2" "Jane" "New Zealand" } } ]
+{ { { "1" "John" "America" } { "2" "Jane" "New Zealand" } } }
 [ test.db [ "select rowid, * from person" sql-query ] with-db ] unit-test
 
-[ ] [
+{ } [
     test.db [
         "insert into person(name, country) values('Jimmy', 'Canada')"
         sql-command
     ] with-db
 ] unit-test
 
-[
+{
     {
         { "1" "John" "America" }
         { "2" "Jane" "New Zealand" }
         { "3" "Jimmy" "Canada" }
     }
-] [ test.db [ "select rowid, * from person" sql-query ] with-db ] unit-test
+} [ test.db [ "select rowid, * from person" sql-query ] with-db ] unit-test
 
 [
     test.db [
@@ -51,13 +52,13 @@ IN: mysql.tests
     ] with-db
 ] must-fail
 
-[ 3 ] [
+{ 3 } [
     test.db [
         "select * from person" sql-query length
     ] with-db
 ] unit-test
 
-[ ] [
+{ } [
     test.db [
         [
             "insert into person(name, country) values('Jose', 'Mexico')"
@@ -68,7 +69,7 @@ IN: mysql.tests
     ] with-db
 ] unit-test
 
-[ 5 ] [
+{ 5 } [
     test.db [
         "select * from person" sql-query length
     ] with-db
@@ -84,7 +85,7 @@ things "THINGS" {
     { "two" "TWO" INTEGER +not-null+ }
 } define-persistent
 
-[ { { 0 0 } { 0 1 } { 1 0 } { 1 1 } } ] [
+{ { { 0 0 } { 0 1 } { 1 0 } { 1 1 } } } [
     test.db [
        things create-table
         0 0 things boa insert-tuple
@@ -109,7 +110,7 @@ hi "HELLO" {
     { "try" "RETHROW" INTEGER { +foreign-id+ foo "SOMETHING" } }
 } define-persistent
 
-[ T{ foo { slot 1 } } T{ hi { bye 1 } { try 1 } } ] [
+{ T{ foo { slot 1 } } T{ hi { bye 1 } { try 1 } } } [
     test.db [
         foo create-table
         hi create-table
@@ -123,7 +124,7 @@ hi "HELLO" {
 ] unit-test
 
 
-! Test Mysql triggers
+! Test SQLite triggers
 
 TUPLE: show id ;
 TUPLE: user username data ;
@@ -144,8 +145,8 @@ watch "WATCH" {
     { "show" "SHOW" BIG-INTEGER +not-null+ +user-assigned-id+
         { +foreign-id+ show "ID" } }
 } define-persistent
-    
-[ T{ user { username "littledan" } { data "foo" } } ] [
+
+{ T{ user { username "littledan" } { data "foo" } } } [
     test.db [
         user create-table
         show create-table
@@ -159,5 +160,15 @@ watch "WATCH" {
         watch boa insert-tuple
         watch new select-tuple
         user>> f user boa select-tuple
+    ] with-db
+] unit-test
+
+{ } [
+    test.db [ [
+            user ensure-table [
+                "mew" "foo" user boa insert-tuple
+                "denny" "kitty" user boa insert-tuple
+            ] with-transaction
+        ] with-transaction
     ] with-db
 ] unit-test
