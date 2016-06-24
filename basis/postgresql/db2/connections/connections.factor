@@ -7,14 +7,14 @@ IN: postgresql.db2.connections
 
 <PRIVATE
 
-TUPLE: postgresql-db-connection < db-connection ;
+TUPLE: postgresql-db-connection < db2-connection ;
 
-: <postgresql-db-connection> ( handle -- db-connection )
+: <postgresql-db-connection> ( handle -- db2-connection )
     \ postgresql-db-connection new-db-connection ;
 
 PRIVATE>
 
-M: postgresql-db db>db-connection-generic ( db -- db-connection )
+M: postgresql-db db>db-connection-generic ( db -- db2-connection )
     {
         [ host>> ]
         [ port>> ]
@@ -25,7 +25,7 @@ M: postgresql-db db>db-connection-generic ( db -- db-connection )
         [ password>> ]
     } cleave connect-postgres <postgresql-db-connection> ;
 
-M: postgresql-db-connection dispose* ( db-connection -- )
+M: postgresql-db-connection dispose* ( db2-connection -- )
     [ handle>> PQfinish ] [ f >>handle drop ] bi ;
 
 ERROR: postgresql:sql-error string length ;

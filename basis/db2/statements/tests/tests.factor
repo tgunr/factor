@@ -11,22 +11,8 @@ IN: db2.statements.tests
     "localhost" "root" "" "factor-test" 0 "/tmp/mysql.sock" 0
     mysql-real-connect ;
 
-: create-computer-table ( -- )    
-    [ "USE `factor-test`" sql-command ] ignore-errors
-    [ "DROP IF EXISTS TABLE `computer`;" sql-command ] ignore-errors
-
-    ! [ "drop table computer;" sql-command ]
-    ! [ [ sql-table-missing? ] [ table>> "computer" = ] bi and ] must-fail-with
-
-    [ "DROP TABLE `computer`;" sql-command ] must-fail
-
-    [ ] [
-        "CREATE TABLE `computer` (name VARCHAR(255), version INTEGER);"
-        sql-command
-    ] unit-test ;
-
 : test-sql-command ( -- )
-    create-computer-table
+    ! create-computer-table
 
     [ ] [
         "insert into computer (name, os) values('rocky', 'mac');"

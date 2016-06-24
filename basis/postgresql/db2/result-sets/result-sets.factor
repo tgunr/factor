@@ -92,7 +92,7 @@ ERROR: postgresql-obj-error obj ;
 M: postgresql-db-connection statement>result-set ( statement -- result-set )
     dup
     [
-        [ db-connection get handle>> ] dip
+        [ db2-connection get handle>> ] dip
         {
             [ sql>> ]
             [ in>> length ]

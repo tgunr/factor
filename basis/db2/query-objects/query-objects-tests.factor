@@ -32,7 +32,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection [
+    T{ sqlite-db2-connection } db2-connection [
         T{ insert
             { in
                 {
@@ -63,7 +63,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ postgresql-db-connection } db-connection
+    T{ postgresql-db-connection } db2-connection
     [
         T{ insert
             { in
@@ -111,7 +111,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ select
             { from { TO{ "qdog" "0" } } }
@@ -164,7 +164,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ update
             { in
@@ -205,7 +205,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ delete
             { where
@@ -238,7 +238,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ select
             { from { TO{ "qdog" "0" } } }
@@ -280,7 +280,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ select
             { from { TO{ "qdog" "0" } } }
@@ -347,7 +347,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ select
             { out
@@ -430,7 +430,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ select
             { in
@@ -504,7 +504,7 @@ T{ statement
     { errors V{ } }
 }
 ] [
-    T{ sqlite-db-connection } db-connection
+    T{ sqlite-db2-connection } db2-connection
     [
         T{ select
             { in

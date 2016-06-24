@@ -1,10 +1,9 @@
 ! Copyright (C) 2010 John Benediktsson.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel mysql.db2.lib sequences vocabs vocabs.loader ;
+USING: sequences vocabs ;
 IN: mysql
 
 [
     "mysql.db2"
-    "mysql.orm"
 ] [ require ] each
 

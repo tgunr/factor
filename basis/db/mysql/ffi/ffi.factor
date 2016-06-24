@@ -4,437 +4,673 @@ USING: alien alien.c-types alien.libraries alien.syntax combinators system class
 
 IN: db.mysql.ffi
 
-"mysql" "/usr/local/Cellar/mysql/5.6.27/lib/libmysqlclient.dylib"  cdecl add-library
-
-! << "mysql" {
-!         { [ os windows? ]  [ "mysql.dll" ] }  ! ok for windows?
-!         { [ os macosx? ] [ "/usr/local/lib/libmysqlclient.dylib" ] }
-!         { [ os unix? ]  [ "libmysql.so" ] }   ! ok for unix?
-!     } cond stdcall add-library >>
-
-! Return values from mysql functions
-CONSTANT: MYSQL_OK           0 ! Successful result
-CONSTANT: MYSQL_ERROR        1 ! SQL error or missing database
-CONSTANT: MYSQL_INTERNAL     2 ! An internal logic error in Mysql 
-CONSTANT: MYSQL_PERM         3 ! Access permission denied 
-CONSTANT: MYSQL_ABORT        4 ! Callback routine requested an abort 
-CONSTANT: MYSQL_BUSY         5 ! The database file is locked 
-CONSTANT: MYSQL_LOCKED       6 ! A table in the database is locked 
-CONSTANT: MYSQL_NOMEM        7 ! A malloc() failed 
-CONSTANT: MYSQL_READONLY     8 ! Attempt to write a readonly database 
-CONSTANT: MYSQL_INTERRUPT    9 ! Operation terminated by mysql_interrupt() 
-CONSTANT: MYSQL_IOERR       10 ! Some kind of disk I/O error occurred 
-CONSTANT: MYSQL_CORRUPT     11 ! The database disk image is malformed 
-CONSTANT: MYSQL_NOTFOUND    12 ! (Internal Only) Table or record not found 
-CONSTANT: MYSQL_FULL        13 ! Insertion failed because database is full 
-CONSTANT: MYSQL_CANTOPEN    14 ! Unable to open the database file 
-CONSTANT: MYSQL_PROTOCOL    15 ! Database lock protocol error 
-CONSTANT: MYSQL_EMPTY       16 ! (Internal Only) Database table is empty 
-CONSTANT: MYSQL_SCHEMA      17 ! The database schema changed 
-CONSTANT: MYSQL_TOOBIG      18 ! Too much data for one row of a table 
-CONSTANT: MYSQL_CONSTRAINT  19 ! Abort due to contraint violation 
-CONSTANT: MYSQL_MISMATCH    20 ! Data type mismatch 
-CONSTANT: MYSQL_MISUSE      21 ! Library used incorrectly 
-CONSTANT: MYSQL_NOLFS       22 ! Uses OS features not supported on host 
-CONSTANT: MYSQL_AUTH        23 ! Authorization denied 
-CONSTANT: MYSQL_FORMAT      24 ! Auxiliary database format error
-CONSTANT: MYSQL_RANGE       25 ! 2nd parameter to mysql_bind out of range
-CONSTANT: MYSQL_NOTADB      26 ! File opened that is not a database file
-
-: mysql-error-messages ( -- seq ) {
-    "Successful result"
-    "SQL error or missing database"
-    "An internal logic error in Mysql"
-    "Access permission denied"
-    "Callback routine requested an abort"
-    "The database file is locked"
-    "A table in the database is locked"
-    "A malloc() failed"
-    "Attempt to write a readonly database"
-    "Operation terminated by mysql_interrupt()"
-    "Some kind of disk I/O error occurred"
-    "The database disk image is malformed"
-    "(Internal Only) Table or record not found"
-    "Insertion failed because database is full"
-    "Unable to open the database file"
-    "Database lock protocol error"
-    "(Internal Only) Database table is empty"
-    "The database schema changed"
-    "Too much data for one row of a table"
-    "Abort due to contraint violation"
-    "Data type mismatch"
-    "Library used incorrectly"
-    "Uses OS features not supported on host"
-    "Authorization denied"
-    "Auxiliary database format error"
-    "2nd parameter to mysql_bind out of range"
-    "File opened that is not a database file"
-} ;
-
-! Return values from mysql_step
-CONSTANT: MYSQL_ROW_MAX     100
-CONSTANT: MYSQL_DONE        101
-
-! Return values from the mysql_column_type function
-CONSTANT: MYSQL_INTEGER     1
-CONSTANT: MYSQL_FLOAT       2
-CONSTANT: MYSQL_TEXT        3
-CONSTANT: MYSQL_BLOB        4
-CONSTANT: MYSQL_NULL        5
-
-! Values for the 'destructor' parameter of the 'bind' routines. 
-CONSTANT: MYSQL_STATIC      0
-CONSTANT: MYSQL_TRANSIENT   -1
-
-CONSTANT: MYSQL_OPEN_READONLY         0x00000001
-CONSTANT: MYSQL_OPEN_READWRITE        0x00000002
-CONSTANT: MYSQL_OPEN_CREATE           0x00000004
-CONSTANT: MYSQL_OPEN_DELETEONCLOSE    0x00000008
-CONSTANT: MYSQL_OPEN_EXCLUSIVE        0x00000010
-CONSTANT: MYSQL_OPEN_MAIN_DB          0x00000100
-CONSTANT: MYSQL_OPEN_TEMP_DB          0x00000200
-CONSTANT: MYSQL_OPEN_TRANSIENT_DB     0x00000400
-CONSTANT: MYSQL_OPEN_MAIN_JOURNAL     0x00000800
-CONSTANT: MYSQL_OPEN_TEMP_JOURNAL     0x00001000
-CONSTANT: MYSQL_OPEN_SUBJOURNAL       0x00002000
-CONSTANT: MYSQL_OPEN_MASTER_JOURNAL   0x00004000
-
-C-TYPE: mysql
-C-TYPE: mysql_stmt
-TYPEDEF: longlong mysql_int64
-TYPEDEF: ulonglong mysql_uint64
-
-TYPEDEF: void* MYSQL
-TYPEDEF: void* MYSQL_ROW_OFFSET
-TYPEDEF: void* MYSQL_FIELD_OFFSET
-TYPEDEF: void* MYSQL_FIELD
-TYPEDEF: void* MYSQL_MANAGER
-TYPEDEF: void* MYSQL_RES
-TYPEDEF: void* MYSQL_PARAMETERS
-TYPEDEF: void* MY_CHARSET_INFO
-TYPEDEF: void* MYSQL_STMT
-TYPEDEF: void* MYSQL_BIND
-TYPEDEF: char** MYSQL_ROW
-TYPEDEF: int enumint
-TYPEDEF: void* embedded_query_result
-
-STRUCT: st_mysql_rows 
-    { next st_mysql_rows* }
-    { data MYSQL_ROW }
-    { length ulong }
-;
-
-TYPEDEF: st_mysql_rows MYSQL_ROWS
-! TYPEDEF: MYSQL_ROWS* MYSQL_ROW_OFFSET
-
-STRUCT: st_used_mem 
-    { next st_used_mem* }
-    { left uint } 
-    { size uint } 
-    ;
-TYPEDEF: st_used_mem USED_MEM
-
-STRUCT: st_mem_root
-{ row_count ulonglong }
-{ fields MYSQL_FIELD* }
-{ data MYSQL_DATA* }
-{ data_cursor MYSQL_ROWS* }
-{ lengths ulong* }
-{ handle MYSQL* }
-{ methods st_mysql_methods* }
-{ row MYSQL_ROW }
-{ current_row MYSQL_ROW }
-{ field_alloc MEM_ROOT }
-{ current_field uint }
-{ eof bool }
-{ unbuffered_fetch_cancelled bool }
-{ extension void* }
-{ free USED_MEM* }
-{ used USED_MEM* }
-{ pre_alloc USED_MEM* }
-{ min_malloc size_t }
-{ block_size size_t }
-{ block_num uint }
-{ first_block_usage uint }
-{ max_capacity size_t }
-{ allocated_size size_t }
-{ error_for_capacity_exceeded bool }
-{ m_psi_key PSI_memory_key }
-{ data MYSQL_ROWS* }
-{ embedded_info embedded_query_result* }
-{ alloc MEM_ROOT }
-{ rows ulonglong }
-{ fields uint }
-{ extension void* }
-{ free USED_MEM* }
-{ used USED_MEM* }
-{ pre_alloc USED_MEM* }
-{ min_malloc size_t }
-{ block_size size_t }
-{ block_num uint }
-{ first_block_usage uint }
-{ max_capacity size_t }
-{ allocated_size size_t }
-{ error_for_capacity_exceeded bool }
-{ m_psi_key PSI_memory_key }
-;
-TYPEDEF: st_mem_root MEM_ROOT
-
-STRUCT: st_mysql_data
-{ row_count ulonglong }
-{ fields MYSQL_FIELD* }
-{ data MYSQL_DATA* }
-{ data_cursor MYSQL_ROWS* }
-{ lengths ulong* }
-{ handle MYSQL* }
-{ methods void* }
-{ row MYSQL_ROW }
-{ current_row MYSQL_ROW }
-{ field_alloc MEM_ROOT }
-{ current_field uint }
-{ eof bool }
-{ unbuffered_fetch_cancelled bool }
-{ extension void* }
-{ free USED_MEM* }
-{ used USED_MEM* }
-{ pre_alloc USED_MEM* }
-{ min_malloc size_t }
-{ block_size size_t }
-{ block_num uint }
-{ first_block_usage uint }
-{ max_capacity size_t }
-{ allocated_size size_t }
-{ error_for_capacity_exceeded bool }
-{ m_psi_key PSI_memory_key }
-{ data MYSQL_ROWS* }
-{ embedded_info embedded_query_result* }
-{ alloc MEM_ROOT }
-{ rows ulonglong }
-{ fields uint }
-{ extension void* }
-;
-TYPEDEF: st_mysql_data MYSQL_DATA
-
-STRUCT: st_mem_root
-{ row_count ulonglong }
-{ fields MYSQL_FIELD* }
-{ data MYSQL_DATA* }
-{ data_cursor MYSQL_ROWS* }
-{ lengths ulong* }
-{ handle MYSQL* }
-{ methods st_mysql_methods* }
-{ row MYSQL_ROW }
-{ current_row MYSQL_ROW }
-{ field_alloc MEM_ROOT }
-{ current_field uint }
-{ eof bool }
-{ unbuffered_fetch_cancelled bool }
-{ extension void* }
-{ free USED_MEM* }
-{ used USED_MEM* }
-{ pre_alloc USED_MEM* }
-{ min_malloc size_t }
-{ block_size size_t }
-{ block_num uint }
-{ first_block_usage uint }
-{ max_capacity size_t }
-{ allocated_size size_t }
-{ error_for_capacity_exceeded bool }
-{ m_psi_key PSI_memory_key }
-;
-TYPEDEF: st_mem_root MEM_ROOT
-
-STRUCT: st_mysql_data 
-    { data MYSQL_ROWS* }
-    { embedded_info embedded_query_result }
-    { alloc MEM_ROOT }
-    { rows ulonglong }
-    { fields uint }
-    !  /* extra info for embedded library */
-    { extension void* }
-;
-
-STRUCT: st_mysql_res
-{ row_count ulonglong }
-{ fields MYSQL_FIELD* }
-{ data MYSQL_DATA* }
-{ data_cursor MYSQL_ROWS* }
-{ lengths ulong* }
-{ handle MYSQL* }
-{ methods st_mysql_methods* }
-{ row MYSQL_ROW }
-{ current_row MYSQL_ROW }
-{ field_alloc MEM_ROOT }
-{ current_field uint }
-{ eof bool }
-{ unbuffered_fetch_cancelled bool }
-{ extension void* }
-;
-TYPEDEF: st_mysql_res MYSQL_RES
+! Mysql 5.7.11, 3/6/2016
+<< "mysql" {
+    { [ os windows? ]  [ "libmysql.dll" ] }
+    { [ os macosx? ] [ "libmysqlclient.dylib" ] }
+    { [ os unix?  ]  [ "libmysqlclient.so" ] }
+} cond cdecl add-library >>
 
 LIBRARY: mysql
 
-! mysql.h
-  ! Set up and bring down the server; to ensure that applications will
-  ! work when linked against either the standard client library or the
-  ! embedded server library, these functions should be called.
+TYPEDEF: int my_socket
+TYPEDEF: char my_bool
 
-FUNCTION: int mysql_server_init ( int argc char **argv char **groups ) 
-FUNCTION: void mysql_server_end ( )
+CONSTANT: MYSQL_ERRMSG_SIZE 512
+CONSTANT: SCRAMBLE_LENGTH 20
 
-  ! mysql_server_init/end need to be called when using libmysqld or
-  ! libmysqlclient (exactly, mysql_server_init() is called by mysql_init() so
-  ! you don't need to call it explicitely; but you need to call
-  ! mysql_server_end() to free memory). The names are a bit misleading
-  ! (mysql_SERVER* to be used when using libmysqlCLIENT). So we add more general
-  ! names which suit well whether you're using libmysqld or libmysqlclient. We
-  ! intend to promote these aliases over the mysql_server* ones.
+ENUM: mysql_status
+    MYSQL_STATUS_READY
+    MYSQL_STATUS_GET_RESULT
+    MYSQL_STATUS_USE_RESULT ;
 
-FUNCTION: MYSQL_PARAMETERS* mysql_get_parameters ( )
+CONSTANT: MYSQL_NO_DATA 100
+CONSTANT: MYSQL_DATA_TRUNCATED 101
 
-  ! Set up and bring down a thread; these function should be called
-  ! for each thread in an application which opens at least one MySQL
-  ! connection. All uses of the connection(s) should be between these
-  ! function calls.
+ENUM: mysql_option
+    MYSQL_OPT_CONNECT_TIMEOUT
+    MYSQL_OPT_COMPRESS
+    MYSQL_OPT_NAMED_PIPE
+    MYSQL_INIT_COMMAND
+    MYSQL_READ_DEFAULT_FILE
+    MYSQL_READ_DEFAULT_GROUP
+    MYSQL_SET_CHARSET_DIR
+    MYSQL_SET_CHARSET_NAME
+    MYSQL_OPT_LOCAL_INFILE
+    MYSQL_OPT_PROTOCOL
+    MYSQL_SHARED_MEMORY_BASE_NAME
+    MYSQL_OPT_READ_TIMEOUT
+    MYSQL_OPT_WRITE_TIMEOUT
+    MYSQL_OPT_USE_RESULT
+    MYSQL_OPT_USE_REMOTE_CONNECTION
+    MYSQL_OPT_USE_EMBEDDED_CONNECTION
+    MYSQL_OPT_GUESS_CONNECTION
+    MYSQL_SET_CLIENT_IP
+    MYSQL_SECURE_AUTH
+    MYSQL_REPORT_DATA_TRUNCATION
+    MYSQL_OPT_RECONNECT
+    MYSQL_OPT_SSL_VERIFY_SERVER_CERT ;
 
-FUNCTION: bool mysql_thread_init ( )
-FUNCTION: void mysql_thread_end ( )
+ENUM: mysql_protocol_type
+    MYSQL_PROTOCOL_DEFAULT
+    MYSQL_PROTOCOL_TCP
+    MYSQL_PROTOCOL_SOCKET
+    MYSQL_PROTOCOL_PIPE
+    MYSQL_PROTOCOL_MEMORY ;
 
-  ! Functions to get information from the MYSQL and MYSQL_RES structures
-  ! Should definitely be used if one uses shared libraries.
+ENUM: mysql_rpl_type
+    MYSQL_RPL_MASTER
+    MYSQL_RPL_SLAVE
+    MYSQL_RPL_ADMIN ;
 
-FUNCTION: longlong mysql_num_rows ( MYSQL_RES* res ) 
-FUNCTION: uint mysql_num_fields ( MYSQL_RES* res ) 
-FUNCTION: bool mysql_eof ( MYSQL_RES* res ) 
-FUNCTION: MYSQL_FIELD* mysql_fetch_field_direct ( MYSQL_RES* res uint fieldnr ) 
-FUNCTION: MYSQL_FIELD* mysql_fetch_fields ( MYSQL_RES* res ) 
-FUNCTION: MYSQL_ROW_OFFSET mysql_row_tell ( MYSQL_RES* res ) 
-FUNCTION: MYSQL_FIELD_OFFSET mysql_field_tell ( MYSQL_RES* res ) 
+ENUM: enum_field_types
+    MYSQL_TYPE_DECIMAL
+    MYSQL_TYPE_TINY
+    MYSQL_TYPE_SHORT
+    MYSQL_TYPE_LONG
+    MYSQL_TYPE_FLOAT
+    MYSQL_TYPE_DOUBLE
+    MYSQL_TYPE_NULL
+    MYSQL_TYPE_TIMESTAMP
+    MYSQL_TYPE_LONGLONG
+    MYSQL_TYPE_INT24
+    MYSQL_TYPE_DATE
+    MYSQL_TYPE_TIME
+    MYSQL_TYPE_DATETIME
+    MYSQL_TYPE_YEAR
+    MYSQL_TYPE_NEWDATE
+    MYSQL_TYPE_VARCHAR
+    MYSQL_TYPE_BIT
+    { MYSQL_TYPE_NEWDECIMAL 246 }
+    { MYSQL_TYPE_ENUM 247 }
+    { MYSQL_TYPE_SET 248 }
+    { MYSQL_TYPE_TINY_BLOB 249 }
+    { MYSQL_TYPE_MEDIUM_BLOB 250 }
+    { MYSQL_TYPE_LONG_BLOB 251 }
+    { MYSQL_TYPE_BLOB 252 }
+    { MYSQL_TYPE_VAR_STRING 253 }
+    { MYSQL_TYPE_STRING 254 }
+    { MYSQL_TYPE_GEOMETRY 255 } ;
 
-FUNCTION: uint mysql_field_count ( MYSQL* mysql ) 
-FUNCTION: longlong mysql_affected_rows ( MYSQL* mysql ) 
-FUNCTION: longlong mysql_insert_id ( MYSQL* mysql ) 
-FUNCTION: uint mysql_errno ( MYSQL* mysql ) 
-FUNCTION: c-string mysql_error ( MYSQL* mysql ) 
-FUNCTION: c-string mysql_sqlstate ( MYSQL* mysql ) 
-FUNCTION: uint mysql_warning_count ( MYSQL* mysql ) 
-FUNCTION: c-string mysql_info ( MYSQL* mysql ) 
-FUNCTION: ulong mysql_thread_id ( MYSQL* mysql ) 
-FUNCTION: c-string mysql_character_set_name ( MYSQL* mysql ) 
-FUNCTION: int mysql_set_character_set ( MYSQL* mysql c-string csname ) 
-FUNCTION: MYSQL* mysql_init ( MYSQL* mysql ) 
-FUNCTION: bool mysql_ssl_set ( MYSQL* mysql c-string key c-string cert c-string ca c-string capath c-string cipher ) 
-FUNCTION: c-string mysql_get_ssl_cipher ( MYSQL* mysql ) 
-FUNCTION: bool mysql_change_user ( MYSQL* mysql c-string user c-string passwd c-string db ) 
-FUNCTION: MYSQL* mysql_real_connect ( MYSQL* mysql c-string host c-string user c-string passwd c-string db uint port c-string unix_socket ulong clientflag ) 
-FUNCTION: int mysql_select_db ( MYSQL* mysql c-string db ) 
-FUNCTION: int mysql_query ( MYSQL* mysql c-string q ) 
-FUNCTION: int mysql_send_query ( MYSQL* mysql c-string q ulong length ) 
-FUNCTION: int mysql_real_query ( MYSQL* mysql c-string q ulong length ) 
-FUNCTION: MYSQL_RES* mysql_store_result ( MYSQL* mysql ) 
-FUNCTION: MYSQL_RES* mysql_use_result ( MYSQL* mysql ) 
+ENUM: enum_mysql_stmt_state
+    { MYSQL_STMT_INIT_DONE 1 }
+    MYSQL_STMT_PREPARE_DONE
+    MYSQL_STMT_EXECUTE_DONE
+    MYSQL_STMT_FETCH_DONE ;
 
-! /* perform query on master */
-FUNCTION: bool mysql_master_query ( MYSQL* mysql c-string q ulong length ) 
-FUNCTION: bool mysql_master_send_query ( MYSQL* mysql c-string q ulong length ) 
+ENUM: enum_stmt_attr_type
+    STMT_ATTR_UPDATE_MAX_LENGTH
+    STMT_ATTR_CURSOR_TYPE
+    STMT_ATTR_PREFETCH_ROWS ;
 
-! /* perform query on slave */ 
-FUNCTION: bool mysql_slave_query ( MYSQL* mysql c-string q ulong length ) 
-FUNCTION: bool mysql_slave_send_query ( MYSQL* mysql c-string q ulong length ) 
-FUNCTION: void mysql_get_character_set_info ( MYSQL* mysql MY_CHARSET_INFO *charset ) 
+! st_list
+STRUCT: LIST
+    { prev LIST* }
+    { next LIST* }
+    { data void* } ;
 
-FUNCTION: void mysql_set_local_infile_default ( MYSQL* mysql ) 
 
-! enable/disable parsing of all queries to decide if they go on master or slave
-FUNCTION: void mysql_enable_rpl_parse ( MYSQL* mysql ) 
-FUNCTION: void mysql_disable_rpl_parse ( MYSQL* mysql ) 
+STRUCT: USED_MEM
+    { next USED_MEM* }
+    { left uint }
+    { size uint } ;
 
-! /* get the value of the parse flag */ 
-FUNCTION: int mysql_rpl_parse_enabled ( MYSQL* mysql ) 
+TYPEDEF: uint PSI_memory_key
 
-! /* enable/disable reads from master */
-FUNCTION: void mysql_enable_reads_from_master ( MYSQL* mysql ) 
-FUNCTION: void mysql_disable_reads_from_master ( MYSQL* mysql ) 
+STRUCT: MEM_ROOT
+    { free USED_MEM* }
+    { used USED_MEM* }
+    { pre_alloc USED_MEM* }
+    { min_malloc size_t }
+    { block_size size_t }
+    { block_num uint }
+    { first_block_usage uint }
+    { max_capacity size_t }
+    { allocated_size size_t }
+    { error_for_capacity_exceeded my_bool }
+    { error_handler void* }
+    { m_psi_key PSI_memory_key } ;
 
-! /* get the value of the master read flag */ 
-FUNCTION: bool mysql_reads_from_master_enabled ( MYSQL* mysql ) 
-FUNCTION: enumint mysql_rpl_query_type ( c-string q int len )  
+! st_mysql_field
+STRUCT: MYSQL_FIELD
+    { name c-string }
+    { org_name c-string }
+    { table c-string }
+    { org_table c-string }
+    { db c-string }
+    { catalog c-string }
+    { def c-string }
+    { length ulong }
+    { max_length ulong }
+    { name_length uint }
+    { org_name_length uint }
+    { table_length uint }
+    { org_table_length uint }
+    { db_length uint }
+    { catalog_length uint }
+    { def_length uint }
+    { flags uint }
+    { decimals uint }
+    { charsetnr uint }
+    { type enum_field_types }
+    { extension void* } ;
 
-! /* discover the master and its slaves */ 
-FUNCTION: bool mysql_rpl_probe ( MYSQL* mysql ) 
+STRUCT: st_dynamic_array
+    { buffer uchar* }
+    { elements uint }
+    { max_element uint }
+    { alloc_increment uint }
+    { size_of_element uint } ;
 
-! /* set the master close/free the old one if it is not a pivot */
-FUNCTION: int mysql_set_master ( MYSQL* mysql c-string host uint port c-string user c-string passwd ) 
-FUNCTION: int mysql_add_slave ( MYSQL* mysql c-string host uint port c-string user c-string passwd ) 
-FUNCTION: int mysql_shutdown ( MYSQL* mysql enumint shutdown_level ) 
-FUNCTION: int mysql_dump_debug_info ( MYSQL* mysql ) 
-FUNCTION: int mysql_refresh ( MYSQL* mysql uint refresh_options ) 
-FUNCTION: int mysql_kill ( MYSQL* mysql ulong pid ) 
-FUNCTION: int mysql_set_server_option ( MYSQL* mysql enumint option ) 
-FUNCTION: int mysql_ping ( MYSQL* mysql ) 
-FUNCTION: c-string mysql_stat ( MYSQL* mysql ) 
-FUNCTION: c-string mysql_get_server_info ( MYSQL* mysql ) 
+STRUCT: st_mysql_options
+    { connect_timeout uint }
+    { read_timeout uint }
+    { write_timeout uint }
+    { port uint }
+    { protocol uint }
+    { client_flag ulong }
+    { host c-string }
+    { user c-string }
+    { password c-string }
+    { unix_socket c-string }
+    { db c-string }
+    { init_commands st_dynamic_array* }
+    { my_cnf_file c-string }
+    { my_cnf_group c-string }
+    { charset_dir c-string }
+    { charset_name c-string }
+    { ssl_key c-string }
+    { ssl_cert c-string }
+    { ssl_ca c-string }
+    { ssl_capath c-string }
+    { ssl_cipher c-string }
+    { shared_memory_base_name c-string }
+    { max_allowed_packet ulong }
+    { use_ssl my_bool }
+    { compress my_bool }
+    { named_pipe my_bool }
+    { rpl_probe my_bool }
+    { rpl_parse my_bool }
+    { no_master_reads my_bool }
+    { methods_to_use mysql_option }
+    { client_ip c-string }
+    { secure_auth my_bool }
+    { report_data_truncation my_bool }
+    { local_infile_init void* }
+    { local_infile_read void* }
+    { local_infile_end void* }
+    { local_infile_error void* }
+    { local_infile_userdata void* }
+    { extension void* } ;
+
+! my_uni_idx_st
+STRUCT: MY_UNI_IDX
+    { from ushort }
+    { to ushort }
+    { tab uchar* } ;
+
+! unicase_info_st
+STRUCT: MY_UNICASE_INFO
+    { toupper ushort }
+    { tolower ushort }
+    { sort ushort } ;
+
+STRUCT: charset_info_st
+    { number uint }
+    { primary_number uint }
+    { binary_number uint }
+    { state uint }
+    { csname c-string }
+    { name c-string }
+    { comment c-string }
+    { tailoring c-string }
+    { ctype c-string }
+    { to_lower c-string }
+    { to_upper c-string }
+    { sort_order c-string }
+    { contractions ushort* }
+    { sort_order_big ushort** }
+    { tab_to_uni ushort* }
+    { tab_from_uni MY_UNI_IDX* }
+    { caseinfo MY_UNICASE_INFO** }
+    { state_map c-string }
+    { ident_map c-string }
+    { strxfrm_multiply uint }
+    { caseup_multiply uchar }
+    { casedn_multiply uchar }
+    { mbminlen uint }
+    { mbmaxlen uint }
+    { min_sort_char ushort }
+    { max_sort_char ushort }
+    { pad_char uchar }
+    { escape_with_backslash_is_dangerous char }
+    { cset void* }
+    { coll void* } ;
+
+C-TYPE: Vio
+! st_net
+STRUCT: NET
+    { vio Vio* }
+    { buff uchar* }
+    { buff_end uchar* }
+    { write_pos uchar* }
+    { read_pos uchar* }
+    { fd my_socket }
+    { remain_in_buf ulong }
+    { length ulong }
+    { buf_length ulong }
+    { where_b ulong }
+    { max_packet ulong }
+    { max_packet_size ulong }
+    { pkt_nr uint }
+    { compress_pkt_nr uint }
+    { write_timeout uint }
+    { read_timeout uint }
+    { retry_count uint }
+    { fcntl int }
+    { return_status uint* }
+    { reading_or_writing uchar }
+    { save_char char }
+    { unused1 my_bool }
+    { unused2 my_bool }
+    { compress my_bool }
+    { unused3 my_bool }
+    { query_cache_query uchar* }
+    { last_errno uint }
+    { error uchar }
+    { unused4 my_bool }
+    { unused5 my_bool }
+    { last_error char[512] }
+    { sqlstate char[6] }
+    { extension void* } ;
+
+STRUCT: MYSQL
+    { net NET }
+    { connector_fd uchar* }
+    { host c-string }
+    { user c-string }
+    { passwd c-string }
+    { unix_socket c-string }
+    { server_version c-string }
+    { host_info c-string }
+    { info c-string }
+    { db c-string }
+    { charset charset_info_st* }
+    { fields MYSQL_FIELD* }
+    { field_alloc MEM_ROOT }
+    { affected_rows ulonglong }
+    { insert_id ulonglong }
+    { extra_info ulonglong }
+    { thread_id ulong }
+    { packet_length ulong }
+    { port uint }
+    { client_flag ulong }
+    { server_capabilities ulong }
+    { protocol_version uint }
+    { field_count uint }
+    { server_status uint }
+    { server_language uint }
+    { warning_count uint }
+    { options st_mysql_options }
+    { status mysql_status }
+    { free_me bool }
+    { reconnect bool }
+    { scramble char[21] }
+    { rpl_pivot my_bool }
+    { master MYSQL* }
+    { next_slave MYSQL* }
+    { last_used_slave MYSQL* }
+    { last_used_con MYSQL* }
+    { stmts LIST* }
+    { methods void* }
+    { thd void* }
+    { unbuffered_fetch_owner bool* }
+    { info_buffer c-string }
+    { extension void* } ;
+
+TYPEDEF: c-string* MYSQL_ROW
+
+STRUCT: MYSQL_ROWS
+    { next MYSQL_ROWS* }
+    { data MYSQL_ROW }
+    { length ulong } ;
+
+TYPEDEF: MYSQL_ROWS* MYSQL_ROW_OFFSET
+
+STRUCT: MYSQL_DATA
+    { data MYSQL_ROWS* }
+    { embedded_info void* }
+    { alloc MEM_ROOT }
+    { rows ulonglong }
+    { fields uint }
+    { extension void* } ;
+
+STRUCT: MYSQL_RES
+    { row_count ulonglong }
+    { fields MYSQL_FIELD* }
+    { data MYSQL_DATA* }
+    { data_cursor MYSQL_ROWS* }
+    { lengths ulong* }
+    { handle MYSQL* }
+    { methods void* }
+    { row MYSQL_ROW }
+    { current_row MYSQL_ROW }
+    { field_alloc MEM_ROOT }
+    { field_count uint }
+    { current_field uint }
+    { eof bool }
+    { unbuffered_fetch_cancelled bool }
+    { extension void* } ;
+
+
+STRUCT: MYSQL_BIND
+    { length ulong* }
+    { is_null bool* }
+    { buffer void* }
+    { error bool* }
+    { row_ptr uchar* }
+    { store_param_func void* }
+    { fetch_result void* }
+    { skip_result void* }
+    { buffer_length ulong }
+    { offset ulong }
+    { length_value ulong }
+    { param_number uint }
+    { pack_length uint }
+    { buffer_type enum_field_types }
+    { error_value bool }
+    { is_unsigned bool }
+    { long_data_used bool }
+    { is_null_value bool }
+    { extension void* } ;
+
+
+
+! FIXME: Replace with TYPEDEF: void* MYSQL_STMT
+! since no fields are supposed to be used by application?
+
+STRUCT: MYSQL_STMT
+    { mem_root MEM_ROOT }
+    { list LIST }
+    { mysql MYSQL* }
+    { params MYSQL_BIND* }
+    { bind MYSQL_BIND* }
+    { fields MYSQL_FIELD* }
+    { result MYSQL_DATA }
+    { data_cursor MYSQL_ROWS* }
+    { read_row_func void* }
+    { affected_rows ulonglong }
+    { insert_id ulonglong }
+    { stmt_id ulong }
+    { flags ulong }
+    { prefetch_rows ulong }
+    { server_status uint }
+    { last_errno uint }
+    { param_count uint }
+    { field_count uint }
+    { state enum_mysql_stmt_state }
+    { last_error char[MYSQL_ERRMSG_SIZE] }
+    { sqlstate char[6] }
+    { send_types_to_server bool }
+    { bind_param_done bool }
+    { bind_result_done uchar }
+    { unbuffered_fetch_cancelled bool }
+    { update_max_length bool }
+    { extension void* } ;
+
+
+ENUM: enum_mysql_timestamp_type
+    { MYSQL_TIMESTAMP_NONE -2 }
+    { MYSQL_TIMESTAMP_ERROR -1 }
+    { MYSQL_TIMESTAMP_DATE 0 }
+    { MYSQL_TIMESTAMP_DATETIME 1 }
+    { MYSQL_TIMESTAMP_TIME 2 } ;
+
+
+STRUCT: MYSQL_TIME
+    { year uint }
+    { month uint }
+    { day uint }
+    { hour uint }
+    { minute uint }
+    { second uint }
+    { second_part ulong }
+    { neg bool }
+    { time_type enum_mysql_timestamp_type } ;
+
+
+
+FUNCTION: MYSQL* mysql_init ( MYSQL* mysql )
+
+
+FUNCTION: c-string mysql_info ( MYSQL* mysql )
+
+
+
+FUNCTION: uint mysql_errno ( MYSQL* mysql )
+
+FUNCTION: c-string mysql_error ( MYSQL* mysql )
+
+
 FUNCTION: c-string mysql_get_client_info ( )
-FUNCTION: ulong mysql_get_client_version ( )
-FUNCTION: c-string mysql_get_host_info ( MYSQL* mysql ) 
-FUNCTION: ulong mysql_get_server_version ( MYSQL* mysql ) 
-FUNCTION: uint mysql_get_proto_info ( MYSQL* mysql ) 
-FUNCTION: MYSQL_RES* mysql_list_dbs ( MYSQL* mysql c-string wild ) 
-FUNCTION: MYSQL_RES* mysql_list_tables ( MYSQL* mysql c-string wild ) 
-FUNCTION: MYSQL_RES* mysql_list_processes ( MYSQL* mysql ) 
-FUNCTION: int mysql_options ( MYSQL* mysql enumint option void* arg ) 
-FUNCTION: void mysql_free_result ( MYSQL_RES* result ) 
-FUNCTION: void mysql_data_seek ( MYSQL_RES* result longlong offset ) 
-FUNCTION: MYSQL_ROW_OFFSET mysql_row_seek ( MYSQL_RES* result MYSQL_ROW_OFFSET offset ) 
-FUNCTION: MYSQL_FIELD_OFFSET mysql_field_seek ( MYSQL_RES* result MYSQL_FIELD_OFFSET offset ) 
-FUNCTION: MYSQL_ROW mysql_fetch_row ( MYSQL_RES* result ) 
-FUNCTION: ulong* mysql_fetch_lengths ( MYSQL_RES* result ) 
-FUNCTION: MYSQL_FIELD* mysql_fetch_field ( MYSQL_RES* result ) 
-FUNCTION: MYSQL_RES* mysql_list_fields ( MYSQL* mysql c-string table c-string wild ) 
-FUNCTION: ulong mysql_escape_string ( c-string to c-string from ulong from_length ) 
-FUNCTION: ulong mysql_hex_string ( c-string to c-string from ulong from_length ) 
-FUNCTION: ulong mysql_real_escape_string ( MYSQL* mysql c-string to c-string from ulong length ) 
-FUNCTION: void mysql_debug ( c-string debug ) 
-FUNCTION: void myodbc_remove_escape ( MYSQL* mysql c-string name ) 
-FUNCTION: uint mysql_thread_safe ( )
-FUNCTION: bool mysql_embedded  ( )
-FUNCTION: MYSQL_MANAGER* mysql_manager_init ( MYSQL_MANAGER* con )  
-FUNCTION: MYSQL_MANAGER* mysql_manager_connect ( MYSQL_MANAGER* con c-string host c-string user c-string passwd uint port ) 
-FUNCTION: void mysql_manager_close ( MYSQL_MANAGER* con ) 
-FUNCTION: int mysql_manager_command ( MYSQL_MANAGER* con c-string cmd int cmd_len ) 
-FUNCTION: int mysql_manager_fetch_line ( MYSQL_MANAGER* con char* res_buf int res_buf_size ) 
-FUNCTION: bool mysql_read_query_result ( MYSQL* mysql ) 
 
-FUNCTION: MYSQL_STMT*  mysql_stmt_init ( MYSQL* mysql ) 
-FUNCTION: int mysql_stmt_prepare ( MYSQL_STMT* stmt, c-string query, ulong length ) 
-FUNCTION: int mysql_stmt_execute ( MYSQL_STMT* stmt ) 
-FUNCTION: int mysql_stmt_fetch ( MYSQL_STMT* stmt ) 
-FUNCTION: int mysql_stmt_fetch_column ( MYSQL_STMT* stmt, MYSQL_BIND* bind_arg, uint column, ulong offset ) 
-FUNCTION: int mysql_stmt_store_result ( MYSQL_STMT* stmt ) 
-FUNCTION: ulong mysql_stmt_param_count ( MYSQL_STMT*  stmt ) 
-FUNCTION: bool mysql_stmt_attr_set ( MYSQL_STMT* stmt, int attr_type, void* attr ) 
-FUNCTION: bool mysql_stmt_attr_get ( MYSQL_STMT* stmt, int attr_type, void* attr ) 
-FUNCTION: bool mysql_stmt_bind_param ( MYSQL_STMT*  stmt, MYSQL_BIND*  bnd ) 
-FUNCTION: bool mysql_stmt_bind_result ( MYSQL_STMT*  stmt, MYSQL_BIND*  bnd ) 
-FUNCTION: bool mysql_stmt_close ( MYSQL_STMT*  stmt ) 
-FUNCTION: bool mysql_stmt_reset ( MYSQL_STMT*  stmt ) 
-FUNCTION: bool mysql_stmt_free_result ( MYSQL_STMT* stmt ) 
-FUNCTION: bool mysql_stmt_send_long_data ( MYSQL_STMT* stmt, uint param_number, c-string data, ulong length ) 
-FUNCTION: MYSQL_RES* mysql_stmt_result_metadata ( MYSQL_STMT* stmt ) 
-FUNCTION: MYSQL_RES* mysql_stmt_param_metadata ( MYSQL_STMT* stmt ) 
-FUNCTION: uint mysql_stmt_errno ( MYSQL_STMT*  stmt ) 
-FUNCTION: c-string mysql_stmt_error ( MYSQL_STMT*  stmt ) 
-FUNCTION: c-string mysql_stmt_sqlstate ( MYSQL_STMT*  stmt ) 
-FUNCTION: MYSQL_ROW_OFFSET mysql_stmt_row_seek ( MYSQL_STMT* stmt, MYSQL_ROW_OFFSET offset ) 
-FUNCTION: MYSQL_ROW_OFFSET mysql_stmt_row_tell ( MYSQL_STMT* stmt ) 
-FUNCTION: void mysql_stmt_data_seek ( MYSQL_STMT* stmt, ulonglong offset ) 
-FUNCTION: ulonglong mysql_stmt_num_rows ( MYSQL_STMT* stmt ) 
-FUNCTION: ulonglong mysql_stmt_affected_rows ( MYSQL_STMT* stmt ) 
-FUNCTION: ulonglong mysql_stmt_insert_id ( MYSQL_STMT* stmt ) 
-FUNCTION: uint mysql_stmt_field_count ( MYSQL_STMT* stmt ) 
-FUNCTION: bool mysql_commit ( MYSQL*  mysql ) 
-FUNCTION: bool mysql_rollback ( MYSQL*  mysql ) 
-FUNCTION: bool mysql_autocommit ( MYSQL*  mysql, bool auto_mode ) 
-FUNCTION: bool mysql_more_results ( MYSQL* mysql ) 
-FUNCTION: int mysql_next_result ( MYSQL* mysql ) 
-FUNCTION: void mysql_close ( MYSQL* sock ) 
+FUNCTION: ulong mysql_get_client_version ( )
+
+FUNCTION: c-string mysql_get_host_info ( MYSQL* mysql )
+
+FUNCTION: c-string mysql_get_server_info ( MYSQL* mysql )
+
+FUNCTION: ulong mysql_get_server_version ( MYSQL* mysql )
+
+FUNCTION: uint mysql_get_proto_info ( MYSQL* mysql )
+
+FUNCTION: MYSQL_RES* mysql_list_dbs (
+    MYSQL* mysql,
+    c-string wild
+)
+
+FUNCTION: MYSQL_RES* mysql_list_tables (
+    MYSQL* mysql,
+    c-string wild
+)
+
+FUNCTION: MYSQL_RES* mysql_list_processes ( MYSQL* mysql )
+
+
+
+
+FUNCTION: MYSQL* mysql_real_connect (
+    MYSQL* mysql,
+    c-string host,
+    c-string user,
+    c-string passwd,
+    c-string db,
+    uint port,
+    c-string unix_socket,
+    ulong client_flag
+)
+
+FUNCTION: void mysql_close ( MYSQL* mysql )
+
+
+
+FUNCTION: bool mysql_commit ( MYSQL* mysql )
+
+FUNCTION: bool mysql_rollback ( MYSQL* mysql )
+
+FUNCTION: bool mysql_autocommit (
+    MYSQL* mysql,
+    bool auto_mode
+)
+
+FUNCTION: bool mysql_more_results ( MYSQL* mysql )
+
+FUNCTION: int mysql_next_result ( MYSQL* mysql )
+
+
+! <OLD-FUNCTIONS
+FUNCTION: MYSQL* mysql_connect (
+    MYSQL* mysql,
+    c-string host,
+    c-string user,
+    c-string passwd
+)
+
+FUNCTION: int mysql_create_db ( MYSQL* mysql, c-string db )
+
+FUNCTION: int mysql_drop_db ( MYSQL* mysql, c-string db )
+! OLD-FUNCTIONS>
+
+
+
+
+FUNCTION: int mysql_select_db ( MYSQL* mysql, c-string db )
+
+
+
+FUNCTION: int mysql_query ( MYSQL* mysql, c-string stmt_str )
+
+FUNCTION: int mysql_send_query (
+    MYSQL* mysql,
+    c-string stmt_str,
+    ulong length
+)
+
+FUNCTION: int mysql_real_query (
+    MYSQL* mysql,
+    c-string stmt_str,
+    ulong length
+)
+
+FUNCTION: MYSQL_RES* mysql_store_result ( MYSQL* mysql )
+
+FUNCTION: MYSQL_RES* mysql_use_result ( MYSQL* mysql )
+
+
+FUNCTION: int mysql_ping ( MYSQL* mysql )
+
+
+
+
+FUNCTION: ulonglong mysql_num_rows ( MYSQL_RES* mysql )
+
+FUNCTION: uint mysql_num_fields ( MYSQL_RES* mysql )
+
+FUNCTION: bool mysql_eof ( MYSQL_RES* result )
+
+FUNCTION: MYSQL_FIELD* mysql_fetch_field_direct (
+    MYSQL_RES* result,
+    uint fieldnr
+)
+
+FUNCTION: MYSQL_FIELD* mysql_fetch_fields ( MYSQL_RES* result )
+
+
+FUNCTION: uint mysql_field_count ( MYSQL* mysql )
+
+
+
+FUNCTION: MYSQL_ROW mysql_fetch_row ( MYSQL_RES* result )
+
+FUNCTION: MYSQL_FIELD* mysql_fetch_field ( MYSQL_RES* result )
+
+FUNCTION: void mysql_free_result ( MYSQL_RES* result )
+
+
+
+
+
+
+
+
+FUNCTION: MYSQL_STMT* mysql_stmt_init ( MYSQL* mysql )
+
+FUNCTION: int mysql_stmt_prepare (
+    MYSQL_STMT* stmt,
+    c-string query,
+    ulong length
+)
+
+FUNCTION: int mysql_stmt_execute ( MYSQL_STMT* stmt )
+
+FUNCTION: int mysql_stmt_fetch ( MYSQL_STMT* stmt )
+
+FUNCTION: int mysql_stmt_fetch_column (
+    MYSQL_STMT* stmt,
+    MYSQL_BIND* bind_arg,
+    uint column,
+    ulong offset
+)
+
+FUNCTION: int mysql_stmt_store_result ( MYSQL_STMT* stmt )
+
+FUNCTION: ulong mysql_stmt_param_count ( MYSQL_STMT* stmt )
+
+FUNCTION: bool mysql_stmt_attr_set (
+    MYSQL_STMT* stmt,
+    enum_stmt_attr_type attr_type,
+    void* attr
+)
+
+FUNCTION: bool mysql_stmt_attr_get (
+    MYSQL_STMT* stmt,
+    enum_stmt_attr_type attr_type,
+    void* attr
+)
+
+FUNCTION: bool mysql_stmt_bind_param (
+    MYSQL_STMT* stmt,
+    MYSQL_BIND* bnd
+)
+
+FUNCTION: bool mysql_stmt_bind_result (
+    MYSQL_STMT* stmt,
+    MYSQL_BIND* bnd
+)
+
+FUNCTION: bool mysql_stmt_close ( MYSQL_STMT* stmt )
+
+FUNCTION: bool mysql_stmt_reset ( MYSQL_STMT* stmt )
+
+FUNCTION: bool mysql_stmt_free_result ( MYSQL_STMT* stmt )
+
+FUNCTION: bool mysql_stmt_send_long_data (
+    MYSQL_STMT* stmt,
+    uint param_number,
+    c-string data,
+    ulong length
+)
+
+FUNCTION: MYSQL_RES* mysql_stmt_result_metadata ( MYSQL_STMT* stmt )
+
+FUNCTION: MYSQL_RES* mysql_stmt_param_metadata ( MYSQL_STMT* stmt )
+
+FUNCTION: uint mysql_stmt_errno ( MYSQL_STMT* stmt )
+
+FUNCTION: c-string mysql_stmt_error ( MYSQL_STMT* stmt )
+
+FUNCTION: c-string mysql_stmt_sqlstate ( MYSQL_STMT* stmt )
+
+FUNCTION: MYSQL_ROW_OFFSET mysql_stmt_row_seek (
+    MYSQL_STMT* stmt,
+    MYSQL_ROW_OFFSET offset
+)
+
+FUNCTION: MYSQL_ROW_OFFSET mysql_stmt_row_tell (
+    MYSQL_STMT* stmt,
+    MYSQL_ROW_OFFSET offset
+)
+
+FUNCTION: void mysql_stmt_data_seek (
+    MYSQL_STMT* stmt,
+    ulonglong offset
+)
+
+FUNCTION: ulonglong mysql_stmt_num_rows ( MYSQL_STMT* stmt )
+
+FUNCTION: ulonglong mysql_stmt_affected_rows ( MYSQL_STMT* stmt )
+
+FUNCTION: ulonglong mysql_stmt_insert_id ( MYSQL_STMT* stmt )
+
+FUNCTION: uint mysql_stmt_field_count ( MYSQL_STMT* stmt )
+

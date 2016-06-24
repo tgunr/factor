@@ -9,7 +9,7 @@ IN: db2.debug
 
 ! These words leak resources, but are useful for interactivel testing
 : set-sqlite-db ( -- )
-    sqlite-db db>db-connection db-connection set ;
+    sqlite-db db>db2-connection db2-connection set ;
 
 : test-sqlite-quot ( quot -- quot' )
     '[ sqlite-test-db _ with-db ] ; inline
@@ -25,7 +25,7 @@ IN: db2.debug
         "factor-test" >>database ;
 
 : set-postgresql-db ( -- )
-    postgresql-db db>db-connection db-connection set ;
+    postgresql-db db>db2-connection db2-connection set ;
 
 : test-postgresql-quot ( quot -- quot' )
     '[
@@ -45,7 +45,7 @@ IN: db2.debug
         "factor-test" >>database ;
 
 : set-myql-db ( -- )
-    mysql-db db>db-connection db-connection set ;
+    mysql-db db>db2-connection db2-connection set ;
 
 : test-mysql-quot ( quot -- quot' )
     '[

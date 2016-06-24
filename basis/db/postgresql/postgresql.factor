@@ -14,8 +14,8 @@ TUPLE: postgresql-db host port pgopts pgtty database username password ;
 
 <PRIVATE
 
-TUPLE: postgresql-db-connection < db-connection ;
-: <postgresql-db-connection> ( handle -- db-connection )
+TUPLE: postgresql-db-connection < db2-connection ;
+: <postgresql-db-connection> ( handle -- db2-connection )
     postgresql-db-connection new-db-connection
         swap >>handle ;
 
@@ -25,7 +25,7 @@ TUPLE: postgresql-statement < statement ;
 
 TUPLE: postgresql-result-set < result-set ;
 
-M: postgresql-db db-open ( db -- db-connection )
+M: postgresql-db db-open ( db -- db2-connection )
     {
         [ host>> ]
         [ port>> ]
@@ -105,7 +105,7 @@ M: postgresql-result-set dispose ( result-set -- )
 
 M: postgresql-statement prepare-statement ( statement -- )
     dup
-    [ db-connection get handle>> f ] dip
+    [ db2-connection get handle>> f ] dip
     [ sql>> ] [ in-params>> ] bi
     length f PQprepare postgresql-error
     >>handle drop ;

@@ -6,7 +6,7 @@ namespaces ;
 IN: sqlite.db2.statements
 
 M: sqlite-db-connection prepare-statement* ( statement -- statement )
-    db-connection get handle>> over sql>> sqlite-prepare
+    db2-connection get handle>> over sql>> sqlite-prepare
     >>handle ;
 
 M: sqlite-db-connection reset-statement

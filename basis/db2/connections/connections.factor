@@ -3,17 +3,17 @@
 USING: accessors destructors fry kernel namespaces ;
 IN: db2.connections
 
-TUPLE: db-connection < disposable handle db ;
+TUPLE: db2-connection < disposable handle db ;
 
-: new-db-connection ( handle class -- db-connection )
+: new-db-connection ( handle class -- db2-connection )
     new-disposable
-        swap >>handle ; inline
+    swap >>handle ; inline
 
-GENERIC: db>db-connection-generic ( db -- db-connection )
+GENERIC: db>db-connection-generic ( db -- db2-connection )
 
-: db>db-connection ( db -- db-connection )
+: db>db2-connection ( db -- db2-connection )
     [ db>db-connection-generic ] keep >>db ; inline
 
 : with-db ( db quot -- )
-    [ db>db-connection db-connection over ] dip
+    [ db>db2-connection db2-connection over ] dip
     '[ _ [ drop @ ] with-disposal ] with-variable ; inline

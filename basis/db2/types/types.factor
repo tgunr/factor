@@ -4,12 +4,12 @@ USING: arrays classes.mixin classes.parser classes.singleton
 combinators db2.connections kernel lexer sequences ;
 IN: db2.types
 
-HOOK: sql-type>string db-connection ( type -- string )
-HOOK: sql-create-type>string db-connection ( type -- string )
-HOOK: sql-modifiers>string db-connection ( modifiers -- string )
-HOOK: db-type>fql-type db-connection ( name -- table-schema )
+HOOK: sql-type>string db2-connection ( type -- string )
+HOOK: sql-create-type>string db2-connection ( type -- string )
+HOOK: sql-modifiers>string db2-connection ( modifiers -- string )
+HOOK: db-type>fql-type db2-connection ( name -- table-schema )
 
-HOOK: persistent-type-hashtable db-connection ( -- hashtable )
+HOOK: persistent-type-hashtable db2-connection ( -- hashtable )
 
 MIXIN: sql-type
 MIXIN: sql-modifier

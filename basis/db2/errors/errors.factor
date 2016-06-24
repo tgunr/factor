@@ -6,7 +6,7 @@ IN: db2.errors
 ERROR: db-error ;
 
 TUPLE: sql-error location ;
-HOOK: parse-sql-error db-connection ( error -- error' )
+HOOK: parse-sql-error db2-connection ( error -- error' )
 
 TUPLE: sql-unknown-error < sql-error message ;
 CONSTRUCTOR: <sql-unknown-error> sql-unknown-error ( message -- error ) ;

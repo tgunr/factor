@@ -1,7 +1,7 @@
 ! Copyright (C) 2012 PolyMicro Systems.
 ! See http://factorcode.org/license.txt for BSD license.
 
-USING: accessors alien.c-types alien.data combinators db db.errors
+USING: accessors alien.c-types alien.data combinators 
 io.backend kernel db.mysql.ffi namespaces sequences ;
 
 IN: db.mysql.lib
@@ -14,7 +14,7 @@ ERROR: mysql-sql-error < sql-error n string ;
 
 : mysql-statement-error ( -- * )
     MYSQL_ERROR
-    db-connection get handle>> mysql_error mysql-sql-error ;
+    db2-connection get handle>> mysql_error mysql-sql-error ;
 
 : mysql-check-result ( n -- )
     {

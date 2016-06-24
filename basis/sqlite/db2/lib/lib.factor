@@ -115,5 +115,5 @@ IN: sqlite.db2.lib
 ERROR: sqlite-last-id-fail ;
 
 : last-insert-id ( -- id )
-    db-connection get handle>> sqlite3_last_insert_rowid
+    db2-connection get handle>> sqlite3_last_insert_rowid
     dup zero? [ sqlite-last-id-fail ] when ;

@@ -22,7 +22,6 @@ M: mysql-result-set #columns ( result-set -- n ) #columns>> ;
 M: mysql-result-set advance-row ( result-set -- ) drop ;
 
 M: mysql-result-set column
-    B
     3drop f
     ;
 

@@ -8,7 +8,7 @@ TUPLE: sqlite-object < sql-object table-type internal-name table-name rootpage s
 TUPLE: sqlite-column < sql-column cid name type notnull dflt_value pk ;
 
 M: sqlite-db-connection current-db-name 
-    db-connection get db>> path>> ;
+    db2-connection get db>> path>> ;
 
 : sqlite-table-info-statement ( string -- statement )
     [ <statement> ] dip

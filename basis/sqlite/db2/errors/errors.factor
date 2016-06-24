@@ -10,7 +10,7 @@ ERROR: sqlite-sql-error < sql-error n string ;
 
 : sqlite-statement-error ( -- * )
     SQLITE_ERROR
-    db-connection get handle>> sqlite3_errmsg sqlite-sql-error ;
+    db2-connection get handle>> sqlite3_errmsg sqlite-sql-error ;
 
 TUPLE: unparsed-sqlite-error error ;
 C: <unparsed-sqlite-error> unparsed-sqlite-error

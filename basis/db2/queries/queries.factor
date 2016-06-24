@@ -8,15 +8,15 @@ IN: db2.queries
 TUPLE: sql-object ;
 TUPLE: sql-column ;
 
-HOOK: current-db-name db-connection ( -- string )
-HOOK: sanitize-string db-connection ( string -- string )
+HOOK: current-db-name db2-connection ( -- string )
+HOOK: sanitize-string db2-connection ( string -- string )
 
-HOOK: databases-statement db-connection ( -- statement )
-HOOK: database-tables-statement db-connection ( database -- statement )
-HOOK: database-table-columns-statement db-connection ( database table -- sequence )
+HOOK: databases-statement db2-connection ( -- statement )
+HOOK: database-tables-statement db2-connection ( database -- statement )
+HOOK: database-table-columns-statement db2-connection ( database table -- sequence )
 
-HOOK: sql-object-class db-connection ( -- tuple-class )
-HOOK: sql-column-class db-connection ( -- tuple-class )
+HOOK: sql-object-class db2-connection ( -- tuple-class )
+HOOK: sql-column-class db2-connection ( -- tuple-class )
 
 ERROR: unsafe-sql-string string ;
 

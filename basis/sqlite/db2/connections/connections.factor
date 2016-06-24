@@ -5,15 +5,15 @@ sqlite.db2.errors sqlite.db2.lib kernel db2.errors io.backend
 destructors ;
 IN: sqlite.db2.connections
 
-TUPLE: sqlite-db-connection < db-connection ;
+TUPLE: sqlite-db-connection < db2-connection ;
 
-: <sqlite-db-connection> ( handle -- db-connection )
+: <sqlite-db-connection> ( handle -- db2-connection )
     sqlite-db-connection new-db-connection ;
 
-M: sqlite-db db>db-connection-generic ( db -- db-connection )
+M: sqlite-db db>db-connection-generic ( db -- db2-connection )
     path>> normalize-path sqlite-open <sqlite-db-connection> ;
 
-M: sqlite-db-connection dispose* ( db-connection -- )
+M: sqlite-db-connection dispose* ( db2-connection -- )
     [ handle>> sqlite-close ] [ f >>handle drop ] bi ;
 
 M: sqlite-db-connection parse-sql-error ( error -- error' )

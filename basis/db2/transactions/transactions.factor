@@ -5,17 +5,17 @@ IN: db2.transactions
 
 SYMBOL: in-transaction
 
-HOOK: begin-transaction db-connection ( -- )
+HOOK: begin-transaction db2-connection ( -- )
 
-HOOK: commit-transaction db-connection ( -- )
+HOOK: commit-transaction db2-connection ( -- )
 
-HOOK: rollback-transaction db-connection ( -- )
+HOOK: rollback-transaction db2-connection ( -- )
 
-M: db-connection begin-transaction ( -- ) "BEGIN" sql-command ;
+M: db2-connection begin-transaction ( -- ) "BEGIN" sql-command ;
 
-M: db-connection commit-transaction ( -- ) "COMMIT" sql-command ;
+M: db2-connection commit-transaction ( -- ) "COMMIT" sql-command ;
 
-M: db-connection rollback-transaction ( -- ) "ROLLBACK" sql-command ;
+M: db2-connection rollback-transaction ( -- ) "ROLLBACK" sql-command ;
 
 : in-transaction? ( -- ? ) in-transaction get ;
 

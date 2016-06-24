@@ -12,7 +12,7 @@ GENERIC: advance-row ( result-set -- )
 GENERIC: more-rows? ( result-set -- ? )
 GENERIC# column 2 ( result-set column type -- sql )
 GENERIC: get-type ( binder/word -- type )
-HOOK: statement>result-set db-connection ( statement -- result-set )
+HOOK: statement>result-set db2-connection ( statement -- result-set )
 
 : init-result-set ( result-set -- result-set )
     dup #rows >>max

@@ -2,9 +2,10 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: accessors alien alien.c-types alien.data alien.strings
-calendar.format classes.struct combinators db.errors db.types
-fry generalizations io.encodings.utf8 kernel layouts locals
-make math math.parser mysql.db.ffi present sequences serialize ;
+calendar.format classes.struct combinators db.errors fry
+io.encodings.utf8 kernel layouts locals make math math.parser
+mysql.db.ffi present sequences ;
+
 FROM: alien.c-types => short ;
 IN: mysql.db.lib
 

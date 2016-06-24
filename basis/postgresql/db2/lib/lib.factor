@@ -34,7 +34,7 @@ IN: postgresql.db2.lib
     "\n" split [ [ blank? ] trim ] map "\n" join ;
 
 : postgresql-error-message ( -- str )
-    db-connection get handle>> (postgresql-error-message) ;
+    db2-connection get handle>> (postgresql-error-message) ;
 
 : postgresql-error ( res -- res )
     dup [ postgresql-error-message throw ] unless ;
@@ -54,7 +54,7 @@ M: postgresql-result-null summary ( obj -- str )
     dup PQstatus zero? [ (postgresql-error-message) throw ] unless ;
 
 : do-postgresql-statement ( statement -- res )
-    db-connection get handle>> swap sql>> PQexec dup postgresql-result-ok? [
+    db2-connection get handle>> swap sql>> PQexec dup postgresql-result-ok? [
         [ postgresql-result-error-message ] [ PQclear ] bi throw
     ] unless ;
 

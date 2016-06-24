@@ -6,7 +6,7 @@ postgresql.db2.connections.private ;
 IN: postgresql.db2.queries
 
 M: postgresql-db-connection current-db-name
-    db-connection get db>> database>> ;
+    db2-connection get db>> database>> ;
 
 TUPLE: postgresql-object < sql-object
     table-catalog

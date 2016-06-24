@@ -26,8 +26,8 @@ retries errors retry-quotation reconstructor ;
     statement new
         initialize-statement ; inline
 
-HOOK: next-bind-index db-connection ( -- string )
-HOOK: init-bind-index db-connection ( -- )
+HOOK: next-bind-index db2-connection ( -- string )
+HOOK: init-bind-index db2-connection ( -- )
 
 : add-sql ( statement sql -- statement )
     '[ _ "" append-as ] change-sql ;
@@ -46,10 +46,10 @@ M: object add-in in-vector push ;
 M: sequence add-out out-vector push-all ;
 M: object add-out out-vector push ;
 
-HOOK: prepare-statement* db-connection ( statement -- statement' )
-HOOK: dispose-statement db-connection ( statement -- )
-HOOK: bind-sequence db-connection ( statement -- )
-HOOK: reset-statement db-connection ( statement -- statement' )
+HOOK: prepare-statement* db2-connection ( statement -- statement' )
+HOOK: dispose-statement db2-connection ( statement -- )
+HOOK: bind-sequence db2-connection ( statement -- )
+HOOK: reset-statement db2-connection ( statement -- statement' )
 
 ERROR: no-database-in-scope ;
 

@@ -13,7 +13,7 @@ IN: mysql.db2.statements
 
 : mysql-maybe-prepare ( statement -- statement )
     dup handle>> [
-        db-connection get handle>> mysql_stmt_init
+        db2-connection get handle>> mysql_stmt_init
         over sql>> mysql-prepare >>handle
     ] unless ;
 

@@ -1,8 +1,9 @@
 ! Copyright (C) 2011 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 
-USING: accessors combinators mysql.db2.connections kernel lexer
-mysql.db2.lib namespaces regexp.private sequences vocabs ;
+USING: accessors arrays combinators db2.connections kernel
+mysql.db2.connections mysql.db2.lib parser quotations sequences
+namespaces vocabs ;
 
 IN: mysql.db2
 
@@ -31,14 +32,28 @@ M: mysql-db db>db-connection-generic
     } cleave mysql-real-connect <mysql-db-connection>
     ;
 
-: with-MYSQL ( MYSQL -- )
-    <mysql-db>
-        over host>> >>host
-        over user>> >>user
-        over passwd>> >>password
-    db>db-connection-generic
-    2drop
+! SYNTAX: mysql-args{ CHAR: }
+!     lexer get take-until
+!     string-trim-tail
+!     " " split
+!     suffix! ;
+
+SYNTAX: mysql-args{ \ }
+    [ >array ] parse-literal
     ;
 
-SYNTAX: mysql{ CHAR: } lexer get take-until suffix! ;
+GENERIC: new ( args <mysql-db> -- <mysql-db-connection> )
 
+M: mysql-db new
+    swap
+    { >>host >>user >>password >>database >>port >>socket >>flag }
+    over length head
+    [ 1quotation curry call( -- ) ] 2each
+    db>db-connection-generic
+    dup db2-connection set
+    ;
+
+: testdb ( -- mysql-db )
+    { "localhost" "root" "" "factor-test" }
+    <mysql-db> new
+    ;

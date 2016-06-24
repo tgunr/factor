@@ -1,10 +1,9 @@
 ! Copyright (C) 2009 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays calendar.format combinators db2.binders
-db2.statements db2.types db2.utils fry kernel math present
-sequences serialize sqlite.db2 sqlite.db2.connections
-sqlite.db2.ffi sqlite.db2.lib sqlite.db2.statements strings
-unicode.case urls ;
+USING: accessors arrays ascii calendar.format combinators db2.binders
+db2.statements db2.types db2.utils fry kernel math present sequences
+serialize sqlite.db2.connections sqlite.db2.ffi sqlite.db2.lib strings
+urls ;
 IN: sqlite.db2.types
 
 : (bind-next-sqlite-type) ( handle key value type -- )

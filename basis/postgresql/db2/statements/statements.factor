@@ -8,7 +8,7 @@ IN: postgresql.db2.statements
 
 M: postgresql-db-connection prepare-statement*
     dup
-    [ db-connection get handle>> "statementname-can'tbef?" ] dip
+    [ db2-connection get handle>> "statementname-can'tbef?" ] dip
     [ sql>> ] [ in>> ] bi length f
     PQprepare postgresql-error >>handle ;
 

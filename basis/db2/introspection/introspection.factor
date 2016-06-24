@@ -3,11 +3,11 @@
 USING: db2.connections ;
 IN: db2.introspection
 
-HOOK: all-db-objects db-connection ( -- sequence )
-HOOK: all-tables db-connection ( -- sequence )
-HOOK: all-indices db-connection ( -- sequence )
-HOOK: temporary-db-objects db-connection ( -- sequence )
+HOOK: all-db-objects db2-connection ( -- sequence )
+HOOK: all-tables db2-connection ( -- sequence )
+HOOK: all-indices db2-connection ( -- sequence )
+HOOK: temporary-db-objects db2-connection ( -- sequence )
 
-HOOK: table-columns db-connection ( name -- sequence )
+HOOK: table-columns db2-connection ( name -- sequence )
 
 

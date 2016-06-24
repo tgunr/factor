@@ -15,15 +15,15 @@ TUPLE: sqlite-db path ;
 
 <PRIVATE
 
-TUPLE: sqlite-db-connection < db-connection ;
+TUPLE: sqlite-db-connection < db2-connection ;
 
-: <sqlite-db-connection> ( handle -- db-connection )
+: <sqlite-db-connection> ( handle -- db2-connection )
     sqlite-db-connection new-db-connection
         swap >>handle ;
 
 PRIVATE>
 
-M: sqlite-db db-open ( db -- db-connection )
+M: sqlite-db db-open ( db -- db2-connection )
     path>> sqlite-open <sqlite-db-connection> ;
 
 M: sqlite-db-connection db-close ( handle -- ) sqlite-close ;
@@ -40,7 +40,7 @@ M: sqlite-db-connection <prepared-statement> ( str in out -- obj )
 
 : sqlite-maybe-prepare ( statement -- statement )
     dup handle>> [
-        db-connection get handle>> over sql>> sqlite-prepare
+        db2-connection get handle>> over sql>> sqlite-prepare
         >>handle
     ] unless ;
 
@@ -96,7 +96,7 @@ M: sqlite-statement bind-tuple ( tuple statement -- )
 ERROR: sqlite-last-id-fail ;
 
 : last-insert-id ( -- id )
-    db-connection get handle>> sqlite3_last_insert_rowid
+    db2-connection get handle>> sqlite3_last_insert_rowid
     dup zero? [ sqlite-last-id-fail ] when ;
 
 M: sqlite-db-connection insert-tuple-set-key ( tuple statement -- )
