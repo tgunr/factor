@@ -426,7 +426,7 @@ parse_build_info() {
     OS=`echo $1 | cut -d '-' -f 1`
     ARCH=`echo $1 | cut -d '-' -f 2`
     WORD=`echo $1 | cut -d '-' -f 3`
-    
+
     if [[ $OS == linux && $ARCH == ppc ]] ; then WORD=32; fi
     if [[ $OS == linux && $ARCH == arm ]] ; then WORD=32; fi
     if [[ $OS == macosx && $ARCH == ppc ]] ; then WORD=32; fi
@@ -484,10 +484,10 @@ update_script_changed() {
 git_fetch_factorcode() {
 	if [[ $SKIP_UPDATE == false ]] ; then
 		$ECHO "Fetching the git repository from factorcode.org..."
-		
+
 		rm -f `update_script_name`
 		invoke_git fetch "$GIT_URL" master
-		
+
 		if update_script_changed; then
 			$ECHO "Updating and restarting the factor.sh script..."
 			update_script
@@ -599,7 +599,7 @@ update_boot_images() {
 
 get_boot_image() {
     $ECHO "Downloading boot image $BOOT_IMAGE."
-	if [[ $($DOWNLOADER http://downloads.factorcode.org/images/latest/$BOOT_IMAGE) ]] ; then
+	if ! [[ $($DOWNLOADER http://downloads.factorcode.org/images/latest/$BOOT_IMAGE) ]] ; then
 		$ECHO "Download complete."
 	else
 		$ECHO "Could not connect to server to download image."
