@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors assocs classes classes.mixin kernel namespaces
 parser ui.gadgets ui.gadgets.borders
-ui.pens.solid ui.gadgets.scrollers ui.gadgets.tracks ui.gadgets.theme
+ui.pens.solid ui.gadgets.scrollers ui.gadgets.tracks ui.theme
 combinators.short-circuit ;
 IN: ui.tools.common
 
@@ -44,7 +44,7 @@ SLOT: scroller
     { 9 9 } <filled-border> ;
 
 : with-lines ( track -- track )
-    dup orientation>> >>gap 
+    dup orientation>> >>gap
     line-color <solid> >>interior ;
 
 : white-interior ( track -- track )

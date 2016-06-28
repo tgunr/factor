@@ -35,13 +35,10 @@ M: fail summary drop "Matching failed" ;
 ERROR: bad-math-inverse ;
 
 : next ( revquot -- revquot* first )
-    [ bad-math-inverse ]
-    [ unclip-slice ] if-empty ;
+    [ bad-math-inverse ] [ unclip-slice ] if-empty ;
 
 : constant-word? ( word -- ? )
-    stack-effect
-    [ out>> length 1 = ]
-    [ in>> empty? ] bi and ;
+    stack-effect [ out>> length 1 = ] [ in>> empty? ] bi and ;
 
 : assure-constant ( constant -- quot )
     dup word? [ bad-math-inverse ] when 1quotation ;
@@ -51,9 +48,6 @@ ERROR: bad-math-inverse ;
 
 : pull-inverse ( math-inverse revquot const -- revquot* quot )
     assure-constant rot first compose ;
-
-: ?word-prop ( word/object name -- value/f )
-    over word? [ word-prop ] [ 2drop f ] if ;
 
 : undo-literal ( object -- quot ) [ =/fail ] curry ;
 
@@ -161,6 +155,7 @@ ERROR: missing-literal ;
     dup
     [ word? ] [ symbol? not ] bi and
     [ missing-literal ] when ;
+
 \ + [ - ] [ - ] define-math-inverse
 \ - [ + ] [ - ] define-math-inverse
 \ * [ / ] [ / ] define-math-inverse
@@ -178,6 +173,7 @@ DEFER: __
 
 : both ( object object -- object )
     dupd assert= ;
+
 \ both [ dup ] define-inverse
 
 {
@@ -280,6 +276,7 @@ DEFER: __
 MACRO: matches? ( quot -- quot' ) [matches?] ;
 
 ERROR: no-match ;
+
 M: no-match summary drop "Fall through in switch" ;
 
 : recover-chain ( seq -- quot )

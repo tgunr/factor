@@ -5,8 +5,8 @@ combinators.short-circuit fonts fry kernel locals math
 math.functions math.order math.rectangles math.vectors models
 namespaces opengl sequences splitting strings ui.commands
 ui.gadgets ui.gadgets.line-support ui.gadgets.menus
-ui.gadgets.scrollers ui.gadgets.status-bar ui.gadgets.theme ui.gadgets.worlds
-ui.gestures ui.images ui.pens.solid ui.render ui.text ;
+ui.gadgets.scrollers ui.gadgets.status-bar ui.gadgets.worlds
+ui.gestures ui.images ui.pens.solid ui.render ui.text ui.theme ;
 IN: ui.gadgets.tables
 
 ! Row rendererer protocol
@@ -40,7 +40,7 @@ single-click?
 { gap initial: 2 }
 column-widths total-width
 focus-border-color
-{ mouse-color initial: COLOR: black }
+mouse-color
 column-line-color
 selection-required?
 selection-index
@@ -142,7 +142,7 @@ M: table layout*
 
 : draw-moused-row ( table -- )
     dup mouse-index>> [
-        dup mouse-color>> gl-color
+        dup mouse-color>> [ text-color ] unless* gl-color
         dup mouse-index>> row-bounds gl-rect
     ] [ drop ] if ;
 

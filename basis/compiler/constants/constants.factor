@@ -6,6 +6,7 @@ IN: compiler.constants
 
 CONSTANT: card-bits 8
 CONSTANT: deck-bits 18
+
 : card-mark ( -- n ) 0x40 0x80 bitor ; inline
 
 : slot-offset ( slot tag -- n ) [ bootstrap-cells ] dip - ; inline
@@ -29,15 +30,19 @@ CONSTANT: deck-bits 18
 : segment-start-offset ( -- n ) 0 bootstrap-cells ; inline
 : segment-end-offset ( -- n ) 2 bootstrap-cells ; inline
 
-! Offsets in vm struct
-: vm-context-offset ( -- n ) 0 bootstrap-cells ; inline
-: vm-spare-context-offset ( -- n ) 1 bootstrap-cells ; inline
-: vm-signal-handler-addr-offset ( -- n ) 8 bootstrap-cells ; inline
-: vm-fault-flag-offset ( -- n ) 9 bootstrap-cells ; inline
+! Offsets in vm struct. Should be kept in sync with:
+!   vm/vm.hpp
+: vm-context-offset ( -- n )
+    0 bootstrap-cells ; inline
+: vm-spare-context-offset ( -- n )
+    1 bootstrap-cells ; inline
+: vm-signal-handler-addr-offset ( -- n )
+    8 bootstrap-cells ; inline
+: vm-fault-flag-offset ( -- n )
+    9 bootstrap-cells ; inline
 : vm-special-object-offset ( n -- offset )
     bootstrap-cells 10 bootstrap-cells + ;
 
-! Relocation classes
 CONSTANT: rc-absolute-cell 0
 CONSTANT: rc-absolute 1
 CONSTANT: rc-relative 2
@@ -49,7 +54,6 @@ CONSTANT: rc-absolute-2 10
 CONSTANT: rc-absolute-1 11
 CONSTANT: rc-absolute-ppc-2/2/2/2 12
 
-! Relocation types
 CONSTANT: rt-dlsym 0
 CONSTANT: rt-entry-point 1
 CONSTANT: rt-entry-point-pic 2

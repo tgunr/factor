@@ -28,7 +28,7 @@ M: word test-builder
     [ build-optimized-tree ] keep build-cfg ;
 
 : run-passes ( cfgs passes -- cfgs' )
-    '[ dup cfg set dup _ apply-passes ] map ;
+    '[ dup cfg set dup _ apply-passes ] map ; inline
 
 : test-ssa ( quot -- cfgs )
     test-builder { optimize-cfg } run-passes ;
@@ -81,9 +81,9 @@ M: insn insn. tuple>array but-last [
 : cfgs. ( cfgs -- )
     [ nl ] [ cfg. ] interleave ;
 
-: ssa. ( quot -- ) test-ssa cfgs. ;
-: flat. ( quot -- ) test-flat cfgs. ;
-: regs. ( quot -- ) test-regs cfgs. ;
+: ssa. ( quot/word -- ) test-ssa cfgs. ;
+: flat. ( quot/word -- ) test-flat cfgs. ;
+: regs. ( quot/word -- ) test-regs cfgs. ;
 
 ! Prettyprinting
 : pprint-loc ( loc word -- ) <block pprint-word n>> pprint* block> ;

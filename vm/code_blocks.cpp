@@ -2,6 +2,41 @@
 
 namespace factor {
 
+static cell code_block_owner(code_block* compiled) {
+  cell owner = compiled->owner;
+
+  /* Cold generic word call sites point to quotations that call the
+     inline-cache-miss and inline-cache-miss-tail primitives. */
+  if (TAG(owner) != QUOTATION_TYPE)
+    return owner;
+
+  quotation* quot = untag<quotation>(owner);
+  array* elements = untag<array>(quot->array);
+
+  FACTOR_ASSERT(array_capacity(elements) == 5);
+  wrapper* wrap = untag<wrapper>(array_nth(elements, 0));
+  return wrap->object;
+}
+
+static cell compute_entry_point_address(cell obj) {
+  switch (TAG(obj)) {
+    case WORD_TYPE:
+      return untag<word>(obj)->entry_point;
+    case QUOTATION_TYPE:
+      return untag<quotation>(obj)->entry_point;
+    default:
+      critical_error("Expected word or quotation", obj);
+      return 0;
+  }
+}
+
+static cell compute_here_address(cell arg, cell offset, code_block* compiled) {
+  fixnum n = untag_fixnum(arg);
+  if (n >= 0)
+    return compiled->entry_point() + offset + n;
+  return compiled->entry_point() - n;
+}
+
 cell code_block::owner_quot() const {
   if (!optimized_p() && TAG(owner) == WORD_TYPE)
     return untag<word>(owner)->def;
@@ -9,7 +44,8 @@ cell code_block::owner_quot() const {
 }
 
 /* If the code block is an unoptimized quotation, we can calculate the
-   scan offset. In all other cases -1 is returned. */
+   scan offset. In all other cases -1 is returned.
+   Allocates memory (quot_code_offset_to_scan) */
 cell code_block::scan(factor_vm* vm, cell addr) const {
   if (type() != code_block_unoptimized) {
     return tag_fixnum(-1);
@@ -22,18 +58,6 @@ cell code_block::scan(factor_vm* vm, cell addr) const {
     return tag_fixnum(-1);
   cell ofs = offset(addr);
   return tag_fixnum(vm->quot_code_offset_to_scan(ptr, ofs));
-}
-
-cell factor_vm::compute_entry_point_address(cell obj) {
-  switch (TAG(obj)) {
-    case WORD_TYPE:
-      return untag<word>(obj)->entry_point;
-    case QUOTATION_TYPE:
-      return untag<quotation>(obj)->entry_point;
-    default:
-      critical_error("Expected word or quotation", obj);
-      return 0;
-  }
 }
 
 cell factor_vm::compute_entry_point_pic_address(word* w, cell tagged_quot) {
@@ -55,70 +79,13 @@ cell factor_vm::compute_entry_point_pic_tail_address(cell w_) {
   return compute_entry_point_pic_address(w.untagged(), w->pic_tail_def);
 }
 
-cell factor_vm::code_block_owner(code_block* compiled) {
-  cell owner = compiled->owner;
-
-  /* Cold generic word call sites point to quotations that call the
-     inline-cache-miss and inline-cache-miss-tail primitives. */
-  if (TAG(owner) != QUOTATION_TYPE)
-    return owner;
-
-  quotation* quot = untag<quotation>(owner);
-  array* elements = untag<array>(quot->array);
-
-  FACTOR_ASSERT(array_capacity(elements) == 5);
-  FACTOR_ASSERT(array_nth(elements, 4) == special_objects[PIC_MISS_WORD] ||
-                array_nth(elements, 4) == special_objects[PIC_MISS_TAIL_WORD]);
-  wrapper* wrap = untag<wrapper>(array_nth(elements, 0));
-  return wrap->object;
-}
-
-struct update_word_references_relocation_visitor {
-  factor_vm* parent;
-  bool reset_inline_caches;
-
-  update_word_references_relocation_visitor(factor_vm* parent,
-                                            bool reset_inline_caches)
-      : parent(parent), reset_inline_caches(reset_inline_caches) {}
-
-  void operator()(instruction_operand op) {
-    code_block* compiled = op.load_code_block();
-    switch (op.rel.type()) {
-      case RT_ENTRY_POINT: {
-        cell owner = compiled->owner;
-        if (to_boolean(owner))
-          op.store_value(parent->compute_entry_point_address(owner));
-        break;
-      }
-      case RT_ENTRY_POINT_PIC: {
-        if (reset_inline_caches || !compiled->pic_p()) {
-          cell owner = parent->code_block_owner(compiled);
-          if (to_boolean(owner))
-            op.store_value(parent->compute_entry_point_pic_address(owner));
-        }
-        break;
-      }
-      case RT_ENTRY_POINT_PIC_TAIL: {
-        if (reset_inline_caches || !compiled->pic_p()) {
-          cell owner = parent->code_block_owner(compiled);
-          if (to_boolean(owner))
-            op.store_value(parent->compute_entry_point_pic_tail_address(owner));
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }
-};
-
 /* Relocate new code blocks completely; updating references to literals,
    dlsyms, and words. For all other words in the code heap, we only need
    to update references to other words, without worrying about literals
    or dlsyms. */
 void factor_vm::update_word_references(code_block* compiled,
                                        bool reset_inline_caches) {
-  if (code->uninitialized_p(compiled))
+  if (code->uninitialized_p(compiled)) {
     initialize_code_block(compiled);
   /* update_word_references() is always applied to every block in
      the code heap. Since it resets all call sites to point to
@@ -127,12 +94,42 @@ void factor_vm::update_word_references(code_block* compiled,
      are referenced after this is done. So instead of polluting
      the code heap with dead PICs that will be freed on the next
      GC, we add them to the free list immediately. */
-  else if (reset_inline_caches && compiled->pic_p())
+  } else if (reset_inline_caches && compiled->pic_p()) {
     code->free(compiled);
-  else {
-    update_word_references_relocation_visitor visitor(this,
-                                                      reset_inline_caches);
-    compiled->each_instruction_operand(visitor);
+  } else {
+    auto visit_func = [&](instruction_operand op) {
+
+      switch (op.rel.type()) {
+        case RT_ENTRY_POINT: {
+          code_block* dest = op.load_code_block();
+          cell owner = dest->owner;
+          if (to_boolean(owner))
+            op.store_value(compute_entry_point_address(owner));
+          break;
+        }
+        case RT_ENTRY_POINT_PIC:  {
+          code_block* dest = op.load_code_block();
+          if (reset_inline_caches || !dest->pic_p()) {
+            cell owner = code_block_owner(dest);
+            if (to_boolean(owner))
+              op.store_value(compute_entry_point_pic_address(owner));
+          }
+          break;
+        }
+        case RT_ENTRY_POINT_PIC_TAIL: {
+          code_block* dest = op.load_code_block();
+          if (reset_inline_caches || !dest->pic_p()) {
+            cell owner = code_block_owner(dest);
+            if (to_boolean(owner))
+              op.store_value(compute_entry_point_pic_tail_address(owner));
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    };
+    compiled->each_instruction_operand(visit_func);
     compiled->flush_icache();
   }
 }
@@ -214,14 +211,6 @@ cell factor_vm::compute_external_address(instruction_operand op) {
   return ext_addr;
 }
 
-cell factor_vm::compute_here_address(cell arg, cell offset,
-                                     code_block* compiled) {
-  fixnum n = untag_fixnum(arg);
-  if (n >= 0)
-    return compiled->entry_point() + offset + n;
-  return compiled->entry_point() - n;
-}
-
 struct initial_code_block_visitor {
   factor_vm* parent;
   cell literals;
@@ -239,13 +228,13 @@ struct initial_code_block_visitor {
       case RT_LITERAL:
         return next_literal();
       case RT_ENTRY_POINT:
-        return parent->compute_entry_point_address(next_literal());
+        return compute_entry_point_address(next_literal());
       case RT_ENTRY_POINT_PIC:
         return parent->compute_entry_point_pic_address(next_literal());
       case RT_ENTRY_POINT_PIC_TAIL:
         return parent->compute_entry_point_pic_tail_address(next_literal());
       case RT_HERE:
-        return parent->compute_here_address(
+        return compute_here_address(
             next_literal(), op.rel.offset(), op.compiled);
       case RT_UNTAGGED:
         return untag_fixnum(next_literal());

@@ -9,7 +9,7 @@ ui.gadgets.icons ui.gadgets.incremental ui.gadgets.labels
 ui.gadgets.menus ui.gadgets.packs ui.gadgets.paragraphs
 ui.gadgets.presentations ui.gadgets.private ui.gadgets.scrollers
 ui.gadgets.tracks ui.gestures ui.images ui.pens.solid ui.render
-ui.traverse ;
+ui.theme ui.traverse ;
 FROM: io.styles => foreground background ;
 FROM: ui.gadgets.wrappers => <wrapper> ;
 IN: ui.gadgets.panes
@@ -321,7 +321,7 @@ M: paragraph dispose drop ;
 
 : gadget-write ( string gadget -- )
     swap dup empty?
-    [ 2drop ] [ <label> text-theme add-gadget drop ] if ;
+    [ 2drop ] [ <label> monospace-font >>font add-gadget drop ] if ;
 
 M: pack stream-write gadget-write ;
 

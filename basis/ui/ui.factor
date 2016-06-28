@@ -3,10 +3,10 @@
 USING: accessors arrays assocs boxes classes.tuple
 classes.tuple.parser combinators combinators.short-circuit
 concurrency.flags concurrency.promises continuations deques
-destructors dlists fry init io.streams.c kernel lexer make math
-namespaces parser sequences sets strings threads ui.backend ui.gadgets
-ui.gadgets.private ui.gadgets.worlds ui.gestures ui.render vectors
-vocabs.parser words ;
+destructors dlists fry init kernel lexer make math
+math.functions namespaces parser sequences sets strings threads
+ui.backend ui.gadgets ui.gadgets.private ui.gadgets.worlds
+ui.gestures ui.render vectors vocabs.parser words ;
 IN: ui
 
 <PRIVATE
@@ -176,7 +176,7 @@ PRIVATE>
 PRIVATE>
 
 : open-world-window ( world -- )
-    dup pref-dim >>dim dup relayout graft ;
+    dup pref-dim [ ceiling ] map >>dim dup relayout graft ;
 
 : open-window* ( gadget title/attributes -- window )
     ?attributes <world> [ open-world-window ] keep ;
@@ -223,16 +223,20 @@ HOOK: beep ui-backend ( -- )
 
 HOOK: system-alert ui-backend ( caption text -- )
 
-: parse-main-window-attributes ( class -- attributes )
+: parse-window-attributes ( class -- attributes )
     "{" expect dup all-slots parse-tuple-literal-slots ;
 
-: define-main-window ( word attributes quot -- )
-    [
-        '[ [ f _ clone @ open-window ] with-ui ] ( -- ) define-declared
-    ] [ 2drop current-vocab main<< ] 3bi ;
+: define-window ( word attributes quot -- )
+    '[ [ f _ clone @ open-window ] with-ui ] ( -- ) define-declared ;
+
+SYNTAX: WINDOW:
+    scan-new-word
+    world-attributes parse-window-attributes
+    parse-definition
+    define-window ;
 
 SYNTAX: MAIN-WINDOW:
     scan-new-word
-    world-attributes parse-main-window-attributes
+    world-attributes parse-window-attributes
     parse-definition
-    define-main-window ;
+    [ define-window ] [ 2drop current-vocab main<< ] 3bi ;

@@ -56,9 +56,10 @@ delete-staging-images
 ! [ ] [ "gpu.demos.raytrace" shake-and-bake 2764000 small-enough? ] unit-test
 { } [ "gpu.demos.raytrace" shake-and-bake 3557800 small-enough? ] unit-test
 
-{ } [ "bunny" shake-and-bake 2559640 small-enough? ] unit-test
+! { } [ "bunny" shake-and-bake 2559640 small-enough? ] unit-test
+{ } [ "bunny" shake-and-bake 2590476 small-enough? ] unit-test
 
-{ } [ "gpu.demos.bunny" shake-and-bake 3563344 small-enough? ] unit-test
+{ } [ "gpu.demos.bunny" shake-and-bake 3600000 small-enough? ] unit-test
 
 os macosx? [
     [ ] [ "webkit-demo" shake-and-bake 600000 small-enough? ] unit-test
@@ -158,9 +159,10 @@ os macosx? [
     test-image-path =
 ] unit-test
 
-{ } [ "resource:LICENSE.txt" "license.txt" temp-file copy-file ] unit-test
-
-{ } [ "tools.deploy.test.19" shake-and-bake run-temp-image ] unit-test
+{ } [
+    "resource:LICENSE.txt" "local-license.txt" temp-file copy-file
+    "tools.deploy.test.19" shake-and-bake run-temp-image
+] unit-test
 
 { } [ "tools.deploy.test.20" shake-and-bake ] unit-test
 

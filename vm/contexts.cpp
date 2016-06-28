@@ -94,13 +94,6 @@ void factor_vm::init_contexts(cell datastack_size_, cell retainstack_size_,
   spare_ctx = new_context();
 }
 
-void factor_vm::delete_contexts() {
-  FACTOR_ASSERT(!ctx);
-  FACTOR_FOR_EACH(unused_contexts) {
-    delete *iter;
-  }
-}
-
 context* factor_vm::new_context() {
   context* new_context;
 
@@ -254,20 +247,14 @@ cell factor_vm::array_to_stack(array* array, cell bottom) {
   return bottom + depth - sizeof(cell);
 }
 
-void factor_vm::set_datastack(context* ctx, array* array) {
-  ctx->datastack = array_to_stack(array, ctx->datastack_seg->start);
-}
-
 void factor_vm::primitive_set_datastack() {
-  set_datastack(ctx, untag_check<array>(ctx->pop()));
-}
-
-void factor_vm::set_retainstack(context* ctx, array* array) {
-  ctx->retainstack = array_to_stack(array, ctx->retainstack_seg->start);
+  array* arr = untag_check<array>(ctx->pop());
+  ctx->datastack = array_to_stack(arr, ctx->datastack_seg->start);
 }
 
 void factor_vm::primitive_set_retainstack() {
-  set_retainstack(ctx, untag_check<array>(ctx->pop()));
+  array* arr = untag_check<array>(ctx->pop());
+  ctx->retainstack = array_to_stack(arr, ctx->retainstack_seg->start);
 }
 
 /* Used to implement call( */

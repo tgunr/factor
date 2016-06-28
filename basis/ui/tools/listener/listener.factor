@@ -1,17 +1,18 @@
 ! Copyright (C) 2005, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs calendar combinators
-combinators.short-circuit concurrency.flags concurrency.mailboxes
-continuations destructors documents documents.elements fry hashtables
-help help.markup help.tips io io.styles kernel lexer listener locals
-math models models.arrow models.delay namespaces parser prettyprint
-sequences source-files.errors strings system threads
+combinators.short-circuit concurrency.flags
+concurrency.mailboxes continuations destructors documents
+documents.elements fonts fry hashtables help help.markup
+help.tips io io.styles kernel lexer listener literals locals
+math models models.arrow models.delay namespaces parser
+prettyprint sequences source-files.errors strings system threads
 tools.errors.model ui ui.commands ui.gadgets ui.gadgets.editors
 ui.gadgets.glass ui.gadgets.labeled ui.gadgets.panes
-ui.gadgets.scrollers ui.gadgets.status-bar ui.gadgets.theme
+ui.gadgets.scrollers ui.gadgets.status-bar ui.theme
 ui.gadgets.toolbar ui.gadgets.tracks ui.gestures ui.operations
-ui.pens.solid ui.tools.browser ui.tools.common ui.tools.debugger
-ui.tools.error-list ui.tools.listener.completion
+ui.pens.solid ui.theme.images ui.tools.browser ui.tools.common
+ui.tools.debugger ui.tools.error-list ui.tools.listener.completion
 ui.tools.listener.history ui.tools.listener.popups vocabs
 vocabs.loader vocabs.parser vocabs.refresh words ;
 IN: ui.tools.listener
@@ -93,13 +94,26 @@ M: interactor stream-element-type drop +character+ ;
 
 GENERIC: (print-input) ( object -- )
 
+SYMBOL: listener-input-style
+H{
+    { font-style bold }
+    { foreground $ text-color }
+} listener-input-style set-global
+
+SYMBOL: listener-word-style
+H{
+    { font-name "sans-serif" }
+    { font-style bold }
+    { foreground $ text-color }
+} listener-word-style set-global
+
 M: input (print-input)
-    dup presented associate
-    [ string>> H{ { font-style bold } } format ] with-nesting nl ;
+    dup presented associate [
+        string>> listener-input-style get-global format
+    ] with-nesting nl ;
 
 M: word (print-input)
-    "Command: " H{ { font-name "sans-serif" } { font-style bold } }
-    format . ;
+    "Command: " listener-word-style get-global format . ;
 
 : print-input ( object interactor -- )
     output>> [ (print-input) ] with-output-stream* ;
@@ -386,9 +400,13 @@ interactor "completion" f {
 } define-command-map
 
 : introduction. ( -- )
-    tip-of-the-day. nl
-    { $strong "Press " { $snippet "F1" } " at any time for help." } print-content nl
-    version-info print-content nl nl ;
+    [
+        H{ { font-size $ default-font-size } } [
+            { $tip-of-the-day } print-element nl
+            { $strong "Press " { $snippet "F1" } " at any time for help." } print-element nl
+            version-info print-element
+        ] with-style
+    ] with-default-style nl nl ;
 
 : listener-thread ( listener -- )
     dup listener-streams [

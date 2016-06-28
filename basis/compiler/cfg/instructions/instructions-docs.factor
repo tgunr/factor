@@ -1,8 +1,9 @@
-USING: alien arrays assocs byte-arrays classes combinators compiler.cfg
-compiler.cfg.intrinsics.fixnum compiler.cfg.linear-scan.assignment
-compiler.cfg.liveness compiler.cfg.ssa.destruction compiler.cfg.value-numbering
-compiler.codegen.gc-maps cpu.architecture help.markup help.syntax kernel
-layouts math sequences slots.private system vm ;
+USING: alien arrays assocs byte-arrays classes combinators
+compiler.cfg compiler.cfg.builder compiler.cfg.intrinsics.fixnum
+compiler.cfg.linear-scan.assignment compiler.cfg.liveness
+compiler.cfg.ssa.destruction compiler.cfg.value-numbering
+compiler.codegen.gc-maps cpu.architecture help.markup help.syntax
+kernel layouts math sequences slots.private system vm ;
 IN: compiler.cfg.instructions
 
 HELP: ##alien-invoke
@@ -10,12 +11,8 @@ HELP: ##alien-invoke
   "An instruction for calling a function in a dynamically linked library. It has the following slots:"
   { $table
     {
-        { $slot "gc-map" }
-        { "If the invoked c-function calls Factor code which triggers a gc, then a " { $link gc-map } " might be necessary." }
-    }
-    {
         { $slot "reg-inputs" }
-        { "Registers to use for the arguments to the function call. Each sequence item is a 3-tuple consisting of a " { $link spill-slot } ", register representation and a register." }
+        { "Registers to use for the arguments to the function call. Each sequence item is a 3-tuple consisting of a " { $link spill-slot } ", register representation and a register. When the function is called, the parameter is copied from the spill slot to the given register." }
     }
     {
         { $slot "stack-inputs" }
@@ -25,10 +22,14 @@ HELP: ##alien-invoke
         { $slot "reg-outputs" }
         { "If the called function returns a value, then this slot is a one-element sequence containing a 3-tuple describing which register is used for the return value." }
     }
+    {
+        { $slot "gc-map" }
+        { "If the invoked C function calls Factor code which triggers a GC, then a " { $link gc-map } " is necessary to find the roots." }
+    }
     { { $slot "symbols" } { "Name of the function to call." } }
-    { { $slot "dll" } { "A dll handle." } }
+    { { $slot "dll" } { "A dll handle or " { $link f } "." } }
   }
-  "Which function arguments that goes in " { $slot "reg-inputs" } " and which goes in " { $slot "stack-inputs" } " depend on the calling convention. In " { $link cdecl } " on " { $link x86.32 } ", all arguments goes in " { $slot "stack-inputs" } " but on " { $link x86.64 } " the first six arguments are passed in registers and only then is the stack used."
+  "Which function arguments that goes in " { $slot "reg-inputs" } " and which goes in " { $slot "stack-inputs" } " depend on the calling convention. In " { $link cdecl } " on " { $link x86.32 } ", all arguments goes in " { $slot "stack-inputs" } ", in " { $link x86.64 } " the first six arguments are passed in registers and then stack parameters are used for the remainder."
 }
 { $see-also %alien-invoke } ;
 
@@ -42,6 +43,11 @@ HELP: ##allot
     { { $slot "temp" } { "Temporary register to clobber." } }
   }
 } ;
+
+HELP: ##box
+{ $class-description
+  "This instruction boxes a value into a tagged pointer."
+} { $see-also %box } ;
 
 HELP: ##box-alien
 { $class-description
@@ -78,8 +84,15 @@ HELP: ##compare-float-ordered-branch
   }
 } ;
 
+HELP: ##compare-imm
+{ $class-description "Instruction used to implement trivial ifs and not ifs." }
+{ $see-also emit-trivial-if emit-trivial-not-if } ;
+
+HELP: ##compare-imm-branch
+{ $class-description "The instruction used to implement branching for the " { $link if } " word." } ;
+
 HELP: ##compare-integer
-{ $class-description "This instruction is emitted for integer (" { $link fixnum } ") comparisons." }
+{ $class-description "This instruction is emitted for " { $link fixnum } " comparisons." }
 { $see-also emit-fixnum-comparison } ;
 
 HELP: ##copy
@@ -126,6 +139,9 @@ HELP: ##load-reference
     { { $slot "obj" } { "A Factor object." } }
   }
 } ;
+
+HELP: ##load-tagged
+{ $class-description "Loads a tagged value into a register." } ;
 
 HELP: ##load-vector
 { $class-description
@@ -220,10 +236,9 @@ HELP: ##set-slot-imm
     { { $slot "slot" } { "Slot index." } }
     { { $slot "tag" } { "Type tag for obj." } }
   }
-} ;
+}
+{ $see-also ##set-slot %set-slot-imm } ;
 
-{ ##set-slot %set-slot } related-words
-{ ##set-slot-imm %set-slot-imm } related-words
 { ##set-slot-imm ##set-slot } related-words
 
 HELP: ##single>double-float
@@ -241,14 +256,14 @@ HELP: ##shuffle-vector-imm
 
 HELP: ##slot-imm
 { $class-description
-  "Instruction for reading a slot value from an object."
+  "Instruction for reading a slot with a given index from an object."
   { $table
     { { $slot "dst" } { "Register to read the slot value into." } }
     { { $slot "obj" } { "Register containing the object with the slot." } }
     { { $slot "slot" } { "Slot index." } }
     { { $slot "tag" } { "Type tag for obj." } }
   }
-} ;
+} { $see-also %slot-imm } ;
 
 HELP: ##spill
 { $class-description "Instruction that copies a value from a register to a " { $link spill-slot } "." } ;
@@ -265,6 +280,10 @@ HELP: ##store-memory-imm
   }
 }
 { $see-also %store-memory-imm } ;
+
+HELP: ##test-branch
+{ $class-description "Instruction inserted by the " { $vocab-link "compiler.cfg.value-numbering" } " compiler pass." }
+{ $see-also ##compare-integer-imm-branch } ;
 
 HELP: ##unbox-any-c-ptr
 { $class-description "Instruction that unboxes a pointer in a register so that it can be fed to a C FFI function. For example, if 'src' points to a " { $link byte-array } ", then in 'dst' will be put a pointer to the first byte of that byte array."
@@ -353,10 +372,13 @@ HELP: gc-map
   { $table
     {
         { $slot "gc-roots" }
-        { "First a " { $link sequence } " of vregs that will be spilled during a gc. It is assigned in the " { $vocab-link "compiler.cfg.liveness" } " compiler pass. Then it is converted to a sequence of " { $link spill-slot } "s in " { $link assign-registers } "." }
+        { { $link sequence } " of vregs or spill-slots" }
     }
-    { { $slot "derived-roots" } { "An " { $link assoc } " of pairs of spill slots." } }
+    {
+        { $slot "derived-roots" }
+        { "An " { $link assoc } " of pairs of vregs or spill slots." } }
   }
+  "The 'gc-roots' and 'derived-roots' slots are initially vreg integers referencing objects that are live during the gc call and needs to be spilled so that they can be traced. In the " { $link emit-gc-map-insn } " word in " { $vocab-link "compiler.cfg.linear-scan.assignment" } " they are converted to spill slots which the collector is able to trace."
 }
 { $see-also emit-gc-info-bitmaps fill-gc-map } ;
 
@@ -377,6 +399,7 @@ $nl
 }
 "Control flow:"
 { $subsections
+  ##branch
   ##call
   ##jump
   ##no-tco
@@ -416,6 +439,7 @@ $nl
 { $subsections
   ##compare
   ##compare-imm
+  ##compare-imm-branch
   ##compare-integer
   ##compare-integer-branch
   ##compare-integer-imm-branch
@@ -428,6 +452,7 @@ $nl
 { $subsections
   ##load-integer
   ##load-reference
+  ##load-tagged
 }
 "Floating point SIMD instructions:"
 { $subsections

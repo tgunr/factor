@@ -17,7 +17,7 @@ ifdef CONFIG
 	ifdef DEBUG
 		CFLAGS += -g -DFACTOR_DEBUG
 	else
-		CFLAGS += -O3 -g
+		CFLAGS += -O3
 	endif
 
 	ENGINE = $(DLL_PREFIX)factor$(DLL_SUFFIX)$(DLL_EXTENSION)
@@ -92,7 +92,6 @@ ifdef CONFIG
 		vm/mark_bits.hpp \
 		vm/free_list.hpp \
 		vm/fixup.hpp \
-		vm/free_list_allocator.hpp \
 		vm/write_barrier.hpp \
 		vm/object_start_map.hpp \
 		vm/aging_space.hpp \

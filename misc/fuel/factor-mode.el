@@ -229,7 +229,6 @@ these lines in your .emacs:
     "METHOD:"
     "PRIVATE>" "PROTOCOL:" "PROVIDE:"
     "read-only"
-    "SLOT:"
     "STRING:" "SYNTAX:"
     "UNIFORM-TUPLE:"
     "VARIANT:" "VERTEX-FORMAT:"))
@@ -263,7 +262,7 @@ these lines in your .emacs:
   (regexp-opt factor-declaration-words 'symbols))
 
 (defconst factor-integer-regex
-  "\\_<-?\\(0[xob][0-9a-fA-F]+\\|[0-9][0-9,]*\\)\\_>")
+  (one-symbol "-?\\(?:0[xob][0-9a-fA-F][0-9a-fA-F,]*\\|[0-9][0-9,]*\\)"))
 
 (defconst factor-raw-float-regex
   "[0-9]*\\.[0-9]*\\([eEpP][+-]?[0-9]+\\)?")
@@ -301,7 +300,7 @@ these lines in your .emacs:
 (defconst factor-symbol-definition-regex
   (syntax-and-1-symbol
    '("&" "CONSTANT" "DESTRUCTOR" "FORGET" "GAME" "HELP" "LIBRARY"
-     "MAIN" "MAIN-WINDOW" "STRING" "SYMBOL" "VAR")))
+     "MAIN" "MAIN-WINDOW" "SLOT" "STRING" "SYMBOL" "VAR")))
 
 ;; [parsing-word] [symbol-word]* ;
 (defconst factor-symbols-lines-regex
@@ -356,16 +355,9 @@ these lines in your .emacs:
 (defconst factor-no-indent-def-starts
   '("ARTICLE" "HELP" "SPECIALIZED-ARRAYS"))
 
-(defconst factor-indent-def-start-regex
-  (format "^\\(%s:\\)\\( \\|\n\\)" (regexp-opt factor-indent-def-starts)))
-
 (defconst factor-definition-start-regex
   (format "^\\(%s:\\) " (regexp-opt (append factor-no-indent-def-starts
                                             factor-indent-def-starts))))
-
-(defconst factor-definition-end-regex
-  (format "\\(\\(^\\| +\\);\\( *%s\\)*\\($\\| +\\)\\)"
-          factor-declaration-words-regex))
 
 (defconst factor-single-liner-regex
   (regexp-opt '("ABOUT:"
@@ -391,12 +383,13 @@ these lines in your .emacs:
           factor-definition-start-regex
           factor-single-liner-regex))
 
-(defconst factor-end-of-def-line-regex
-  (format "^.*%s" factor-definition-end-regex))
+(defconst factor-definition-end-regex
+  (format "\\(^\\| +\\);\\( *%s\\)*\\($\\| +\\)"
+          factor-declaration-words-regex))
 
 (defconst factor-end-of-def-regex
-  (format "\\(%s\\)\\|\\(^%s .*\\)"
-          factor-end-of-def-line-regex
+  (format "^.*%s\\|^%s .*"
+          factor-definition-end-regex
           factor-single-liner-regex))
 
 (defconst factor-word-signature-regex
@@ -440,6 +433,7 @@ these lines in your .emacs:
                  "P" 'factor-font-lock-parsing-word
                  "V" 'factor-font-lock-vocabulary-name
                  "T" 'factor-font-lock-type-name
+                 "N" 'factor-font-lock-number
                  "W" 'factor-font-lock-word)))
 
 (defun factor-group-name-to-face (group-name)
@@ -477,7 +471,7 @@ these lines in your .emacs:
     ,(factor-syntax (syntax-and-2-symbols '("ALIAS")) '("P" "W" "W"))
     ,(factor-syntax (syntax-and-1-symbol '("ALIEN" "CHAR" "NAN")) '("P" "CT"))
     ,(factor-syntax factor-types-lines-regex '("P" "T"))
-    (,factor-integer-regex . 'factor-font-lock-number)
+    ,(factor-syntax factor-integer-regex '("N"))
     (,factor-float-regex . 'factor-font-lock-number)
     (,factor-ratio-regex . 'factor-font-lock-ratio)
     ,(factor-syntax factor-type-definition-regex '("P" "T"))
@@ -585,14 +579,8 @@ these lines in your .emacs:
 (defsubst factor-at-begin-of-def ()
   (looking-at factor-begin-of-def-regex))
 
-(defsubst factor-at-begin-of-indent-def ()
-  (looking-at factor-indent-def-start-regex))
-
 (defsubst factor-at-end-of-def ()
   (looking-at factor-end-of-def-regex))
-
-(defsubst factor-looking-at-emptiness ()
-  (looking-at "^[ ]*$\\|$"))
 
 (defsubst factor-is-last-char (pos)
   (save-excursion
@@ -604,11 +592,6 @@ these lines in your .emacs:
            (goto-char pos)
            (beginning-of-line)
            (point))))
-
-(defun factor-previous-non-blank ()
-  (forward-line -1)
-  (while (and (not (bobp)) (factor-looking-at-emptiness))
-    (forward-line -1)))
 
 (defsubst factor-beginning-of-defun (&optional times)
   (re-search-backward factor-begin-of-def-regex nil t times))
@@ -760,9 +743,10 @@ these lines in your .emacs:
     (when (factor-at-begin-of-def) 0)))
 
 (defsubst factor-previous-non-empty ()
+  "Move caret to the beginning of the last non-empty line."
   (forward-line -1)
   (while (and (not (bobp))
-              (factor-looking-at-emptiness))
+              (looking-at "^[ ]*$\\|$"))
     (forward-line -1)))
 
 (defun factor-indent-setter-line ()
@@ -781,6 +765,12 @@ these lines in your .emacs:
         (save-excursion
           (factor-previous-non-empty)
           (current-indentation)))))
+
+(defconst factor-indent-def-start-regex
+  (format "^\\(%s:\\)\\( \\|\n\\)" (regexp-opt factor-indent-def-starts)))
+
+(defsubst factor-at-begin-of-indent-def ()
+  (looking-at factor-indent-def-start-regex))
 
 (defun factor-indent-continuation ()
   (save-excursion
@@ -882,6 +872,7 @@ With prefix, non-existing files will be created."
     (modify-syntax-entry ?# "_" table)
     (modify-syntax-entry ?! "_" table)
     (modify-syntax-entry ?\n ">   " table)
+    (modify-syntax-entry ?\\ "_" table)
     (modify-syntax-entry ?$ "_" table)
     (modify-syntax-entry ?@ "_" table)
     (modify-syntax-entry ?? "_" table)
