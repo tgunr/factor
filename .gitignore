@@ -31,3 +31,4 @@ checksums.txt
 *.so
 a.out
 Factor.app/Contents/_CodeSignature
+factor.image
