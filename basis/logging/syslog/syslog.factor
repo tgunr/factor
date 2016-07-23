@@ -7,16 +7,16 @@ math.parser namespaces sequences words ;
 ! IN: libc
 ! LIBRARY: libc
 
-<< "libsystemB" "/usr/lib/libSystem.B.dylib" cdecl add-library >>
+<< "syslogger" "libsyslogger.dylib" cdecl add-library >>
 
-LIBRARY: libsystemB
-IN: libsystemB
+LIBRARY: syslogger
+IN: syslogger
 
-FUNCTION: void closelog (  ) 
-FUNCTION: void openlog ( c-string ident, int logopt, int facility ) 
+FUNCTION: void closelogger (  ) 
+FUNCTION: void openlogger ( c-string ident, int logopt, int facility ) 
 FUNCTION: int setlogmask ( int maskpri ) 
-FUNCTION: void syslog ( int priority, c-string format, c-string message )
-FUNCTION: void vsyslog ( int priority, c-string message, c-string args ) 
+FUNCTION: void syslogger ( int priority, c-string message )
+FUNCTION: void vsyslogger ( int priority, c-string format, c-string args ) 
 
 IN: syslog
 
@@ -138,15 +138,14 @@ SYMBOL: syslogProgram
 !     [ "%s" ] curry
 !     syslogProgram get
 !     LOG_PID LOG_USER openlog
-!     syslog
-!     closelog
+!     syslogger
+!     closelogger
 !     ;
 
 :: (SYSLOG) ( defined-word level msg -- )
     level sysLogLevel get <= 
     SYSLOG_TESTING get or
     [ level
-      "%s"
       msg
       ":" append
       defined-word vocabulary>>  syslogProgram set
@@ -154,7 +153,7 @@ SYMBOL: syslogProgram
       " " append
       level SYSLOG-Level-String append
       " " append
-     syslog
+     syslogger
     ]
     when
 ;
@@ -176,9 +175,8 @@ SYMBOL: syslogProgram
 
 :: SYSLOGWITHLEVEL ( msg level -- )
     level
-    "%s"
     msg syslog-format
-    syslog
+    syslogger
     ;
 
 : SYSLOG_ERR ( msg error -- )
@@ -245,6 +243,4 @@ SYMBOL: syslogProgram
     "This is a value" -1 SYSLOG_VALUE
     ;
 
-: syslog-priority-1 ( str -- ) [ 1 "%s" ] dip syslog ;
-
-: testlog ( -- ) "FACTOR:" syslog-priority-1 ;
+: testlog ( -- ) 1 "FACTOR" syslogger ;
