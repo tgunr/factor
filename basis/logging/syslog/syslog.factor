@@ -4,6 +4,8 @@ USING: accessors alien alien.c-types alien.libraries alien.syntax
 arrays assocs combinators formatting kernel literals locals math
 math.parser namespaces sequences words ;
 
+! IN: libc
+! LIBRARY: libc
 
 << "libsystemB" "/usr/lib/libSystem.B.dylib" cdecl add-library >>
 
@@ -13,7 +15,7 @@ IN: libsystemB
 FUNCTION: void closelog (  ) 
 FUNCTION: void openlog ( c-string ident, int logopt, int facility ) 
 FUNCTION: int setlogmask ( int maskpri ) 
-FUNCTION: void syslog ( int priority, char* message ) 
+FUNCTION: void syslog ( int priority, c-string format, c-string message )
 FUNCTION: void vsyslog ( int priority, c-string message, c-string args ) 
 
 IN: syslog
@@ -132,16 +134,19 @@ SYMBOL: syslogProgram
     sysLogLevel set
     ;
 
-: (syslog) ( priority message -- ) 
-    syslogProgram get  LOG_PID LOG_USER openlog
-    syslog
-    closelog
-    ;
+! : (syslog) ( priority message -- ) 
+!     [ "%s" ] curry
+!     syslogProgram get
+!     LOG_PID LOG_USER openlog
+!     syslog
+!     closelog
+!     ;
 
 :: (SYSLOG) ( defined-word level msg -- )
     level sysLogLevel get <= 
     SYSLOG_TESTING get or
     [ level
+      "%s"
       msg
       ":" append
       defined-word vocabulary>>  syslogProgram set
@@ -169,10 +174,11 @@ SYMBOL: syslogProgram
     if
 ;
 
-: SYSLOGWITHLEVEL ( msg level -- )
-    drop
-    syslog-format
-    LOG_DEBUG swap syslog
+:: SYSLOGWITHLEVEL ( msg level -- )
+    level
+    "%s"
+    msg syslog-format
+    syslog
     ;
 
 : SYSLOG_ERR ( msg error -- )
@@ -239,3 +245,6 @@ SYMBOL: syslogProgram
     "This is a value" -1 SYSLOG_VALUE
     ;
 
+: syslog-priority-1 ( str -- ) [ 1 "%s" ] dip syslog ;
+
+: testlog ( -- ) "FACTOR:" syslog-priority-1 ;
