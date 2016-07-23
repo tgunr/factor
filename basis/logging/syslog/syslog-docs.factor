@@ -103,61 +103,55 @@ HELP: SYSLOG_WARNING
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the WARNING log level." } ;
 
-HELP: SYSLogLevelAlert
+HELP: LOG_ALERT
 { $values
         { "value" integer }
 }
 { $description "Value for the ALERT log level" } ;
 
-HELP: SYSLogLevelCritical
+HELP: LOG_CRIT
 { $values
         { "value" integer }
 }
 { $description "Value for the CRITICAL log level" } ;
 
-HELP: SYSLogLevelDebug
+HELP: LOG_DEBUG
 { $values
         { "value" integer }
 }
 { $description "Value for the DEBUG log level" } ;
 
-HELP: SYSLogLevelEmerg
+HELP: LOG_EMERG
 { $values
         { "value" integer }
 }
 { $description "Value for the EMERGENCY log level" } ;
 
-HELP: SYSLogLevelError
+HELP: LOG_ERR
 { $values
         { "value" integer }
 }
 { $description "Value for the ERROR log level" } ;
 
-HELP: SYSLogLevelInfo
+HELP: LOG_INFO
 { $values
         { "value" integer }
 }
 { $description "Value for the INFO log level" } ;
 
-HELP: SYSLogLevelNone
+HELP: LOG_NONE
 { $values
         { "value" integer }
 }
 { $description "Value for no log level" } ;
 
-HELP: SYSLogLevelNotice
+HELP: LOG_NOTICE
 { $values
         { "value" integer }
 }
 { $description "Value for the NOTICE log level" } ;
 
-HELP: SYSLogLevelTest
-{ $values
-        { "value" integer }
-}
-{ $description "Value for the testing log level, log level is ignored." } ;
-
-HELP: SYSLogLevelWarning
+HELP: LOG_WARNING
 { $values
         { "value" integer }
 }
@@ -222,18 +216,17 @@ $nl
 
 "Log Levels"
 { $subsections
-  SYSLogLevelNone      
-  SYSLogLevelEmerg     
-  SYSLogLevelAlert     
-  SYSLogLevelCritical  
-  SYSLogLevelError     
-  SYSLogLevelWarning   
-  SYSLogLevelNotice    
-  SYSLogLevelInfo      
-  SYSLogLevelDebug     
-  SYSLogLevelDebug1    
-  SYSLogLevelDebug2    
-  SYSLogLevelTest      
+  LOG_NONE      
+  LOG_EMERG     
+  LOG_ALERT     
+  LOG_CRIT  
+  LOG_ERR     
+  LOG_WARNING   
+  LOG_NOTICE    
+  LOG_INFO      
+  LOG_DEBUG     
+  LOG_DEBUG1    
+  LOG_DEBUG2    
 }
 
 "Logging Words"

@@ -1,50 +1,107 @@
 ! Copyright (C) 2012 PolyMicro Systems.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: alien.syntax alien.c-types accessors arrays assocs kernel libc locals math math.parser namespaces
-formatting sequences words combinators ;
+USING: accessors alien alien.c-types alien.libraries alien.syntax
+arrays assocs combinators formatting kernel literals locals math
+math.parser namespaces sequences words ;
 
-IN: libc
-LIBRARY: libc
 
-FUNCTION: void closelog (  ) ;
-FUNCTION: void openlog ( c-string ident, int logopt, int facility ) ;
-FUNCTION: int setlogmask ( int maskpri ) ;
-FUNCTION: void syslog ( int priority, c-string message ) ;
-FUNCTION: void vsyslog ( int priority, c-string message, c-string args ) ;
+<< "libsystemB" "/usr/lib/libSystem.B.dylib" cdecl add-library >>
+
+LIBRARY: libsystemB
+IN: libsystemB
+
+FUNCTION: void closelog (  ) 
+FUNCTION: void openlog ( c-string ident, int logopt, int facility ) 
+FUNCTION: int setlogmask ( int maskpri ) 
+FUNCTION: void syslog ( int priority, char* message ) 
+FUNCTION: void vsyslog ( int priority, c-string message, c-string args ) 
 
 IN: syslog
 
-CONSTANT: SYSLogLevelNone      -1
-CONSTANT: SYSLogLevelEmerg     0
-CONSTANT: SYSLogLevelAlert     1
-CONSTANT: SYSLogLevelCritical  2
-CONSTANT: SYSLogLevelError     3
-CONSTANT: SYSLogLevelWarning   4
-CONSTANT: SYSLogLevelNotice    5
-CONSTANT: SYSLogLevelInfo      6
-CONSTANT: SYSLogLevelDebug     7
-CONSTANT: SYSLogLevelDebug1    8
-CONSTANT: SYSLogLevelDebug2    9
-CONSTANT: SYSLogLevelTest      99
+ ! priorities/facilities are encoded into a single 32-bit quantity, where the
+ ! bottom 3 bits are the priority (0-7) and the top 28 bits are the facility
+ ! (0-big number).  Both the priorities and the facilities map roughly
+ ! one-to-one to strings in the syslogd(8) source code.  This mapping is
+ ! included in this file.
+ !
+ ! priorities (these are ordered)
+
+CONSTANT: LOG_NONE      -1
+CONSTANT: LOG_EMERG     0
+CONSTANT: LOG_ALERT     1
+CONSTANT: LOG_CRIT      2
+CONSTANT: LOG_ERR       3
+CONSTANT: LOG_WARNING   4
+CONSTANT: LOG_NOTICE    5
+CONSTANT: LOG_INFO      6
+CONSTANT: LOG_DEBUG     7
+CONSTANT: LOG_DEBUG1    8
+CONSTANT: LOG_DEBUG2    9
+
+SYMBOL: SYSLOG_TESTING
+
+CONSTANT: LOG_PID       0x01 ! log the pid with each message 
+CONSTANT: LOG_CONS      0x02 ! log on the console if errors in sending 
+CONSTANT: LOG_ODELAY    0x04 ! delay open until first syslog() (default) 
+CONSTANT: LOG_NDELAY    0x08 ! don't delay open 
+CONSTANT: LOG_NOWAIT    0x10 ! don't wait for console forks: DEPRECATED 
+CONSTANT: LOG_PERROR    0x20 ! log to stderr as well 
+
+! facility codes 
+CONSTANT: LOG_KERN       $[ 00 3 shift ] ! kernel messages 
+CONSTANT: LOG_USER       $[ 01 3 shift ] ! random user-level messages 
+CONSTANT: LOG_MAIL       $[ 02 3 shift ] ! mail system 
+CONSTANT: LOG_DAEMON     $[ 03 3 shift ] ! system daemons 
+CONSTANT: LOG_AUTH       $[ 04 3 shift ] ! authorization messages 
+CONSTANT: LOG_SYSLOG     $[ 05 3 shift ] ! messages generated internally by syslogd 
+CONSTANT: LOG_LPR        $[ 06 3 shift ] ! line printer subsystem 
+CONSTANT: LOG_NEWS       $[ 07 3 shift ] ! network news subsystem 
+CONSTANT: LOG_UUCP       $[ 08 3 shift ] ! UUCP subsystem 
+CONSTANT: LOG_CRON       $[ 09 3 shift ] ! clock daemon 
+CONSTANT: LOG_AUTHPRIV   $[ 10 3 shift ] ! authorization messages (private) 
+CONSTANT: LOG_FTP        $[ 11 3 shift ] ! ftp daemon 
+CONSTANT: LOG_NTP        $[ 12 3 shift ] ! NTP subsystem 
+CONSTANT: LOG_SECURITY   $[ 13 3 shift ] ! security subsystems (firewalling, etc.) 
+CONSTANT: LOG_CONSOLE    $[ 14 3 shift ] ! /dev/console output 
+CONSTANT: LOG_NETINFO    $[ 12 3 shift ] ! NetInfo 
+CONSTANT: LOG_REMOTEAUTH $[ 13 3 shift ] ! remote authentication/authorization 
+CONSTANT: LOG_INSTALL    $[ 14 3 shift ] ! installer subsystem 
+CONSTANT: LOG_RAS        $[ 15 3 shift ] ! Remote Access Service (VPN / PPP) 
+CONSTANT: LOG_LOCAL0     $[ 16 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LOCAL1     $[ 17 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LOCAL2     $[ 18 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LOCAL3     $[ 19 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LOCAL4     $[ 10 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LOCAL5     $[ 21 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LOCAL6     $[ 22 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LOCAL7     $[ 23 3 shift ] ! reserved for local use 
+CONSTANT: LOG_LAUNCHD    $[ 24 3 shift ] ! launchd - general bootstrap daemon 
+
+CONSTANT: LOG_NFACILITIES    25    ! current number of facilities 
+CONSTANT: LOG_FACMASK    0x03f8    ! mask to extract facility part 
+
+: LOG_FAC ( p -- p' )
+    LOG_FACMASK and -3 shift ;
 
 : SYSLOG-Level-String ( level -- string )
     {
-        { SYSLogLevelNone      [ "None"     ] }
-        { SYSLogLevelEmerg     [ "Emerg"    ] }
-        { SYSLogLevelAlert     [ "Alert"    ] }
-        { SYSLogLevelCritical  [ "Critical" ] }
-        { SYSLogLevelError     [ "Error"    ] }
-        { SYSLogLevelWarning   [ "Warning"  ] }
-        { SYSLogLevelNotice    [ "Notice"   ] }
-        { SYSLogLevelInfo      [ "Info"     ] }
-        { SYSLogLevelDebug     [ "Debug"    ] }
-        { SYSLogLevelDebug1    [ "Debug1"   ] }
-        { SYSLogLevelDebug2    [ "Debug2"   ] }
-        { SYSLogLevelTest      [ "Test"     ] }
+        { LOG_NONE      [ "None"     ] }
+        { LOG_EMERG     [ "Emerg"    ] }
+        { LOG_ALERT     [ "Alert"    ] }
+        { LOG_CRIT      [ "Critical" ] }
+        { LOG_ERR       [ "Error"    ] }
+        { LOG_WARNING   [ "Warning"  ] }
+        { LOG_NOTICE    [ "Notice"   ] }
+        { LOG_INFO      [ "Info"     ] }
+        { LOG_DEBUG     [ "Debug"    ] }
+        { LOG_DEBUG1    [ "Debug1"   ] }
+        { LOG_DEBUG2    [ "Debug2"   ] }
     } case ;
    
+SYMBOL: syslogMask
+
 SYMBOL: sysLogLevel
-sysLogLevel [ SYSLogLevelError ] initialize
+sysLogLevel [ LOG_ERR ] initialize
 
 SYMBOL: sysLogLevelIndex
 sysLogLevelIndex [ 0 ] initialize
@@ -52,15 +109,22 @@ sysLogLevelIndex [ 0 ] initialize
 SYMBOL: sysLogStack
 sysLogStack [ 256 0 <array> ] initialize
 
+SYMBOL: syslogProgram
+
+: SYSLOG_Testing ( -- )
+    99 SYSLOG_TESTING set ;
+
 : SYSLOG_SetVerbose ( level -- )
     sysLogLevel set
     ;
+
 : SYSLOG_PushVerbose ( level -- )
     sysLogLevel get  sysLogLevelIndex get  sysLogStack get  set-nth
     sysLogLevelIndex get  1 +  dup  sysLogLevelIndex set
     255 > [ 255 sysLogLevelIndex set ] when
     sysLogLevel set
     ;
+
 : SYSLOG_PopVerbose ( -- )
     sysLogLevelIndex get  1 -  dup  sysLogLevelIndex set
     0 < [ 0 sysLogLevelIndex set ] when
@@ -68,66 +132,86 @@ sysLogStack [ 256 0 <array> ] initialize
     sysLogLevel set
     ;
 
-:: (SYSLOG) ( msg file word level -- )
+: (syslog) ( priority message -- ) 
+    syslogProgram get  LOG_PID LOG_USER openlog
+    syslog
+    closelog
+    ;
+
+:: (SYSLOG) ( defined-word level msg -- )
     level sysLogLevel get <= 
-    level SYSLogLevelTest = or
+    SYSLOG_TESTING get or
     [ level
-      file " " append
-      word append
+      msg
+      ":" append
+      defined-word vocabulary>>  syslogProgram set
+      defined-word name>> append
       " " append
       level SYSLOG-Level-String append
       " " append
-      msg append
-      syslog
+     syslog
     ]
     when
 ;
 
+: syslog-format ( msg -- formatted-msg )
+    dup word? 
+    [ dup props>> "loc" swap at ]
+    [ { "" 0 } ]
+    if
+    swap word?
+    [
+        [ "FACTOR " [ first ] dip  prepend  ":" append ] keep 
+        second number>string append
+        ":" append
+    ]
+    [ drop "FACTOR " ]
+    if
+;
+
 : SYSLOGWITHLEVEL ( msg level -- )
-    "loc" word props>> at dup 
-    [ [ "SYSLOG " [ first ] dip  prepend  ":" append ] keep 
-      second number>string append ]
-      [ drop "Listener: " ] if
-    word name>>  rot
-   (SYSLOG) ;
+    drop
+    syslog-format
+    LOG_DEBUG swap syslog
+    ;
 
 : SYSLOG_ERR ( msg error -- )
     0 over =
     [ 2drop ]
     [ number>string  " " append
       "Error: " prepend
-      prepend SYSLogLevelTest SYSLOGWITHLEVEL ] if ;
+      prepend LOG_DEBUG SYSLOGWITHLEVEL ] if ;
 : SYSLOG_VALUE ( msg value -- )
     number>string  "Value: " prepend prepend 
-    SYSLogLevelTest SYSLOGWITHLEVEL ;
+    LOG_DEBUG SYSLOGWITHLEVEL ;
 : SYSLOG_NOTE ( msg -- )
     "NOTE: " prepend
-    SYSLogLevelTest SYSLOGWITHLEVEL ;
+    LOG_DEBUG SYSLOGWITHLEVEL ;
 : SYSLOG_HERE ( -- )
-    "" SYSLogLevelTest SYSLOGWITHLEVEL ;
+    last-word LOG_DEBUG SYSLOGWITHLEVEL ;
 : SYSLOG_TEST ( msg -- )
-    SYSLogLevelTest SYSLOGWITHLEVEL ;
+    LOG_DEBUG SYSLOGWITHLEVEL ;
+
 : SYSLOG ( format-string -- )
     sprintf
     SYSLOG_TEST ; inline
 
-
 : SYSLOG_EMERG ( msg -- )
-    SYSLogLevelEmerg SYSLOGWITHLEVEL ;
+    LOG_EMERG SYSLOGWITHLEVEL ;
 : SYSLOG_ALERT ( msg -- )
-    SYSLogLevelAlert SYSLOGWITHLEVEL ;
+    LOG_ALERT SYSLOGWITHLEVEL ;
 : SYSLOG_CRITICAL ( msg -- )
-    SYSLogLevelCritical SYSLOGWITHLEVEL ;
+    LOG_CRIT SYSLOGWITHLEVEL ;
 : SYSLOG_ERROR ( msg -- )
-    SYSLogLevelError SYSLOGWITHLEVEL ;
+    LOG_ERR SYSLOGWITHLEVEL ;
 : SYSLOG_WARNING ( msg -- )
-    SYSLogLevelWarning SYSLOGWITHLEVEL ;
+    LOG_WARNING SYSLOGWITHLEVEL ;
 : SYSLOG_NOTICE ( msg -- )
-    SYSLogLevelNotice SYSLOGWITHLEVEL ;
+    LOG_NOTICE SYSLOGWITHLEVEL ;
 : SYSLOG_INFO ( msg -- )
-    SYSLogLevelInfo SYSLOGWITHLEVEL ;
+    LOG_INFO SYSLOGWITHLEVEL ;
 : SYSLOG_DEBUG ( msg -- )
-    SYSLogLevelDebug SYSLOGWITHLEVEL ;
+    LOG_DEBUG SYSLOGWITHLEVEL ;
 
 : SYSLOGLEVEL-TEST ( -- )
     "Emergency" SYSLOG_EMERG
@@ -154,3 +238,4 @@ sysLogStack [ 256 0 <array> ] initialize
     "Test note" SYSLOG_NOTE
     "This is a value" -1 SYSLOG_VALUE
     ;
+
