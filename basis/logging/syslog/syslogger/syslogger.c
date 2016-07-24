@@ -15,6 +15,8 @@ void openlogger(const char *ident, int option, int facility) {
 }
 
 void syslogger(int priority, const char *msg) {
+//    const char *tString = "FACTOR TEST:";
+//    syslog(1, "%s", tString);
     syslog(priority, "%s", msg);
 }
 
