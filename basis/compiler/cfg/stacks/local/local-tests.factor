@@ -1,31 +1,10 @@
-USING: assocs compiler.cfg.instructions compiler.cfg.registers
-compiler.cfg.stacks.height compiler.cfg.stacks.local
+USING: accessors assocs compiler.cfg.instructions
+compiler.cfg.registers compiler.cfg.stacks.local
 compiler.cfg.utilities compiler.test cpu.architecture kernel
 kernel.private make math namespaces sequences.private slots.private
 tools.test ;
 QUALIFIED: sets
 IN: compiler.cfg.stacks.local.tests
-
-! loc>vreg
-{ 1 } [
-    D: 0 loc>vreg
-] cfg-unit-test
-
-! stack-changes
-{
-    {
-        T{ ##copy { dst 1 } { src 25 } { rep any-rep } }
-        T{ ##copy { dst 2 } { src 26 } { rep any-rep } }
-    }
-} [
-    { { D: 0 25 } { R: 0 26 } } replaces>copy-insns
-] cfg-unit-test
-
-! replace-loc
-{ 80 } [
-    80 D: 77 replace-loc
-    D: 77 peek-loc
-] cfg-unit-test
 
 ! end-local-analysis
 {
@@ -36,7 +15,7 @@ IN: compiler.cfg.stacks.local.tests
     V{ } 137 insns>block
     [ 0 0 rot record-stack-heights ]
     [ [ "eh" , end-local-analysis ] V{ } make drop ]
-    [ [ peek-sets ] [ replace-sets ] [ kill-sets ] tri [ get at ] 2tri@ ] tri
+    [ [ peeks>> ] [ replaces>> ] [ kills>> ] tri ] tri
 ] cfg-unit-test
 
 {
@@ -45,7 +24,42 @@ IN: compiler.cfg.stacks.local.tests
     V{ } 137 insns>block
     [ 0 0 rot record-stack-heights ]
     [ [ 3 D: 3 replace-loc "eh" , end-local-analysis ] V{ } make drop ]
-    [ replace-sets get at ] tri
+    [ replaces>> ] tri
+] cfg-unit-test
+
+! kill-locations
+{
+    { 10 11 12 13 14 15 }
+    { }
+    { }
+    { -6 -5 -4 -3 }
+} [
+    -10 -16 kill-locations
+    0 0 kill-locations
+    2 6 kill-locations
+    6 2 kill-locations
+] unit-test
+
+
+! loc>vreg
+{ 1 } [
+    D: 0 loc>vreg
+] cfg-unit-test
+
+! replace-loc
+{ 80 } [
+    80 D: 77 replace-loc
+    D: 77 peek-loc
+] cfg-unit-test
+
+! stack-changes
+{
+    {
+        T{ ##copy { dst 1 } { src 25 } { rep any-rep } }
+        T{ ##copy { dst 2 } { src 26 } { rep any-rep } }
+    }
+} [
+    { { D: 0 25 } { R: 0 26 } } replaces>copy-insns
 ] cfg-unit-test
 
 ! remove-redundant-replaces

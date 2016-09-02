@@ -10,7 +10,6 @@ IN: compiler.cfg.builder.alien.boxing
 
 SYMBOL: struct-return-area
 
-! pairs have shape { rep on-stack? }
 GENERIC: flatten-c-type ( c-type -- pairs )
 
 M: c-type flatten-c-type
@@ -23,7 +22,7 @@ HOOK: flatten-struct-type cpu ( type -- pairs )
 HOOK: flatten-struct-type-return cpu ( type -- pairs )
 
 M: object flatten-struct-type
-    heap-size cell align cell /i { int-rep f f } <repetition> ;
+    heap-size cell align cell /i { int-rep f f } <array> ;
 
 M: struct-c-type flatten-c-type
     flatten-struct-type ;

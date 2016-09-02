@@ -9,7 +9,7 @@ void init_globals() { init_mvm(); }
 void factor_vm::prepare_boot_image() {
   std::cout << "*** Stage 2 early init... " << std::flush;
 
-  // Compile all words.
+  /* Compile all words. */
   data_root<array> words(instances(WORD_TYPE), this);
 
   cell n_words = array_capacity(words.untagged());
@@ -21,7 +21,7 @@ void factor_vm::prepare_boot_image() {
   }
   update_code_heap_words(true);
 
-  // Initialize all quotations
+  /* Initialize all quotations */
   data_root<array> quotations(instances(QUOTATION_TYPE), this);
 
   cell n_quots = array_capacity(quotations.untagged());
@@ -72,7 +72,7 @@ void factor_vm::init_factor(vm_parameters* p) {
   callbacks = new callback_heap(p->callback_size, this);
   load_image(p);
   init_c_io();
-  init_inline_caching((int)p->max_pic_size);
+  max_pic_size = (int)p->max_pic_size;
   special_objects[OBJ_CELL_SIZE] = tag_fixnum(sizeof(cell));
   special_objects[OBJ_ARGS] = false_object;
   special_objects[OBJ_EMBEDDED] = false_object;

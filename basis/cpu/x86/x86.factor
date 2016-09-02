@@ -19,8 +19,6 @@ IN: cpu.x86
 M: label JMP 0 JMP rc-relative label-fixup ;
 M: label JUMPcc [ 0 ] dip JUMPcc rc-relative label-fixup ;
 
-M: x86 vector-regs float-regs ;
-
 HOOK: stack-reg cpu ( -- reg )
 
 HOOK: reserved-stack-space cpu ( -- n )
@@ -647,34 +645,36 @@ HOOK: %discard-reg-param cpu ( rep reg -- )
 : %store-return ( dst rep -- )
     dup return-reg %store-reg-param ;
 
-HOOK: %prepare-var-args cpu ( -- )
+HOOK: %prepare-var-args cpu ( reg-inputs -- )
 
 HOOK: %cleanup cpu ( n -- )
 
-M:: x86 %alien-assembly ( reg-inputs
-                         stack-inputs
-                         reg-outputs
-                         dead-outputs
-                         cleanup
-                         stack-size
-                         quot -- )
+M:: x86 %alien-assembly ( varargs? reg-inputs stack-inputs
+                          reg-outputs dead-outputs
+                          cleanup stack-size
+                          quot -- )
     stack-inputs [ first3 %store-stack-param ] each
     reg-inputs [ first3 %store-reg-param ] each
-    %prepare-var-args
+    varargs? [ reg-inputs %prepare-var-args ] when
     quot call( -- )
     cleanup %cleanup
     reg-outputs [ first3 %load-reg-param ] each
     dead-outputs [ first2 %discard-reg-param ] each ;
 
-M: x86 %alien-invoke ( reg-inputs stack-inputs
+M: x86 %alien-invoke ( varargs? reg-inputs stack-inputs
                        reg-outputs dead-outputs
-                       cleanup
-                       stack-size
+                       cleanup stack-size
                        symbols dll gc-map -- )
-                       '[ _ _ _ %c-invoke ] %alien-assembly ;
+    '[ _ _ _ %c-invoke ] %alien-assembly ;
 
-M:: x86 %alien-indirect ( src reg-inputs stack-inputs reg-outputs dead-outputs cleanup stack-size gc-map -- )
-    reg-inputs stack-inputs reg-outputs dead-outputs cleanup stack-size [
+M:: x86 %alien-indirect ( src
+                          varargs? reg-inputs stack-inputs
+                          reg-outputs dead-outputs
+                          cleanup stack-size
+                          gc-map -- )
+    varargs? reg-inputs stack-inputs
+    reg-outputs dead-outputs
+    cleanup stack-size [
         src ?spill-slot CALL
         gc-map gc-map-here
     ] %alien-assembly ;
@@ -691,8 +691,6 @@ HOOK: %end-callback cpu ( -- )
 M: x86 %callback-outputs ( reg-inputs -- )
     %end-callback
     [ first3 %store-reg-param ] each ;
-
-M: x86 %loop-entry 16 alignment [ NOP ] times ;
 
 M:: x86 %save-context ( temp1 temp2 -- )
     ! Save Factor stack pointers in case the C code calls a
@@ -776,28 +774,40 @@ M: x86 immediate-bitwise? ( n -- ? )
         { cc/<>= [ src1 src2 compare call( a b -- ) label JP ] }
     } case ;
 
-enable-min/max
-enable-log2
-
 M:: x86 %bit-test ( dst src1 src2 temp -- )
     src1 src2 BT
     dst temp \ CMOVB (%boolean) ;
 
-enable-bit-test
+M: x86 enable-cpu-features ( -- )
+    enable-min/max
+    enable-log2
+    enable-bit-test
 
-: check-sse ( -- )
+    ! The result of reading 4 bytes from memory is a fixnum on
+    ! x86-64.
+    cpu x86.64? [ enable-alien-4-intrinsics ] when
+
+    ! These words uses alien-assembly
+    optimizing-compiler compiler-impl [
+        { (sse-version) popcnt? } compile
+    ] with-variable
+
+    ! SSE floats
     "Checking for multimedia extensions... " write flush
     sse-version
     [ sse-string " detected" append print ]
-    [ 20 < "cpu.x86.x87" "cpu.x86.sse" ? require ] bi ;
+    [
+        20 < [ "cpu.x86.x87" require ] [
+            "cpu.x86.sse" require
+            enable-float-min/max
+        ] if
+    ] bi
 
-: check-popcnt ( -- )
+    ! POPCNT
     enable-popcnt? [
         "Building with POPCNT support" print
         enable-bit-count
-    ] when ;
+    ] when
 
-: check-cpu-features ( -- )
-    [ { (sse-version) popcnt? } compile ] with-optimizer
-    check-sse
-    check-popcnt ;
+    enable-float-intrinsics
+    enable-fsqrt ;

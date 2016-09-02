@@ -1,11 +1,10 @@
 ! Copyright (C) 2005, 2011 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: alien alien.c-types assocs combinators
-compiler.cfg.intrinsics compiler.codegen.gc-maps
-compiler.codegen.labels compiler.codegen.relocation
-compiler.constants cpu.architecture cpu.x86 cpu.x86.assembler
-cpu.x86.assembler.operands cpu.x86.features kernel layouts locals
-math sequences specialized-arrays system vocabs ;
+USING: alien alien.c-types assocs combinators compiler.cfg.intrinsics
+compiler.codegen.gc-maps compiler.codegen.labels
+compiler.codegen.relocation compiler.constants cpu.architecture
+cpu.x86 cpu.x86.assembler cpu.x86.assembler.operands cpu.x86.features
+kernel locals math sequences specialized-arrays system vocabs ;
 SPECIALIZED-ARRAY: uint
 IN: cpu.x86.64
 
@@ -112,8 +111,6 @@ M: x86.64 %end-callback ( -- )
     param-reg-0 vm-reg MOV
     "end_callback" f f %c-invoke ;
 
-M: x86.64 %prepare-var-args ( -- ) RAX RAX XOR ;
-
 M: x86.64 stack-cleanup 3drop 0 ;
 
 M: x86.64 %cleanup 0 assert= ;
@@ -122,8 +119,6 @@ M: x86.64 %safepoint
     0 [RIP+] EAX MOV rc-relative rel-safepoint ;
 
 M: x86.64 long-long-on-stack? f ;
-
-M: x86.64 float-on-stack? f ;
 
 M: x86.64 struct-return-on-stack? f ;
 
@@ -139,13 +134,7 @@ M: x86.64 (cpuid) ( rax rcx regs -- )
         RSI 12 [+] EDX MOV
     ] alien-assembly ;
 
-! The result of reading 4 bytes from memory is a fixnum on
-! x86-64.
-enable-alien-4-intrinsics
-
 {
     { [ os unix? ] [ "cpu.x86.64.unix" require ] }
     { [ os windows? ] [ "cpu.x86.64.windows" require ] }
 } cond
-
-check-cpu-features

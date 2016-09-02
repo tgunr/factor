@@ -9,8 +9,10 @@ compiler.tree cpu.architecture fry kernel layouts make math namespaces
 sequences sequences.generalizations words ;
 IN: compiler.cfg.builder.alien
 
-: with-param-regs* ( quot -- reg-values stack-values )
+: with-param-regs ( abi quot -- reg-values stack-values )
     '[
+        param-regs init-regs
+        0 stack-params set
         V{ } clone reg-values set
         V{ } clone stack-values set
         @
@@ -18,7 +20,7 @@ IN: compiler.cfg.builder.alien
         stack-values get
         stack-params get
         struct-return-area get
-    ] with-param-regs
+    ] with-scope
     struct-return-area set
     stack-params set ; inline
 
@@ -47,14 +49,13 @@ IN: compiler.cfg.builder.alien
         _ unbox-parameters
         _ prepare-struct-caller struct-return-area set
         (caller-parameters)
-    ] with-param-regs* ;
+    ] with-param-regs ;
 
-: prepare-caller-return ( params -- reg-outputs dead-outputs )
-    return>> [ { } ] [ base-type load-return ] if-void { } ;
+: prepare-caller-return ( params -- reg-outputs )
+    return>> [ { } ] [ base-type load-return ] if-void ;
 
-: caller-stack-frame ( params -- cleanup stack-size )
-    [ stack-params get ] dip [ return>> ] [ abi>> ] bi stack-cleanup
-    stack-params get ;
+: caller-stack-cleanup ( params stack-size -- cleanup )
+    swap [ return>> ] [ abi>> ] bi stack-cleanup ;
 
 : check-dlsym ( symbol library -- )
     {
@@ -81,15 +82,22 @@ IN: compiler.cfg.builder.alien
         base-type box-return ds-push
     ] if-void ;
 
+: params>alien-insn-params ( params --
+                             varargs? reg-inputs stack-inputs
+                             reg-outputs dead-outputs
+                             cleanup stack-size )
+    {
+        [ varargs?>> ]
+        [ caller-parameters ]
+        [ prepare-caller-return { } ]
+        [ stack-params get [ caller-stack-cleanup ] keep ]
+    } cleave ;
+
 M: #alien-invoke emit-node ( block node -- block' )
     params>>
     [
-        {
-            [ caller-parameters ]
-            [ prepare-caller-return ]
-            [ caller-stack-frame ]
-            [ caller-linkage ]
-        } cleave
+        [ params>alien-insn-params ]
+        [ caller-linkage ] bi
         <gc-map> ##alien-invoke,
     ]
     [ caller-return ] bi ;
@@ -98,9 +106,7 @@ M: #alien-indirect emit-node ( block node -- block' )
     params>>
     [
         [ ds-pop ^^unbox-any-c-ptr ] dip
-        [ caller-parameters ]
-        [ prepare-caller-return ]
-        [ caller-stack-frame ] tri
+        params>alien-insn-params
         <gc-map> ##alien-indirect,
     ]
     [ caller-return ] bi ;
@@ -108,12 +114,9 @@ M: #alien-indirect emit-node ( block node -- block' )
 M: #alien-assembly emit-node ( block node -- block' )
     params>>
     [
-        {
-            [ caller-parameters ]
-            [ prepare-caller-return ]
-            [ caller-stack-frame ]
-            [ quot>> ]
-        } cleave ##alien-assembly,
+        [ params>alien-insn-params ]
+        [ quot>> ] bi
+        ##alien-assembly,
     ]
     [ caller-return ] bi ;
 
@@ -137,7 +140,7 @@ M: #alien-assembly emit-node ( block node -- block' )
     '[
         _ prepare-struct-callee struct-return-area set
         _ [ base-type ] map (callee-parameters)
-    ] with-param-regs* ;
+    ] with-param-regs ;
 
 : callee-return ( params -- reg-inputs )
     return>> [ { } ] [

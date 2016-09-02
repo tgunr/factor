@@ -2,16 +2,15 @@
 
 namespace factor {
 
-context::context(cell datastack_size, cell retainstack_size,
-                 cell callstack_size)
+context::context(cell ds_size, cell rs_size, cell cs_size)
     : callstack_top(0),
       callstack_bottom(0),
       datastack(0),
       retainstack(0),
       callstack_save(0),
-      datastack_seg(new segment(datastack_size, false)),
-      retainstack_seg(new segment(retainstack_size, false)),
-      callstack_seg(new segment(callstack_size, false)) {
+      datastack_seg(new segment(ds_size, false)),
+      retainstack_seg(new segment(rs_size, false)),
+      callstack_seg(new segment(cs_size, false)) {
   reset();
 }
 
@@ -141,9 +140,9 @@ VM_C_API void delete_context(factor_vm* parent) {
 /* Allocates memory (init_context()) */
 VM_C_API void reset_context(factor_vm* parent) {
 
-  // The function is used by (start-context-and-delete) which expects
-  // the top two datastack items to be preserved after the context has
-  // been resetted.
+  /* The function is used by (start-context-and-delete) which expects
+     the top two datastack items to be preserved after the context has
+     been reset. */
 
   context* ctx = parent->ctx;
   cell arg1 = ctx->pop();

@@ -1,13 +1,56 @@
-USING: io io.files io.files.temp io.directories io.launcher
-kernel namespaces prettyprint tools.test db.sqlite db sequences
-continuations db.types db.tuples unicode accessors arrays
-sorting layouts math.parser ;
+USING: accessors arrays db db.sqlite db.tuples db.types io.directories
+io.files.temp kernel layouts literals math.parser namespaces sequences
+sorting splitting tools.test ;
 IN: db.sqlite.tests
+
+: normalize ( str -- str' )
+    " \n" split harvest " " join ;
+
+! delete-trigger-restrict
+${
+    {
+        "CREATE TRIGGER fkd_TREE_NODE_NODE_ID_id "
+        "BEFORE DELETE ON NODE "
+        "FOR EACH ROW BEGIN "
+        "SELECT RAISE(ROLLBACK, "
+                      "'delete on table \"NODE\" violates "
+                      "foreign key constraint \"fkd_TREE_NODE_NODE_ID_id\"') "
+        "WHERE (SELECT NODE FROM TREE WHERE NODE = OLD.ID) IS NOT NULL; END;"
+    } concat
+} [
+    {
+        { "table-name" "TREE" }
+        { "table-id" "NODE" }
+        { "foreign-table-name" "NODE"}
+        { "foreign-table-id" "ID" }
+    } [ delete-trigger-restrict ] with-variables
+    normalize
+] unit-test
+
+! insert-trigger
+${
+    {
+        "CREATE TRIGGER fki_TREE_NODE_NODE_ID_id "
+        "BEFORE INSERT ON TREE "
+        "FOR EACH ROW BEGIN "
+        "SELECT RAISE(ROLLBACK, "
+                      "'insert on table \"TREE\" violates "
+                      "foreign key constraint \"fki_TREE_NODE_NODE_ID_id\"') "
+        "WHERE (SELECT ID FROM NODE WHERE ID = NEW.NODE) IS NULL; END;"
+    } concat
+} [
+    {
+        { "table-name" "TREE" }
+        { "table-id" "NODE" }
+        { "foreign-table-name" "NODE"}
+        { "foreign-table-id" "ID" }
+    } [ insert-trigger ] with-variables normalize
+] unit-test
 
 : db-path ( -- path ) "test-" cell number>string ".db" 3append temp-file ;
 : test.db ( -- sqlite-db ) db-path <sqlite-db> ;
 
-{ } [ [ db-path delete-file ] ignore-errors ] unit-test
+db-path ?delete-file
 
 { } [
     test.db [
@@ -160,6 +203,7 @@ watch "WATCH" {
         watch boa insert-tuple
         watch new select-tuple
         user>> f user boa select-tuple
+        user new "mark" >>username delete-tuples
     ] with-db
 ] unit-test
 
@@ -171,4 +215,35 @@ watch "WATCH" {
             ] with-transaction
         ] with-transaction
     ] with-db
+] unit-test
+
+! Reported by AlexIljin
+{ f } [
+    TUPLE: num-test1 num ;
+    num-test1 "NUM_TEST" { { "num" "NUM" INTEGER } } define-persistent
+    "resource:num-test-bad.db" <sqlite-db> [
+        num-test1 ensure-table
+        num-test1 new insert-tuple
+        num-test1 new select-tuple
+    ] with-db num>>
+] unit-test
+
+{ f } [
+    TUPLE: num-test2 num ;
+    num-test2 "NUM_TEST" { { "num" "NUM" DOUBLE } } define-persistent
+    "resource:num-test-bad.db" <sqlite-db> [
+        num-test2 ensure-table
+        num-test2 new insert-tuple
+        num-test2 new select-tuple
+    ] with-db num>>
+] unit-test
+
+{ f } [
+    TUPLE: num-test3 num ;
+    num-test3 "NUM_TEST" { { "num" "NUM" BOOLEAN } } define-persistent
+    "resource:num-test-bad.db" <sqlite-db> [
+        num-test3 ensure-table
+        num-test3 new insert-tuple
+        num-test3 new select-tuple
+    ] with-db num>>
 ] unit-test

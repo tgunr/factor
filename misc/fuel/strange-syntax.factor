@@ -1,3 +1,8 @@
+USING: accessors alien.c-types alien.syntax byte-arrays.hex
+classes.struct colors.constants colors.hex kernel literals logging
+math ;
+IN: strange
+
 ! FUEL Syntax Demo
 !
 ! The purpose of this file is to test that corner cases are
@@ -7,17 +12,37 @@
 USING: alien.syntax kernel math ;
 IN: strange-syntax
 
-TUPLE: a-tuple slot1 slot2 { slot3 integer } ;
+TUPLE: a-tuple slot1 slot2 { slot3 integer } { slot4 initial: "hi" } ;
   TUPLE: second-one ;
 
     USING: tools.test ;
 
+TUPLE: initial-array { slot2 initial: { 123 } } slot3 ;
+
+! ! Strings
+"containing \"escapes" drop
+
 ! ! Symbol names
 
-! All slashes are symbol constituents.
-: hack/slash ( -- x ) 10 ;
+TUPLE: tup
+    ko
+    get\it
+    { eh\ integer }
+    { oh'ho } ;
 
-: slash\hack ( -- y ) 20 ;
+! All slashes are symbol constituents.
+: hack/slash ( t -- x ) ko>> ;
+
+: um ( x y -- ) get\it<< ;
+
+: slash\hack ( m -- y )
+    get\it>> dup >>get\it ;
+
+: very-weird[33] ( -- ) ;
+
+LOG: what NOTICE
+
+TUPLE: oh\no { and/again initial: "meh" } ;
 
 ! As are quotes
 : don't-do-that ( x -- y ) ;
@@ -31,7 +56,9 @@ C-TYPE: cairo_snurface_t
 ! ! CHAR
 : stuff-with-chars ( -- K \n )
     CHAR: K
-    CHAR: \n ;
+    CHAR: \n
+    CHAR: \"        ! <- \" should be highlighted
+    drop ;
 
 ! ! MAIN
 : majn ( -- ) ;
@@ -50,3 +77,24 @@ ID-SYNTAX ID-SYNTAX
 
 ! ! Numbers
 { -55 -0x10 100,00 1,000,000 0x2000,0000 0b01 } drop
+
+! ! Containers
+V{ 1 2 3 } drop
+HS{ 9 8 3 } drop
+
+flags{ 10 20 } drop
+
+! TODO: Highlight contents too.
+HEX{ ab cd ef } drop
+
+! ! Alien functions
+STRUCT: timeval
+    { sec long }
+    { usec long } ;
+
+FUNCTION: int futimes ( int id, timeval[2] times )
+FUNCTION: int booyah ( int x )
+FUNCTION-ALIAS: test int bah ( int* ah, int[] eh )
+
+HEXCOLOR: ffffff COLOR: green NAN: 1234 CHAR: m ALIEN: 93
+2drop 2drop drop

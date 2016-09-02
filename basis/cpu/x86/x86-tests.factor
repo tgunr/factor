@@ -1,8 +1,8 @@
-USING: compiler.cfg.debugger compiler.cfg.instructions
-compiler.cfg.registers compiler.codegen.gc-maps
-compiler.codegen.relocation cpu.architecture cpu.x86 cpu.x86.assembler
-cpu.x86.assembler.operands cpu.x86.features kernel kernel.private
-layouts make math math.libm namespaces sequences system tools.test ;
+USING: compiler.cfg.instructions compiler.cfg.registers
+compiler.codegen.gc-maps compiler.codegen.relocation compiler.test
+cpu.architecture cpu.x86 cpu.x86.assembler cpu.x86.assembler.operands
+cpu.x86.features kernel kernel.private layouts literals make math
+math.libm namespaces sequences system tools.test ;
 IN: cpu.x86.tests
 
 { } [
@@ -40,7 +40,7 @@ cpu x86.64? [
 ! %alien-invoke
 { 1 } [
     init-relocation init-gc-maps [
-        { } { } { } { } 0 0 { } "dll" T{ gc-map { scrub-d V{ 0 } } } %alien-invoke
+        f { } { } { } { } 0 0 { } "dll" T{ gc-map { scrub-d V{ 0 } } } %alien-invoke
     ] B{ } make drop
     gc-maps get length
 ] unit-test
@@ -77,6 +77,23 @@ cpu x86.64? [
 ! %load-immediate
 { B{ 49 201 } } [
     [ RCX 0 %load-immediate ] B{ } make
+] unit-test
+
+! %prepare-varargs
+${
+    ! xor eax, eax
+    cpu x86.64? os unix? and B{ 49 192 } B{ } ?
+    ! mov al, 2
+    cpu x86.64? os unix? and B{ 176 2 } B{ } ?
+} [
+    [ { } %prepare-var-args ] B{ } make
+    [
+        {
+            { T{ spill-slot } int-rep RDI }
+            { T{ spill-slot { n 0 } } float-rep XMM0 }
+            { T{ spill-slot { n 8 } } double-rep XMM1 }
+        } %prepare-var-args
+    ] B{ } make
 ] unit-test
 
 ! %prologue

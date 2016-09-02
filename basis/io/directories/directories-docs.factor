@@ -46,9 +46,17 @@ HELP: directory-entries
 { $description "Outputs the contents of a directory named by " { $snippet "path" } "." }
 { $notes "The sequence returned is an " { $link array } ", which is a fixed-size sequence." } ; 
 
+HELP: qualified-directory-entries
+{ $values { "path" "a pathname string" } { "seq" "a sequence of " { $link directory-entry } " objects" } }
+{ $description "Outputs the contents of a directory named by " { $snippet "path" } ". using absolute file paths." } ;
+
 HELP: directory-files
 { $values { "path" "a pathname string" } { "seq" "a sequence of filenames" } }
-{ $description "Outputs the contents of a directory named by " { $snippet "path" } "." } ;
+{ $description "Outputs the contents of a directory named by " { $snippet "path" } " as a sequence of filenames." } ;
+
+HELP: qualified-directory-files
+{ $values { "path" "a pathname string" } { "seq" "a sequence of filenames" } }
+{ $description "Outputs the contents of a directory named by " { $snippet "path" } " as a sequence of absolute paths." } ;
 
 HELP: with-directory-files
 { $values { "path" "a pathname string" } { "quot" quotation } }
@@ -149,6 +157,10 @@ ARTICLE: "io.directories.listing" "Directory listing"
     directory-files
     with-directory-entries
     with-directory-files
+    qualified-directory-entries
+    qualified-directory-files
+    with-qualified-directory-files
+    with-qualified-directory-entries
 } ;
 
 ARTICLE: "io.directories.create" "Creating directories"

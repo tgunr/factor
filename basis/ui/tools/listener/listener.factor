@@ -44,9 +44,6 @@ M: interactor manifest>>
         manifest swap assoc-stack
     ] if ;
 
-: vocab-exists? ( name -- ? )
-    '[ _ { [ lookup-vocab ] [ find-vocab-root ] } 1|| ] [ drop f ] recover ;
-
 GENERIC: (word-at-caret) ( token completion-mode -- obj )
 
 M: vocab-completion (word-at-caret)
@@ -193,7 +190,7 @@ M: interactor dispose drop ;
 
 TUPLE: listener-gadget < tool error-summary output scroller input ;
 
-{ 600 700 } listener-gadget set-tool-dim
+listener-gadget { 600 700 } set-tool-dim
 
 : listener-streams ( listener -- input output )
     [ input>> ] [ output>> <pane-stream> ] bi ;
@@ -366,7 +363,7 @@ M: object accept-completion-hook 2drop ;
 M: interactor stream-read-quot ( stream -- quot/f )
     dup interactor-yield dup array? [
         over interactor-finish try-parse
-        [ nip ] [ stream-read-quot ] if*
+        [ ] [ stream-read-quot ] ?if
     ] [ nip ] if ;
 
 : interactor-operation ( gesture interactor -- ? )
