@@ -65,6 +65,7 @@ M: unix copy-file ( from to -- )
     <directory-entry> ; inline
 
 M: unix (directory-entries) ( path -- seq )
+    normalize-path
     [
         dirent <struct>
         '[ _ _ next-dirent ] [ >directory-entry ] produce nip
