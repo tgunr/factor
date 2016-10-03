@@ -74,11 +74,11 @@ IN: sqlite.db2.types
 : sql-type-unsafe ( handle index type -- obj )
     {
         { +db-assigned-key+ [ sqlite3_column_int64  ] }
-        { +random-key+ [ sqlite3-column-uint64 ] }
+        { +random-key+ [ sqlite3_column_uint64 ] }
         { INTEGER [ sqlite3_column_int ] }
         { BIG-INTEGER [ sqlite3_column_int64 ] }
         { SIGNED-BIG-INTEGER [ sqlite3_column_int64 ] }
-        { UNSIGNED-BIG-INTEGER [ sqlite3-column-uint64 ] }
+        { UNSIGNED-BIG-INTEGER [ sqlite3_column_uint64 ] }
         { BOOLEAN [ sqlite3_column_int 1 = ] }
         { DOUBLE [ sqlite3_column_double ] }
         { REAL [ sqlite3_column_double ] }
