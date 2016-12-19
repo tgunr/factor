@@ -37,7 +37,9 @@ M: tetris-gadget draw-gadget* ( gadget -- )
     ] if ; inline
 
 tetris-gadget H{
-    { T{ button-down f f 1 }     [ request-focus ] }
+    ! { T{ button-down f f 1 }     [ request-focus ] }
+    { T{ button-down f f 1 }     [ [ tetris>> rotate-right ] unless-paused ] }
+    { T{ button-down f f 3 }     [ [ tetris>> rotate-left ] unless-paused ] }
     { T{ key-down f f "UP" }     [ [ tetris>> rotate-right ] unless-paused ] }
     { T{ key-down f f "d" }      [ [ tetris>> rotate-left ] unless-paused ] }
     { T{ key-down f f "f" }      [ [ tetris>> rotate-right ] unless-paused ] }

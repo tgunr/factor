@@ -6,12 +6,17 @@ IN: syslog
 
 HELP: SYSLOG
 { $values
-  { "msg" "string to send to syslog" }
-  { "file" "string with path to file and line number" }
-  { "word" "word being logged" }
-  { "level" "log level" }    
+  { "format-string" "Formatted sstring to send to syslog" }
 }
-{ $description "Sends message along with the file, line number and word to syslogd using the log level." } ;
+{ $description "Sends message to syslog. Message is sent using LOG_DEBUG2 level" } ;
+
+HELP: (SYSLOG-WORD)
+{ $values
+  { "defined-word" "Word to embed in beginning of msg" }
+  { "level" "Log level to be used for msg" }
+  { "msg" "Log message to be sent to syslog" }
+}
+{ $description "Formats a message to be sent to the syslog. The defining word is embedded at start of message" } ;
 
 HELP: SYSLOG-Level-String
 { $values
@@ -20,151 +25,150 @@ HELP: SYSLOG-Level-String
 }
 { $description "Returns the string used for the log level" } ;
 
+HELP: SYSLOG_TESTING
+{ $description "Set to t to force logging regardless of log level." } ;
+
 HELP: SYSLOGLEVEL-TEST
 { $description "Testing word to send a msg with each production log level. Results should be visible in your syslog." } ;
 
-HELP: SYSLOGWITHLEVEL
+HELP: SYSLOG-WITHLEVEL
 { $values
   { "msg" "string to send to syslog" }
   { "level" "log level" }    
 }
 { $description "Sends message to syslogd using the specified log level." } ;
 
-HELP: SYSLOG_ALERT
+HELP: SYSLOG-ALERT
 { $values { "msg" "string to send to syslog" } }
   { $description "Sends message to syslogd using the ALERT log level." } ;
 
-HELP: SYSLOG_CRITICAL
+HELP: SYSLOG-CRITICAL
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the CRITICAL log level." } ;
 
-HELP: SYSLOG_DEBUG
+HELP: SYSLOG-DEBUG
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the DEBUG log level." } ;
 
-HELP: SYSLOG_EMERG
+HELP: SYSLOG-EMERG
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the EMERGENCY log level." } ;
 
-HELP: SYSLOG_ERR
+HELP: SYSLOG-ERR
   { $values
     { "msg" "string to send to syslog" }
     { "error" integer }
   } 
   { $description "Conditionally test the error value and sends test message to syslogd regardless of log level." } ;
 
-HELP: SYSLOG_ERROR
+HELP: SYSLOG-ERROR
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the ERROR log level." } ;
 
-HELP: SYSLOG_HERE
-  { $description "Sends test message to syslogd regardless of log level. Commonly used to just verify code is reached" } ;
+HELP: SYSLOG-HERE
+{ $description "Sends test message to syslogd regardless of log level. Commonly used to just verify code is reached" } ;
 
-HELP: SYSLOG_INFO
+HELP: SYSLOG-INFO
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the INFO log level." } ;
 
-HELP: SYSLOG_NOTE
+HELP: SYSLOG-NOTE
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends note message to syslogd regardless of log level." } ;
 
-HELP: SYSLOG_NOTICE
+HELP: SYSLOG-NOTICE
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the NOTICE log level." } ;
 
-HELP: SYSLOG_PopVerbose
+HELP: SYSLOG-POP
 { $description "Returns log level to previous level" } ;
 
-HELP: SYSLOG_PushVerbose
+HELP: SYSLOG-PUSH
 { $values
     { "level" integer }    
 }
 { $description "Saves the current log level and establishes a new log level. Use this to control log level in loops where you may not wish to view reams of information" }
 ;
 
-HELP: SYSLOG_SetVerbose
+HELP: SYSLOG-LEVELGET
+{ $values
+    { "level" integer }    
+}
+{ $description "Get the current log level." } ;
+
+HELP: SYSLOG-LEVELSET
 { $values
     { "level" integer }    
 }
 { $description "Set the current log level." } ;
 
-HELP: SYSLOG_TEST
-{ $values { "msg" "string to send to syslog" } }
-{ $description "Test message to syslogd regardless of log level." } ;
-
-HELP: SYSLOG_VALUE
+HELP: SYSLOG-VALUE
 { $values
   { "msg" "string to send to syslog" }
   { "value" integer }
 }
   { $description "Test message along with a value to syslogd regardless of log level." } ;
 
-HELP: SYSLOG_WARNING
+HELP: SYSLOG-WARNING
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the WARNING log level." } ;
 
-HELP: SYSLogLevelAlert
+HELP: LOG_ALERT
 { $values
         { "value" integer }
 }
 { $description "Value for the ALERT log level" } ;
 
-HELP: SYSLogLevelCritical
+HELP: LOG_CRIT
 { $values
         { "value" integer }
 }
 { $description "Value for the CRITICAL log level" } ;
 
-HELP: SYSLogLevelDebug
+HELP: LOG_DEBUG
 { $values
         { "value" integer }
 }
 { $description "Value for the DEBUG log level" } ;
 
-HELP: SYSLogLevelEmerg
+HELP: LOG_EMERG
 { $values
         { "value" integer }
 }
 { $description "Value for the EMERGENCY log level" } ;
 
-HELP: SYSLogLevelError
+HELP: LOG_ERR
 { $values
         { "value" integer }
 }
 { $description "Value for the ERROR log level" } ;
 
-HELP: SYSLogLevelInfo
+HELP: LOG_INFO
 { $values
         { "value" integer }
 }
 { $description "Value for the INFO log level" } ;
 
-HELP: SYSLogLevelNone
+HELP: LOG_NONE
 { $values
         { "value" integer }
 }
 { $description "Value for no log level" } ;
 
-HELP: SYSLogLevelNotice
+HELP: LOG_NOTICE
 { $values
         { "value" integer }
 }
 { $description "Value for the NOTICE log level" } ;
 
-HELP: SYSLogLevelTest
-{ $values
-        { "value" integer }
-}
-{ $description "Value for the testing log level, log level is ignored." } ;
-
-HELP: SYSLogLevelWarning
+HELP: LOG_WARNING
 { $values
         { "value" integer }
 }
 { $description "Value for the WARNING log level" } ;
 
-HELP: SYSTEST
-{ $description "Sends log message regardless of logging level. Use this during testing and remove before releasing code." } ;
+HELP: SYSLOG-TEST
+{ $description "Sends log message regardless of logging level. Use this during testing." } ;
 
 HELP: sysLogLevel
 { $var-description "Current logging level" }
@@ -172,9 +176,9 @@ HELP: sysLogLevel
   sysLogLevel
   sysLogStack
   sysLogLevelIndex
-  SYSLOG_SetVerbose
-  SYSLOG_PushVerbose
-  SYSLOG_PopVerbose
+  SYSLOG-TESTING-SET
+  SYSLOG-PUSH
+  SYSLOG-POP
 }
 ;
 
@@ -184,9 +188,9 @@ HELP: sysLogLevelIndex
   sysLogLevel
   sysLogStack
   sysLogLevelIndex
-  SYSLOG_SetVerbose
-  SYSLOG_PushVerbose
-  SYSLOG_PopVerbose
+  SYSLOG-TESTING-SET
+  SYSLOG-PUSH
+  SYSLOG-POP
 }
   ;
 
@@ -196,9 +200,9 @@ HELP: sysLogStack
   sysLogLevel
   sysLogStack
   sysLogLevelIndex
-  SYSLOG_SetVerbose
-  SYSLOG_PushVerbose
-  SYSLOG_PopVerbose
+  SYSLOG-TESTING-SET
+  SYSLOG-PUSH
+  SYSLOG-POP
 }
 ;
 
@@ -215,47 +219,46 @@ $nl
 "Global Control"
 { $subsections
   sysLogLevel
-  SYSLOG_SetVerbose
-  SYSLOG_PushVerbose
-  SYSLOG_PopVerbose
+  SYSLOG-TESTING-SET
+  SYSLOG-PUSH
+  SYSLOG-POP
 }
 
 "Log Levels"
 { $subsections
-  SYSLogLevelNone      
-  SYSLogLevelEmerg     
-  SYSLogLevelAlert     
-  SYSLogLevelCritical  
-  SYSLogLevelError     
-  SYSLogLevelWarning   
-  SYSLogLevelNotice    
-  SYSLogLevelInfo      
-  SYSLogLevelDebug     
-  SYSLogLevelDebug1    
-  SYSLogLevelDebug2    
-  SYSLogLevelTest      
+  LOG_NONE      
+  LOG_EMERG     
+  LOG_ALERT     
+  LOG_CRIT  
+  LOG_ERR     
+  LOG_WARNING   
+  LOG_NOTICE    
+  LOG_INFO      
+  LOG_DEBUG     
+  LOG_DEBUG1    
+  LOG_DEBUG2    
 }
 
 "Logging Words"
 { $subsections
-  SYSLOG_TEST
-  SYSLOG_EMERG
-  SYSLOG_ALERT
-  SYSLOG_CRITICAL
-  SYSLOG_ERROR
-  SYSLOG_WARNING
-  SYSLOG_NOTICE
-  SYSLOG_INFO
-  SYSLOG_DEBUG
+  SYSLOG-TEST
+  SYSLOG-EMERG
+  SYSLOG-ALERT
+  SYSLOG-CRITICAL
+  SYSLOG-ERROR
+  SYSLOG-WARNING
+  SYSLOG-NOTICE
+  SYSLOG-INFO
+  SYSLOG-DEBUG
 }
 
 "Test Words"
 { $subsections
-  SYSLOGWITHLEVEL
-  SYSLOG_ERR
-  SYSLOG_VALUE
-  SYSLOG_NOTE
-  SYSLOG_HERE
+  SYSLOG-WITHLEVEL
+  SYSLOG-ERR
+  SYSLOG-VALUE
+  SYSLOG-NOTE
+  SYSLOG-HERE
 }
 
 
