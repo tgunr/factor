@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.libraries alien.syntax
 arrays assocs combinators formatting kernel literals locals math
-math.parser namespaces sequences words ;
+math.parser namespaces sequences words macros prettyprint ;
 
 ! IN: libc
 ! LIBRARY: libc
@@ -113,36 +113,37 @@ sysLogStack [ 256 0 <array> ] initialize
 
 SYMBOL: syslogProgram
 
-: SYSLOG_Testing ( -- )
-    99 SYSLOG_TESTING set ;
+: SYSLOG-TESTING-SET ( ? -- )   SYSLOG_TESTING set ;
+: SYSLOG-LEVELSET ( level -- )   sysLogLevel set ;
+: SYSLOG-LEVELGET ( -- level )   sysLogLevel get ;
 
-: SYSLOG_SetVerbose ( level -- )
-    sysLogLevel set
-    ;
-
-: SYSLOG_PushVerbose ( level -- )
+: SYSLOG-PUSH ( level -- )
     sysLogLevel get  sysLogLevelIndex get  sysLogStack get  set-nth
     sysLogLevelIndex get  1 +  dup  sysLogLevelIndex set
     255 > [ 255 sysLogLevelIndex set ] when
     sysLogLevel set
     ;
 
-: SYSLOG_PopVerbose ( -- )
+: SYSLOG-POP ( -- )
     sysLogLevelIndex get  1 -  dup  sysLogLevelIndex set
     0 < [ 0 sysLogLevelIndex set ] when
     sysLogLevelIndex get  sysLogStack get  nth
     sysLogLevel set
     ;
 
-! : (syslog) ( priority message -- ) 
-!     [ "%s" ] curry
-!     syslogProgram get
-!     LOG_PID LOG_USER openlog
-!     syslogger
-!     closelogger
-!     ;
+: (syslog) ( priority message -- ) 
+    over sysLogLevel get <= 
+    SYSLOG_TESTING get or
+    [ 
+        syslogProgram get
+        LOG_PID LOG_USER openlogger
+        syslogger
+        closelogger
+    ]
+    [ 2drop ] if
+    ;
 
-:: (SYSLOG) ( defined-word level msg -- )
+:: (SYSLOG-WORD) ( defined-word level msg -- )
     level sysLogLevel get <= 
     SYSLOG_TESTING get or
     [ level
@@ -158,89 +159,113 @@ SYMBOL: syslogProgram
     when
 ;
 
-: syslog-format ( msg -- formatted-msg )
-    dup word? 
-    [ dup props>> "loc" swap at ]
-    [ { "" 0 } ]
-    if
-    swap word?
-    [
-        [ "FACTOR " [ first ] dip  prepend  ":" append ] keep 
-        second number>string append
-        ":" append
+:: syslog-format ( msg -- formatted-msg )
+    msg word? 
+    [ msg props>> "loc" swap at
+      dup  first ":" append
+      [ second number>string ] dip  prepend
+      ":" append
+      msg name>> append
     ]
-    [ drop "FACTOR " ]
+    [ "FACTOR: " msg append ]
     if
 ;
 
-:: SYSLOGWITHLEVEL ( msg level -- )
+:: SYSLOG-WITHLEVEL ( msg level -- )
     level
     msg syslog-format
-    syslogger
+    (syslog)
     ;
 
-: SYSLOG_ERR ( msg error -- )
+: SYSLOG-ERR ( msg error -- )
     0 over =
     [ 2drop ]
     [ number>string  " " append
       "Error: " prepend
-      prepend LOG_DEBUG SYSLOGWITHLEVEL ] if ;
-: SYSLOG_VALUE ( msg value -- )
-    number>string  "Value: " prepend prepend 
-    LOG_DEBUG SYSLOGWITHLEVEL ;
-: SYSLOG_NOTE ( msg -- )
+      prepend LOG_DEBUG SYSLOG-WITHLEVEL ] if ;
+
+: SYSLOG-VALUE ( msg value -- )
+    number>string  "Value: " prepend
+    " " append
+    prepend 
+    LOG_INFO SYSLOG-WITHLEVEL ;
+
+: SYSLOG-OBJECT ( obj -- )
+    unparse LOG_INFO SYSLOG-WITHLEVEL ;
+
+: SYSLOG-NOTE ( msg -- )
     "NOTE: " prepend
-    LOG_DEBUG SYSLOGWITHLEVEL ;
-: SYSLOG_HERE ( -- )
-    last-word LOG_DEBUG SYSLOGWITHLEVEL ;
-: SYSLOG_TEST ( msg -- )
-    LOG_DEBUG SYSLOGWITHLEVEL ;
+    LOG_INFO SYSLOG-WITHLEVEL ;
 
 : SYSLOG ( format-string -- )
     sprintf
-    SYSLOG_TEST ; inline
+    LOG_DEBUG1 dup SYSLOG-PUSH
+    SYSLOG-WITHLEVEL
+    SYSLOG-POP ; inline
 
-: SYSLOG_EMERG ( msg -- )
-    LOG_EMERG SYSLOGWITHLEVEL ;
-: SYSLOG_ALERT ( msg -- )
-    LOG_ALERT SYSLOGWITHLEVEL ;
-: SYSLOG_CRITICAL ( msg -- )
-    LOG_CRIT SYSLOGWITHLEVEL ;
-: SYSLOG_ERROR ( msg -- )
-    LOG_ERR SYSLOGWITHLEVEL ;
-: SYSLOG_WARNING ( msg -- )
-    LOG_WARNING SYSLOGWITHLEVEL ;
-: SYSLOG_NOTICE ( msg -- )
-    LOG_NOTICE SYSLOGWITHLEVEL ;
-: SYSLOG_INFO ( msg -- )
-    LOG_INFO SYSLOGWITHLEVEL ;
-: SYSLOG_DEBUG ( msg -- )
-    LOG_DEBUG SYSLOGWITHLEVEL ;
+: SYSLOG-NONE ( -- )
+    "Logging Disabled" LOG_NONE SYSLOG-WITHLEVEL ;
+: SYSLOG-EMERG ( msg -- )
+    LOG_EMERG SYSLOG-WITHLEVEL ;
+: SYSLOG-ALERT ( msg -- )
+    LOG_ALERT SYSLOG-WITHLEVEL ;
+: SYSLOG-CRITICAL ( msg -- )
+    LOG_CRIT SYSLOG-WITHLEVEL ;
+: SYSLOG-ERROR ( msg -- )
+    LOG_ERR SYSLOG-WITHLEVEL ;
+: SYSLOG-WARNING ( msg -- )
+    LOG_WARNING SYSLOG-WITHLEVEL ;
+: SYSLOG-NOTICE ( msg -- )
+    LOG_NOTICE SYSLOG-WITHLEVEL ;
+: SYSLOG-INFO ( msg -- )
+    LOG_INFO SYSLOG-WITHLEVEL ;
+: SYSLOG-DEBUG ( msg -- )
+    LOG_DEBUG SYSLOG-WITHLEVEL ;
+: SYSLOG-DEBUG1 ( msg -- )
+    LOG_DEBUG1 SYSLOG-WITHLEVEL ;
+: SYSLOG-DEBUG2 ( msg -- )
+    LOG_DEBUG2 SYSLOG-WITHLEVEL ;
+: SYSLOG-HERE ( -- )
+    last-word LOG_INFO SYSLOG-WITHLEVEL ; 
 
 : SYSLOGLEVEL-TEST ( -- )
-    "Emergency" SYSLOG_EMERG
-    "Alert" SYSLOG_ALERT
-    "Critical" SYSLOG_CRITICAL
-    "Error" SYSLOG_ERROR
-    "Warning" SYSLOG_WARNING
-    "Notice" SYSLOG_NOTICE
-    "Info" SYSLOG_INFO
-    "Debug" SYSLOG_DEBUG
+    "Emergency" SYSLOG-EMERG
+    "Alert" SYSLOG-ALERT
+    "Critical" SYSLOG-CRITICAL
+    "Error" SYSLOG-ERROR
+    "Warning" SYSLOG-WARNING
+    "Notice" SYSLOG-NOTICE
+    "Info" SYSLOG-INFO
+    "Debug" SYSLOG-DEBUG
+    "Debug1" SYSLOG-DEBUG1
+    "Debug2" SYSLOG-DEBUG2
 ;
 
-: SYSTEST ( -- )
-    SYSLOG_HERE
-    "Testing 1 2 3" SYSLOG_TEST
-    10 iota 
+: SYSLOG-TEST ( -- )
+    LOG_DEBUG2 SYSLOG-PUSH
+    "Testing 1 2 3" SYSLOG-INFO
+    LOG_DEBUG2 1+ iota 
     [ dup
-      SYSLOG_PushVerbose
-      "Log Level: %d\n" sprintf SYSLOG_NOTE
+      "Log Level: %d\n" sprintf SYSLOG-NOTE
+      SYSLOG-PUSH
       SYSLOGLEVEL-TEST
-      SYSLOG_PopVerbose
+      SYSLOG-POP
     ] each
-    "This is a problem" 32 SYSLOG_ERR
-    "Test note" SYSLOG_NOTE
-    "This is a value" -1 SYSLOG_VALUE
+    "This is a problem" 32 SYSLOG-ERR
+    "Test note" SYSLOG-NOTE
+    "This is a value" -1 SYSLOG-VALUE
+    SYSLOG-POP
     ;
 
-: testlog ( -- ) 1 "FACTOR" syslogger ;
+: logtest ( -- )
+    SYSLOG-HERE
+    LOG_DEBUG2 SYSLOG-PUSH
+    1 "FACTOR" (syslog)
+    SYSLOG-POP ; 
+
+: nlogtest ( n -- )
+    SYSLOG-HERE
+    dup number>string
+    "FACTOR: " prepend
+    syslogger
+    ;

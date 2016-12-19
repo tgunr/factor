@@ -143,6 +143,12 @@ SYNTAX: LOG:
     '[ 1array stack>message _ _ log-message ]
     ( message -- ) define-declared ;
 
+SYNTAX: LOGHERE:
+    ! Syntax: name level
+    scan-new-word dup scan-word
+    '[ 1array stack>message _ _ log-message ]
+    ( message -- ) define-declared ;
+
 USE: vocabs
 
 "logging.parser" require
