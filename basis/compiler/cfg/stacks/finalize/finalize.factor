@@ -6,13 +6,6 @@ compiler.cfg.stacks.local compiler.cfg.utilities fry kernel locals
 make math sequences sets ;
 IN: compiler.cfg.stacks.finalize
 
-GENERIC# untranslate-loc 1 ( loc bb -- loc' )
-
-M: ds-loc untranslate-loc ( loc bb -- loc' )
-    [ n>> ] [ ds-height>> ] bi* + <ds-loc> ;
-M: rs-loc untranslate-loc ( loc bb -- loc' )
-    [ n>> ] [ rs-height>> ] bi* + <rs-loc> ;
-
 :: inserting-peeks ( from to -- set )
     to anticip-in
     from anticip-out from avail-out union
@@ -24,7 +17,8 @@ M: rs-loc untranslate-loc ( loc bb -- loc' )
     diff ;
 
 : each-insertion ( ... set bb quot: ( ... vreg loc -- ... ) -- ... )
-    [ members ] 2dip '[ [ loc>vreg ] [ _ untranslate-loc ] bi @ ] each ; inline
+    [ members ] 2dip
+    '[ [ loc>vreg ] [ _ height>> local-loc>global ] bi @ ] each ; inline
 
 ERROR: bad-peek dst loc ;
 
@@ -37,10 +31,10 @@ ERROR: bad-peek dst loc ;
     [ dup n>> 0 < [ 2drop ] [ ##replace, ] if ] each-insertion ;
 
 : visit-edge ( from to -- )
-    2dup [ kill-block?>> ] both? [ 2drop ] [
-        2dup [ [ insert-replaces ] [ insert-peeks ] 2bi ##branch, ] V{ } make
+    2dup [ [ insert-replaces ] [ insert-peeks ] 2bi ##branch, ] V{ } make
+    dup length 1 > [
         insert-basic-block
-    ] if ;
+    ] [ 3drop ] if ;
 
 : visit-block ( bb -- )
     [ predecessors>> ] keep '[ _ visit-edge ] each ;

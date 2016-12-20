@@ -5,14 +5,14 @@ namespace factor {
 
 inline static void flush_icache(cell start, cell len) {}
 
-/* In the instruction sequence:
+// In the instruction sequence:
 
-   MOV EBX,...
-   JMP blah
+// MOV EBX,...
+// JMP blah
 
-   the offset from the immediate operand to MOV to the instruction after
-   the jump is a cell for the immediate operand, 4 bytes for the JMP
-   destination, and one byte for the JMP opcode. */
+// the offset from the immediate operand to MOV to the instruction after
+// the jump is a cell for the immediate operand, 4 bytes for the JMP
+// destination, and one byte for the JMP opcode.
 static const fixnum xt_tail_pic_offset = 4 + 1;
 
 static const unsigned char call_opcode = 0xe8;
@@ -25,7 +25,7 @@ inline static unsigned char call_site_opcode(cell return_address) {
 inline static void check_call_site(cell return_address) {
   unsigned char opcode = call_site_opcode(return_address);
   FACTOR_ASSERT(opcode == call_opcode || opcode == jmp_opcode);
-  (void)opcode; /* suppress warning when compiling without assertions */
+  (void)opcode; // suppress warning when compiling without assertions
 }
 
 inline static void* get_call_target(cell return_address) {

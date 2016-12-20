@@ -1,14 +1,14 @@
 #include <ctype.h>
 
 #ifndef wcslen
-/* for cygwin */
+// for cygwin
 #include <wchar.h>
 #endif
 
 #if _WIN32_WINNT != 0x0600
 #undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501  /* For AddVectoredExceptionHandler, WinXP support */
-/*#define _WIN32_WINNT 0x0600  /* For CancelSynchronousIo */
+#define _WIN32_WINNT 0x0501  // For AddVectoredExceptionHandler, WinXP support
+//#define _WIN32_WINNT 0x0600  // For CancelSynchronousIo
 #endif
 
 #ifndef UNICODE
@@ -23,7 +23,7 @@
 #undef max
 #endif
 
-/* Difference between Jan 1 00:00:00 1601 and Jan 1 00:00:00 1970 */
+// Difference between Jan 1 00:00:00 1601 and Jan 1 00:00:00 1970
 #define EPOCH_OFFSET 0x019db1ded53e8000LL
 
 namespace factor {
@@ -51,8 +51,9 @@ typedef HANDLE THREADHANDLE;
 
 #define FACTOR_OS_STRING "windows"
 
-/* SSE traps raise these exception codes, which are defined in internal NT
-headers, but not winbase.h */
+// SSE traps raise these exception codes, which are defined in internal NT
+// headers
+// but not winbase.h
 #ifndef STATUS_FLOAT_MULTIPLE_FAULTS
 #define STATUS_FLOAT_MULTIPLE_FAULTS 0xC00002B4
 #endif

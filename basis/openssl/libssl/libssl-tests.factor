@@ -1,16 +1,13 @@
-USING:
-    arrays
-    kernel
-    math
-    openssl.libssl
-    sequences
-    tools.test ;
+USING: destructors kernel math openssl openssl.libssl sequences
+tools.test ;
 IN: openssl.libssl.tests
 
-: all-opts ( -- opts )
+maybe-init-ssl
+
+! It looks like Arch and Ubuntu Linux in newer versions are disabling
+! SSLv2 and SSLv3 so we don't test those options.
+: tls-opts ( -- opts )
     {
-        SSL_OP_NO_SSLv2
-        SSL_OP_NO_SSLv3
         SSL_OP_NO_TLSv1
         SSL_OP_NO_TLSv1_1
         SSL_OP_NO_TLSv1_2
@@ -22,31 +19,39 @@ IN: openssl.libssl.tests
 : has-opt ( ctx op -- ? )
     swap SSL_CTRL_OPTIONS 0 f SSL_CTX_ctrl bitand 0 > ;
 
-: new-ctx ( -- ctx )
-    TLSv1_client_method SSL_CTX_new ;
+: new-ctx ( method -- ctx )
+    SSL_CTX_new &SSL_CTX_free ;
 
-: new-ssl ( -- ssl )
-    new-ctx SSL_new ;
+: new-tls1-ctx ( -- ctx )
+    TLSv1_client_method new-ctx ;
 
-! Test default options. Some Linuxes (Arch) disables SSL_OP_NO_SSLv2
-! by default, so we don't test that option.
+: new-ssl ( ctx -- ssl )
+    SSL_new &SSL_free ;
+
 {
-    { f f f f }
+    { f f f }
 } [
-    new-ctx all-opts [ has-opt ] with map rest
+    [
+        new-tls1-ctx tls-opts [ has-opt ] with map
+    ] with-destructors
 ] unit-test
 
 ! Test setting options
-{ 5 } [
-    new-ctx all-opts [ [ set-opt ] [ has-opt ] 2bi ] with map [ t = ] count
+{ 3 } [
+    [
+        new-tls1-ctx tls-opts [ [ set-opt ] [ has-opt ] 2bi ] with map
+        [ t = ] count
+    ] with-destructors
 ] unit-test
 
 ! Initial state
 { { "before/connect initialization" "read header" 1 f } } [
-    new-ssl {
-        SSL_state_string_long
-        SSL_rstate_string_long
-        SSL_want
-        SSL_get_peer_certificate
-    } [ execute( x -- x ) ] with map
+    [
+        new-tls1-ctx new-ssl {
+            SSL_state_string_long
+            SSL_rstate_string_long
+            SSL_want
+            SSL_get_peer_certificate
+        } [ execute( x -- x ) ] with map
+    ] with-destructors
 ] unit-test

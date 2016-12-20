@@ -54,7 +54,11 @@ TUPLE: trails-gadget < gadget paused points ;
     ]
     loop
   ]
-  in-thread ;
+  "trails" spawn drop ;
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+M: trails-gadget ungraft* ( trails-gadget -- ) t >>paused drop ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -17,8 +17,7 @@ IN: tools.deploy.shaker
 
 : add-command-line-hook ( -- )
     [
-        (command-line) unclip
-        executable set-global
+        (command-line) rest
         command-line set-global
     ] "command-line" startup-hooks get set-at ;
 
@@ -109,7 +108,6 @@ IN: tools.deploy.shaker
 
 : strip-word-defs ( words -- )
     "Stripping symbolic word definitions" show
-    [ "no-def-strip" word-prop ] reject
     [ [ ] >>def drop ] each ;
 
 : strip-word-props ( stripped-props words -- )
@@ -129,7 +127,6 @@ IN: tools.deploy.shaker
                 "boa-check"
                 "coercer"
                 "combination"
-                "conditional-dependencies"
                 "constant"
                 "constraints"
                 "custom-inlining"
@@ -138,11 +135,10 @@ IN: tools.deploy.shaker
                 "default"
                 "default-method"
                 "default-output-classes"
-                "definition-dependencies"
+                "dependencies"
                 "dependency-checks"
                 "derived-from"
                 "ebnf-parser"
-                "effect-dependencies"
                 "engines"
                 "forgotten"
 

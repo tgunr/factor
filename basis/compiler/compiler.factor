@@ -25,7 +25,9 @@ SYMBOL: compiled
 
 : start ( word -- )
     dup name>> compiler-message
-    init-dependencies
+    H{ } clone dependencies namespaces:set
+    H{ } clone generic-dependencies namespaces:set
+    HS{ } clone conditional-dependencies namespaces:set
     clear-compiler-error ;
 
 GENERIC: no-compile? ( word -- ? )
@@ -164,7 +166,7 @@ M: optimizing-compiler to-recompile ( -- words )
         maybe-changed get new-words get diff
         outdated-conditional-usages %
 
-        changed-definitions get members [ word? ] filter dup zip ,
+        changed-definitions get filter-word-defs dup zip ,
     ] { } make assoc-combine keys ;
 
 M: optimizing-compiler process-forgotten-words

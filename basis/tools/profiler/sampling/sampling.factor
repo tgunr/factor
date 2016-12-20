@@ -8,7 +8,7 @@ IN: tools.profiler.sampling
 
 <PRIVATE
 PRIMITIVE: (get-samples) ( -- samples/f )
-PRIMITIVE: profiling ( ? -- )
+PRIMITIVE: profiling ( n -- )
 PRIVATE>
 
 SYMBOL: samples-per-second
@@ -41,7 +41,7 @@ PRIVATE>
 : sample-thread ( sample -- thread ) 5 swap nth ;
 : sample-callstack ( sample -- array ) 6 swap nth ;
 : unclip-callstack ( sample -- sample' callstack-top )
-    clone 6 over [ unclip swap ] change-nth ;
+    clone 6 over [ unclip-last swap ] change-nth ;
 
 : samples>time ( samples -- seconds )
     samples-per-second get-global / ;

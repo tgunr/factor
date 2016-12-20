@@ -1,8 +1,8 @@
 ! Copyright (C) 2006, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: memory system kernel vocabs.refresh ui.tools.operations
-ui.tools.listener ui.tools.browser ui.tools.common ui.tools.error-list
-ui.tools.walker ui.commands ui.gestures ui ui.private ;
+USING: memory system ui ui.commands ui.gestures ui.tools.browser
+ui.tools.common ui.tools.error-list ui.tools.listener
+vocabs.refresh ;
 IN: ui.tools
 
 MAIN: listener-window

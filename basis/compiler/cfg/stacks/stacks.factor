@@ -8,7 +8,7 @@ IN: compiler.cfg.stacks
 
 : begin-stack-analysis ( -- )
     <bihash> locs>vregs set
-    initial-height-state height-state set ;
+    0 0 0 0 height-state boa height-state set ;
 
 : end-stack-analysis ( cfg -- )
     {
@@ -59,6 +59,3 @@ IN: compiler.cfg.stacks
 
 : unary-op ( quot -- )
     [ ds-pop ] dip call ds-push ; inline
-
-: adjust-d ( n -- )
-    <ds-loc> height-state get swap adjust ;

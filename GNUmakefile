@@ -43,10 +43,8 @@ ifdef CONFIG
 		vm/entry_points.o \
 		vm/errors.o \
 		vm/factor.o \
-		vm/free_list.o \
 		vm/full_collector.o \
 		vm/gc.o \
-		vm/gc_info.o \
 		vm/image.o \
 		vm/inline_cache.o \
 		vm/instruction_operands.o \
@@ -112,7 +110,6 @@ ifdef CONFIG
 		vm/generic_arrays.hpp \
 		vm/callstack.hpp \
 		vm/slot_visitor.hpp \
-		vm/collector.hpp \
 		vm/to_tenured_collector.hpp \
 		vm/arrays.hpp \
 		vm/math.hpp \

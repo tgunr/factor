@@ -1,4 +1,4 @@
-USING: accessors alien.c-types alien.syntax byte-arrays.hex
+USING: accessors alien.c-types alien.syntax
 classes.struct colors.constants colors.hex kernel literals logging
 math ;
 IN: strange
@@ -84,17 +84,20 @@ HS{ 9 8 3 } drop
 
 flags{ 10 20 } drop
 
-! TODO: Highlight contents too.
-HEX{ ab cd ef } drop
-
 ! ! Alien functions
 STRUCT: timeval
     { sec long }
     { usec long } ;
 
-FUNCTION: int futimes ( int id, timeval[2] times )
+FUNCTION: int futimes ( int id,
+                        timeval[2] times,
+                        int x,
+                        int y )
 FUNCTION: int booyah ( int x )
 FUNCTION-ALIAS: test int bah ( int* ah, int[] eh )
 
 HEXCOLOR: ffffff COLOR: green NAN: 1234 CHAR: m ALIEN: 93
 2drop 2drop drop
+
+PRIMITIVE: one ( a -- b )
+PRIMITIVE: two ( c -- d )

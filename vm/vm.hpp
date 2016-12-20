@@ -11,150 +11,150 @@ struct growable_array;
 struct code_root;
 
 struct factor_vm {
-  /*
-     vvvvvv
-     THESE FIELDS ARE ACCESSED DIRECTLY FROM FACTOR. See:
-       basis/vm/vm.factor
-       basis/compiler/constants/constants.factor */
+  //
+  // vvvvvv
+  // THESE FIELDS ARE ACCESSED DIRECTLY FROM FACTOR. See:
+  //   basis/vm/vm.factor
+  //   basis/compiler/constants/constants.factor
 
-  /* Current context */
+  // Current context
   context* ctx;
 
-  /* Spare context -- for callbacks */
+  // Spare context -- for callbacks
   context* spare_ctx;
 
-  /* New objects are allocated here, use the data->nursery reference
-     instead from c++ code. */
+  // New objects are allocated here, use the data->nursery reference
+  // instead from c++ code.
   bump_allocator nursery;
 
-  /* Add this to a shifted address to compute write barrier offsets */
+  // Add this to a shifted address to compute write barrier offsets
   cell cards_offset;
   cell decks_offset;
 
-  /* cdecl signal handler address, used by signal handler subprimitives */
+  // cdecl signal handler address, used by signal handler subprimitives
   cell signal_handler_addr;
 
-  /* are we handling a memory error? used to detect double faults */
+  // are we handling a memory error? used to detect double faults
   cell faulting_p;
 
-  /* Various special objects, accessed by special-object and
-	set-special-object primitives */
+  // Various special objects, accessed by special-object and
+  // set-special-object primitives
   cell special_objects[special_object_count];
 
-  /* THESE FIELDS ARE ACCESSED DIRECTLY FROM FACTOR.
-     ^^^^^^
-  */
+  // THESE FIELDS ARE ACCESSED DIRECTLY FROM FACTOR.
+  // ^^^^^^
+  //
 
-  /* Handle to the main thread we run in */
+  // Handle to the main thread we run in
   THREADHANDLE thread;
 
-  /* Data stack and retain stack sizes */
+  // Data stack and retain stack sizes
   cell datastack_size, retainstack_size, callstack_size;
 
-  /* Stack of callback IDs */
+  // Stack of callback IDs
   std::vector<int> callback_ids;
 
-  /* Next callback ID */
+  // Next callback ID
   int callback_id;
 
-  /* List of callback function descriptors for PPC */
+  // List of callback function descriptors for PPC
   std::list<void**> function_descriptors;
 
-  /* Pooling unused contexts to make context allocation cheaper */
+  // Pooling unused contexts to make context allocation cheaper
   std::list<context*> unused_contexts;
 
-  /* Active contexts, for tracing by the GC */
+  // Active contexts, for tracing by the GC
   std::set<context*> active_contexts;
 
-  /* External entry points */
+  // External entry points
   c_to_factor_func_type c_to_factor_func;
 
-  /* Is profiling enabled? */
+  // Is profiling enabled?
   volatile cell sampling_profiler_p;
   fixnum samples_per_second;
 
-  /* Global variables used to pass fault handler state from signal handler
-     to VM */
+  // Global variables used to pass fault handler state from signal handler
+  // to VM
   bool signal_resumable;
   cell signal_number;
   cell signal_fault_addr;
   cell signal_fault_pc;
   unsigned int signal_fpu_status;
 
-  /* Pipe used to notify Factor multiplexer of signals */
+  // Pipe used to notify Factor multiplexer of signals
   int signal_pipe_input, signal_pipe_output;
 
-  /* State kept by the sampling profiler */
+  // State kept by the sampling profiler
   std::vector<profiling_sample> samples;
-  std::vector<cell> sample_callstacks;
   volatile profiling_sample_count sample_counts;
 
-  /* GC is off during heap walking */
+  // GC is off during heap walking
   bool gc_off;
 
-  /* Data heap */
+  // Data heap
   data_heap* data;
 
-  /* Code heap */
+  // Code heap
   code_heap* code;
 
-  /* Pinned callback stubs */
+  // Pinned callback stubs
   callback_heap* callbacks;
 
-  /* Only set if we're performing a GC */
+  // Only set if we're performing a GC
   gc_state* current_gc;
   volatile cell current_gc_p;
 
-  /* Set if we're in the jit */
+  // Set if we're in the jit
   volatile fixnum current_jit_count;
 
-  /* Mark stack used for mark & sweep GC */
+  // Mark stack used for mark & sweep GC
   std::vector<cell> mark_stack;
 
-  /* If not NULL, we push GC events here */
+  // If not NULL, we push GC events here
   std::vector<gc_event>* gc_events;
 
-  /* If a runtime function needs to call another function which potentially
-     allocates memory, it must wrap any references to the data and code
-     heaps with data_root and code_root smart pointers, which register
-     themselves here. See data_roots.hpp and code_roots.hpp */
+  // If a runtime function needs to call another function which potentially
+  // allocates memory, it must wrap any references to the data and code
+  // heaps with data_root and code_root smart pointers, which register
+  // themselves here. See data_roots.hpp and code_roots.hpp
 
   std::vector<cell*> data_roots;
   std::vector<code_root*> code_roots;
 
-  /* Debugger */
+  // Debugger
   bool fep_p;
   bool fep_help_was_shown;
   bool fep_disabled;
   bool full_output;
 
-  /* Method dispatch statistics */
+  // Method dispatch statistics
   dispatch_statistics dispatch_stats;
 
-  /* Number of entries in a polymorphic inline cache */
+  // Number of entries in a polymorphic inline cache
   cell max_pic_size;
 
-  /* Incrementing object counter for identity hashing */
+  // Incrementing object counter for identity hashing
   cell object_counter;
 
-  /* Sanity check to ensure that monotonic counter doesn't decrease */
+  // Sanity check to ensure that monotonic counter doesn't decrease
   uint64_t last_nano_count;
 
-  /* Stack for signal handlers, only used on Unix */
+  // Stack for signal handlers, only used on Unix
   segment* signal_callstack_seg;
 
-  /* Are we already handling a fault? Used to catch double memory faults */
+  // Are we already handling a fault? Used to catch double memory faults
   static bool fatal_erroring_p;
 
-  /* Two fep_p variants, one might be redundant. */
+  // Two fep_p variants, one might be redundant.
   volatile cell safepoint_fep_p;
 
-  /* contexts */
+  // Allow Ctrl-Break a busy loop in the Listener, only used on Windows
+  volatile bool stop_on_ctrl_break;
+
+  // contexts
   context* new_context();
   void init_context(context* ctx);
   void delete_context();
-  void init_contexts(cell datastack_size_, cell retainstack_size_,
-                     cell callstack_size_);
   cell begin_callback(cell quot);
   void end_callback();
   void primitive_current_callback();
@@ -166,44 +166,42 @@ struct factor_vm {
   void primitive_datastack_for();
   cell retainstack_to_array(context* ctx);
   void primitive_retainstack_for();
-  cell array_to_stack(array* array, cell bottom);
   void primitive_set_datastack();
   void primitive_set_retainstack();
   void primitive_check_datastack();
   void primitive_load_locals();
 
-  /* run */
+  // run
   void primitive_exit();
   void primitive_nano_count();
   void primitive_sleep();
   void primitive_set_slot();
 
-  /* objects */
+  // objects
   void primitive_special_object();
   void primitive_set_special_object();
   void primitive_identity_hashcode();
   void primitive_compute_identity_hashcode();
-  cell clone_object(cell obj_);
   void primitive_clone();
   void primitive_become();
 
-  /* sampling_profiler */
+  // sampling_profiler
   void record_sample(bool prolog_p);
   void start_sampling_profiler(fixnum rate);
   void end_sampling_profiler();
   void set_sampling_profiler(fixnum rate);
   void primitive_sampling_profiler();
   void primitive_get_samples();
+  array* allot_growarr();
+  void growarr_add(array *growarr_, cell value);
 
-  /* errors */
+  // errors
   void general_error(vm_error_type error, cell arg1, cell arg2);
   void type_error(cell type, cell tagged);
-  void not_implemented_error();
-  void verify_memory_protection_error(cell addr);
+  void set_memory_protection_error(cell fault_addr, cell fault_pc);
   void divide_by_zero_error();
-  void primitive_unimplemented();
 
-  /* bignum */
+  // bignum
   int bignum_equal_p(bignum* x, bignum* y);
   enum bignum_comparison bignum_compare(bignum* x, bignum* y);
   bignum* bignum_add(bignum* x, bignum* y);
@@ -241,7 +239,7 @@ struct factor_vm {
   void bignum_destructive_unnormalization(bignum* bn, int shift_right);
   bignum_digit_type bignum_digit_divide(
       bignum_digit_type uh, bignum_digit_type ul, bignum_digit_type v,
-      bignum_digit_type* q) /* return value */;
+      bignum_digit_type* q); // return value
   bignum_digit_type bignum_digit_divide_subtract(bignum_digit_type v1,
                                                  bignum_digit_type v2,
                                                  bignum_digit_type guess,
@@ -277,9 +275,8 @@ struct factor_vm {
   int bignum_unsigned_logbitp(int shift, bignum* bn);
   bignum* bignum_gcd(bignum* a_, bignum* b_);
 
-  /* data heap */
+  //data heap
   void set_data_heap(data_heap* data_);
-  void init_data_heap(cell young_size, cell aging_size, cell tenured_size);
   void primitive_size();
   data_heap_room data_room();
   void primitive_data_room();
@@ -297,9 +294,9 @@ struct factor_vm {
 
   template <typename Iterator> inline void each_object(Iterator& iterator) {
 
-    /* The nursery can't be iterated because there may be gaps between
-       the objects (see factor_vm::reallot_array) so we require it to
-       be empty first. */
+    // The nursery can't be iterated because there may be gaps between
+    // the objects (see factor_vm::reallot_array) so we require it to
+    // be empty first.
     FACTOR_ASSERT(data->nursery->occupied_space() == 0);
 
     gc_off = true;
@@ -319,8 +316,8 @@ struct factor_vm {
     each_object(each_object_func);
   }
 
-  /* the write barrier must be called any time we are potentially storing a
-     pointer from an older generation to a younger one */
+  // the write barrier must be called any time we are potentially storing a
+  // pointer from an older generation to a younger one
   inline void write_barrier(cell* slot_ptr) {
     *(unsigned char*)(cards_offset + ((cell)slot_ptr >> card_bits)) = card_mark_mask;
     *(unsigned char*)(decks_offset + ((cell)slot_ptr >> deck_bits)) = card_mark_mask;
@@ -334,24 +331,22 @@ struct factor_vm {
       write_barrier((cell*)offset);
   }
 
-  /* data heap checker */
+  // data heap checker
   void check_data_heap();
 
-  /* gc */
-  void end_gc();
+  // gc
   void set_current_gc_op(gc_op op);
   void start_gc_again();
   void collect_nursery();
   void collect_aging();
   void collect_to_tenured();
-  void update_code_roots_for_sweep();
   void update_code_roots_for_compaction();
   void collect_mark_impl();
   void collect_sweep_impl();
   void collect_full();
   void collect_compact_impl();
   void collect_compact();
-  void collect_growing_heap(cell requested_size);
+  void collect_growing_data_heap(cell requested_size);
   void gc(gc_op op, cell requested_size);
   void primitive_minor_gc();
   void primitive_full_gc();
@@ -361,18 +356,18 @@ struct factor_vm {
   object* allot_object(cell type, cell size);
   object* allot_large_object(cell type, cell size);
 
-  /* Allocates memory */
+  // Allocates memory
   template <typename Type> Type* allot(cell size) {
     return (Type*)allot_object(Type::type_number, size);
   }
 
-  /* generic arrays */
+  // generic arrays
   template <typename Array> Array* allot_uninitialized_array(cell capacity);
   template <typename Array>
   bool reallot_array_in_place_p(Array* array, cell capacity);
   template <typename Array> Array* reallot_array(Array* array_, cell capacity);
 
-  /* debug */
+  // debug
   void print_chars(ostream& out, string* str);
   void print_word(ostream& out, word* word, cell nesting);
   void print_factor_string(ostream& out, string* str);
@@ -397,8 +392,10 @@ struct factor_vm {
   void factorbug_usage(bool advanced_p);
   void factorbug();
   void primitive_die();
+  void primitive_enable_ctrl_break();
+  void primitive_disable_ctrl_break();
 
-  /* arrays */
+  // arrays
   inline void set_array_nth(array* array, cell slot, cell value);
   array* allot_array(cell capacity, cell fill_);
   void primitive_array();
@@ -406,7 +403,7 @@ struct factor_vm {
   void primitive_resize_array();
   cell std_vector_to_array(std::vector<cell>& elements);
 
-  /* strings */
+  // strings
   string* allot_string_internal(cell capacity);
   void fill_string(string* str_, cell start, cell capacity, cell fill);
   string* allot_string(cell capacity, cell fill);
@@ -416,12 +413,12 @@ struct factor_vm {
   void primitive_resize_string();
   void primitive_set_string_nth_fast();
 
-  /* booleans */
+  // booleans
   cell tag_boolean(cell untagged) {
     return untagged ? special_objects[OBJ_CANONICAL_TRUE] : false_object;
   }
 
-  /* byte arrays */
+  // byte arrays
   byte_array* allot_byte_array(cell size);
   void primitive_byte_array();
   void primitive_uninitialized_byte_array();
@@ -429,11 +426,11 @@ struct factor_vm {
 
   template <typename Type> byte_array* byte_array_from_value(Type* value);
 
-  /* tuples */
+  // tuples
   void primitive_tuple();
   void primitive_tuple_boa();
 
-  /* words */
+  // words
   word* allot_word(cell name_, cell vocab_, cell hashcode_);
   void primitive_word();
   void primitive_word_code();
@@ -441,7 +438,7 @@ struct factor_vm {
   void primitive_wrapper();
   void jit_compile_word(cell word_, cell def_, bool relocating);
 
-  /* math */
+  // math
   void primitive_bignum_to_fixnum();
   void primitive_bignum_to_fixnum_strict();
   void primitive_float_to_fixnum();
@@ -513,7 +510,7 @@ struct factor_vm {
   inline fixnum float_to_fixnum(cell tagged);
   inline double fixnum_to_float(cell tagged);
 
-  /* tagged */
+  // tagged
   template <typename Type> void check_tagged(tagged<Type> t) {
     if (!t.type_p())
       type_error(Type::type_number, t.value_);
@@ -525,8 +522,7 @@ struct factor_vm {
     return t.untagged();
   }
 
-  /* io */
-  void init_c_io();
+  // io
   void io_error_if_not_EINTR();
   FILE* safe_fopen(char* filename, const char* mode);
   int safe_fgetc(FILE* stream);
@@ -548,7 +544,7 @@ struct factor_vm {
   void primitive_fflush();
   void primitive_fclose();
 
-  /* code_block */
+  // code_block
   cell compute_entry_point_pic_address(word* w, cell tagged_quot);
   cell compute_entry_point_pic_address(cell w_);
   cell compute_entry_point_pic_tail_address(cell w_);
@@ -569,30 +565,28 @@ struct factor_vm {
                              cell owner_, cell relocation_, cell parameters_,
                              cell literals_, cell frame_size_untagged);
 
-  /* code heap */
+  //code heap
   template <typename Iterator> void each_code_block(Iterator& iter) {
-    code->allocator->iterate(iter);
+    code->allocator->iterate(iter, no_fixup());
   }
 
   void update_code_heap_words(bool reset_inline_caches);
-  void initialize_code_blocks();
   void primitive_modify_code_heap();
   void primitive_code_room();
   void primitive_strip_stack_traces();
   void primitive_code_blocks();
 
-  /* callbacks */
+  // callbacks
   void primitive_free_callback();
   void primitive_callback();
   void primitive_callback_room();
 
-  /* image */
+  // image
   void load_data_heap(FILE* file, image_header* h, vm_parameters* p);
   void load_code_heap(FILE* file, image_header* h, vm_parameters* p);
   bool save_image(const vm_char* saving_filename, const vm_char* filename);
   void primitive_save_image();
   void fixup_heaps(cell data_offset, cell code_offset);
-  FILE* open_image(vm_parameters* p);
   void load_image(vm_parameters* p);
   bool read_embedded_image_footer(FILE* file, embedded_image_footer* footer);
   bool embedded_image_p();
@@ -611,14 +605,13 @@ struct factor_vm {
   void primitive_innermost_stack_frame_executing();
   void primitive_innermost_stack_frame_scan();
   void primitive_set_innermost_stack_frame_quotation();
-  void primitive_callstack_bounds();
 
   template <typename Iterator, typename Fixup>
   void iterate_callstack(context* ctx, Iterator& iterator, Fixup& fixup);
   template <typename Iterator>
   void iterate_callstack(context* ctx, Iterator& iterator);
 
-  /* cpu-* */
+  // cpu-*
   void dispatch_signal_handler(cell* sp, cell* pc, cell newpc);
 #if defined(FACTOR_X86) || defined(FACTOR_64)
   void dispatch_non_resumable_signal(cell* sp, cell* pc,
@@ -627,7 +620,7 @@ struct factor_vm {
   void dispatch_resumable_signal(cell* sp, cell* pc, cell handler);
 #endif
 
-  /* alien */
+  // alien
   char* pinned_alien_offset(cell obj);
   cell allot_alien(cell delegate_, cell displacement);
   cell allot_alien(cell address);
@@ -641,7 +634,7 @@ struct factor_vm {
   void primitive_dll_validp();
   char* alien_offset(cell obj);
 
-  /* quotations */
+  // quotations
   void primitive_jit_compile();
   cell lazy_jit_compile_entry_point();
   void primitive_array_to_quotation();
@@ -653,7 +646,7 @@ struct factor_vm {
   bool quotation_compiled_p(quotation* quot);
   void primitive_quotation_compiled_p();
 
-  /* dispatch */
+  // dispatch
   cell lookup_tuple_method(cell obj, cell methods);
   cell lookup_method(cell obj, cell methods);
   void primitive_lookup_method();
@@ -663,40 +656,36 @@ struct factor_vm {
   void primitive_reset_dispatch_stats();
   void primitive_dispatch_stats();
 
-  /* inline cache */
+  // inline cache
   void deallocate_inline_cache(cell return_address);
   void update_pic_count(cell type);
-  code_block* compile_inline_cache(fixnum index, cell generic_word_,
-                                   cell methods_, cell cache_entries_,
-                                   bool tail_call_p);
   cell add_inline_cache_entry(cell cache_entries_, cell klass_, cell method_);
   void update_pic_transitions(cell pic_size);
   cell inline_cache_miss(cell return_address);
 
-  /* entry points */
+  // entry points
   void c_to_factor(cell quot);
   void unwind_native_frames(cell quot, cell to);
   cell get_fpu_state();
   void set_fpu_state(cell state);
 
-  /* safepoints */
+  // safepoints
   void handle_safepoint(cell pc);
   void enqueue_samples(cell samples, cell pc, bool foreign_thread_p);
   void enqueue_fep();
 
-  /* factor */
+  // factor
   void prepare_boot_image();
   void init_factor(vm_parameters* p);
   void pass_args_to_factor(int argc, vm_char** argv);
   void stop_factor();
-  void start_embedded_factor(vm_parameters* p);
   void start_standalone_factor(int argc, vm_char** argv);
   char* factor_eval_string(char* string);
   void factor_eval_free(char* result);
   void factor_yield();
   void factor_sleep(long us);
 
-  /* os-* */
+  // os-*
   void primitive_existsp();
   void init_ffi();
   void ffi_dlopen(dll* dll);
@@ -708,8 +697,13 @@ struct factor_vm {
   void start_sampling_profiler_timer();
   void end_sampling_profiler_timer();
 
-/* os-windows */
+// os-windows
 #if defined(WINDOWS)
+  /* Id of the main thread we run in. Used for Ctrl-Break handling. */
+  DWORD thread_id;
+
+  HANDLE ctrl_break_thread;
+
   HANDLE sampler_thread;
   void sampler_thread_loop();
 
@@ -720,7 +714,7 @@ struct factor_vm {
   LONG exception_handler(PEXCEPTION_RECORD e, void* frame, PCONTEXT c,
                          void* dispatch);
 
-#else  /* UNIX */
+#else  // UNIX
   void dispatch_signal(void* uap, void(handler)());
   void unix_init_signals();
 #endif
