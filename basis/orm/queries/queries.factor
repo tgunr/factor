@@ -1,9 +1,8 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs combinators db2 db2.binders
-db2.connections db2.statements db2.types db2.utils fry kernel
-locals make orm.persistent sequences reconstructors arrays
-orm.binders db2.query-objects ;
+USING: accessors arrays assocs combinators db2.binders
+db2.query-objects db2.statements db2.types db2.utils fry kernel locals
+make orm.binders orm.persistent reconstructors sequences ;
 IN: orm.queries
 
 HOOK: create-table-sql db-connection ( tuple-class -- object )
