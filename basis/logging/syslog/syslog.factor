@@ -1,8 +1,10 @@
 ! Copyright (C) 2012 PolyMicro Systems.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien alien.c-types alien.libraries alien.syntax
-arrays assocs combinators formatting kernel literals locals math
-math.parser namespaces sequences words macros prettyprint ;
+
+USING: accessors alien alien.c-types alien.libraries
+alien.syntax arrays assocs combinators effects.parser formatting
+kernel literals locals macros math math.parser namespaces
+prettyprint sequences words present syntax ;
 
 ! IN: libc
 ! LIBRARY: libc
@@ -225,8 +227,14 @@ SYMBOL: syslogProgram
     LOG_DEBUG1 SYSLOG-WITHLEVEL ;
 : SYSLOG-DEBUG2 ( msg -- )
     LOG_DEBUG2 SYSLOG-WITHLEVEL ;
-: SYSLOG-HERE ( -- )
-    last-word LOG_INFO SYSLOG-WITHLEVEL ; 
+: SYSLOG-HERE ( word -- )
+    LOG_DEBUG2 SYSLOG-PUSH
+    LOG_DEBUG2 SYSLOG-WITHLEVEL
+    SYSLOG-POP
+    ; 
+
+! : (log:) ( -- word )    last-word present ; 
+! SYNTAX: LOG: (:) [ << (log:) >> prefix \ SYSLOG-HERE prefix ] dip  define-declared ;
 
 : SYSLOGLEVEL-TEST ( -- )
     "Emergency" SYSLOG-EMERG
@@ -259,7 +267,6 @@ SYMBOL: syslogProgram
 
 : logtest ( -- )
     SYSLOG-HERE
-    LOG_DEBUG2 SYSLOG-PUSH
     1 "FACTOR" (syslog)
     SYSLOG-POP ; 
 
