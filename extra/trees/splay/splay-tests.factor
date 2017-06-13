@@ -1,14 +1,14 @@
 ! Copyright (c) 2005 Mackenzie Straight.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: assocs grouping kernel math random sequences sets
+USING: assocs fry grouping kernel math random sequences sets
 tools.test trees.splay ;
 IN: trees.splay.tests
 
 : randomize-numeric-splay-tree ( splay-tree -- )
-    100 iota [ drop 100 random of drop ] with each ;
+    100 <iota> [ drop 100 random of drop ] with each ;
 
 : make-numeric-splay-tree ( n -- splay-tree )
-    iota <splay> [ [ conjoin ] curry each ] keep ;
+    <iota> <splay> [ '[ dup _ set-at ] each ] keep ;
 
 { t } [
     100 make-numeric-splay-tree dup randomize-numeric-splay-tree
@@ -33,6 +33,24 @@ IN: trees.splay.tests
 ] unit-test
 
 { 0 } [
-    100 iota [ dup zip >splay ] keep
+    100 <iota> [ dup zip >splay ] keep
     [ over delete-at ] each assoc-size
 ] unit-test
+
+: test-tree ( -- tree )
+    SPLAY{
+        { 7 "seven" }
+        { 9 "nine" }
+        { 4 "four" }
+        { 4 "replaced four" }
+        { 7 "replaced seven" }
+    } clone ;
+
+! test assoc-size
+{ 3 } [ test-tree assoc-size ] unit-test
+{ 2 } [ test-tree 9 over delete-at assoc-size ] unit-test
+
+! Test that converting trees doesn't give linked lists
+{
+    SPLAY{ { 1 1 } { 3 3 } { 2 2 } }
+} [ SPLAY{ { 1 1 } { 3 3 } { 2 2 } } >splay ] unit-test

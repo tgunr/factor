@@ -60,7 +60,7 @@ HELP: qualified-directory-files
 
 HELP: with-directory-files
 { $values { "path" "a pathname string" } { "quot" quotation } }
-{ $description "Calls the quotation with the directory file names on the stack and with the directory set as the " { $link current-directory } ".  Restores the current directory after the quotation is called." }
+{ $description "Calls the quotation with the directory file names on the stack and with the directory set as the " { $link current-directory } ". Restores the current directory after the quotation is called." }
 { $examples
     "Print all files in your home directory which are larger than a megabyte:"
     { $code
@@ -76,7 +76,7 @@ home [
 
 HELP: with-directory-entries
 { $values { "path" "a pathname string" } { "quot" quotation } }
-{ $description "Calls the quotation with the directory entries on the stack and with the directory set as the " { $link current-directory } ".  Restores the current directory after the quotation is called." } ;
+{ $description "Calls the quotation with the directory entries on the stack and with the directory set as the " { $link current-directory } ". Restores the current directory after the quotation is called." } ;
 
 HELP: delete-file
 { $values { "path" "a pathname string" } }
@@ -105,7 +105,13 @@ HELP: touch-file
 
 HELP: move-file
 { $values { "from" "a pathname string" } { "to" "a pathname string" } }
-{ $description "Moves or renames a file." }
+{ $description "Moves or renames a file. This operation is not guaranteed to be atomic. In particular, if you attempt to move a file across volumes, this will copy the file and then delete the original in a nontransactional manner." }
+{ $errors "Throws an error if the file does not exist or if the move operation fails." }
+{ $see-also move-file-atomically } ;
+
+HELP: move-file-atomically
+{ $values { "from" "a pathname string" } { "to" "a pathname string" } }
+{ $description "Moves or renames a file as an atomic operation." }
 { $errors "Throws an error if the file does not exist or if the move operation fails." } ;
 
 HELP: move-file-into

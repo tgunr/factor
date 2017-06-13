@@ -14,6 +14,8 @@ SYMBOL: sent-messages
 
 SYNTAX: -> scan-token dup remember-send suffix! \ send suffix! ;
 
+SYNTAX: ?-> scan-token dup remember-send suffix! \ ?send suffix! ;
+
 SYNTAX: SEL:
     scan-token
     [ remember-send ]
@@ -49,7 +51,9 @@ SYNTAX: IMPORT: scan-token [ ] import-objc-class ;
         "NSAutoreleasePool"
         "NSBitmapImageRep"
         "NSBundle"
+        "NSButton"
         "NSColorSpace"
+        "NSCustomTouchBarItem"
         "NSData"
         "NSDictionary"
         "NSError"
@@ -74,6 +78,8 @@ SYNTAX: IMPORT: scan-token [ ] import-objc-class ;
         "NSSavePanel"
         "NSScreen"
         "NSString"
+        "NSTouchBar"
+        "NSTouchBarItem"
         "NSView"
         "NSWindow"
         "NSWorkspace"

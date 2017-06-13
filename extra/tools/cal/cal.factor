@@ -1,10 +1,9 @@
 ! Copyright (C) 2016 John Benediktsson
 ! See http://factorcode.org/license.txt for BSD license
-
-USING: accessors calendar combinators command-line formatting
-grouping io kernel math.parser math.ranges namespaces sequences
-sequences.extras strings.tables ;
-
+USING: accessors calendar calendar.english combinators
+command-line formatting grouping io kernel math.parser
+math.ranges namespaces sequences sequences.extras strings.tables
+;
 IN: tools.cal
 
 <PRIVATE
@@ -16,11 +15,10 @@ IN: tools.cal
     42 "  " pad-tail ;
 
 : month-header ( timestamp -- str )
-    [ month-name ] [ year>> ] bi "%s %s" sprintf
-    20 CHAR: \s pad-center ;
+    "%B %Y" strftime 20 CHAR: \s pad-center ;
 
 : year-header ( timestamp -- str )
-    year>> "%s" sprintf 64 CHAR: \s pad-center ;
+    "%Y" strftime 64 CHAR: \s pad-center ;
 
 : month-rows ( timestamp -- rows )
     days 7 group day-abbreviations2 prefix format-table ;

@@ -6,6 +6,8 @@ IN: sets.tests
 
 { V{ 1 2 3 } } [ 3 V{ 1 2 } clone [ adjoin ] keep ] unit-test
 { V{ 1 2 } } [ 2 V{ 1 2 } clone [ adjoin ] keep ] unit-test
+{ t } [ 1 V{ } ?adjoin ] unit-test
+{ f } [ 1 V{ 1 } ?adjoin ] unit-test
 
 { t } [ 4 { 2 4 5 } in? ] unit-test
 { f } [ 1 { 2 4 5 } in? ] unit-test
@@ -13,6 +15,8 @@ IN: sets.tests
 
 { V{ 1 2 } } [ 3 V{ 1 2 } clone [ delete ] keep ] unit-test
 { V{ 2 } } [ 1 V{ 1 2 } clone [ delete ] keep ] unit-test
+{ t } [ 1 V{ 1 } ?delete ] unit-test
+{ f } [ 1 V{ } ?delete ] unit-test
 { 0 } [ 5 <bit-set> 0 over delete cardinality ] unit-test
 { 0 } [ 5 <bit-set> f over delete cardinality ] unit-test
 { 0 } [ 5 <bit-set> 3 over adjoin 3 over delete cardinality ] unit-test
@@ -113,8 +117,6 @@ IN: sets.tests
 [ { { 1 2 3 } { 4 5 6 } } [ [ sq ] map ] gather ] unit-test
 
 { H{ { 3 HS{ 1 2 } } } } [ H{ } clone 1 3 pick adjoin-at 2 3 pick adjoin-at ] unit-test
-
-{ H{ { 3 H{ { 1 1 } { 2 2 } } } } } [ H{ } clone 1 3 pick conjoin-at 2 3 pick conjoin-at ] unit-test
 
 TUPLE: null-set ;
 INSTANCE: null-set set

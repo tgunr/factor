@@ -1,5 +1,5 @@
 USING: kernel tools.test trees trees.avl math random sequences
-assocs accessors trees.avl.private trees.private ;
+assocs accessors trees.avl.private trees.private arrays ;
 IN: trees.avl.tests
 
 { "key1" 0 "key3" "key2" 0 } [
@@ -119,3 +119,11 @@ IN: trees.avl.tests
 { f } [ test-tree 9 over delete-at 9 of ] unit-test
 { "replaced seven" } [ test-tree 9 over delete-at 7 of ] unit-test
 { "nine" } [ test-tree 7 over delete-at 4 over delete-at 9 of ] unit-test
+
+! test assoc-size
+{ 3 } [ test-tree assoc-size ] unit-test
+{ 2 } [ test-tree 9 over delete-at assoc-size ] unit-test
+
+! test that converting from a balanced tree doesn't reshape
+! the tree
+{ t } [ 10 <iota> >array reverse dup zip >avl dup >avl = ] unit-test

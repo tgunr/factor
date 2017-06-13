@@ -238,16 +238,18 @@ TUPLE: simd-test-failure
     word '[ _ execute ] ;
 
 : remove-float-words ( alist -- alist' )
-    { distance vsqrt n/v v/n v/ normalize } unique assoc-diff ;
+    { distance vsqrt n/v v/n v/ normalize }
+    '[ drop _ member? ] assoc-reject ;
 
 : remove-integer-words ( alist -- alist' )
-    { vlshift vrshift v*high v*hs+ } unique assoc-diff ;
+    { vlshift vrshift v*high v*hs+ }
+    '[ drop _ member? ] assoc-reject ;
 
 : boolean-ops ( -- words )
     { vand vandn vor vxor vnot vcount } ;
 
 : remove-boolean-words ( alist -- alist' )
-    boolean-ops unique assoc-diff ;
+    boolean-ops '[ drop _ member? ] assoc-reject ;
 
 : ops-to-check ( elt-class -- alist )
     [ vector-words >alist ] dip
@@ -467,7 +469,7 @@ simd-classes [
     [ [ { } ] ] dip
     [ new length shuffles-for ] keep
     '[
-        _ [ [ _ new [ length iota ] keep like 1quotation ] dip '[ _ vshuffle ] ]
+        _ [ [ _ new [ length <iota> ] keep like 1quotation ] dip '[ _ vshuffle ] ]
         [ = ] check-optimizer
     ] unit-test
 ] each
@@ -478,7 +480,7 @@ simd-classes [
     '[
         _ [ [
             _ new
-            [ [ length iota ] keep like ]
+            [ [ length <iota> ] keep like ]
             [ [ length dup dup + [a,b) ] keep like ] bi [ ] 2sequence
         ] dip '[ _ vshuffle2-elements ] ]
         [ = ] check-optimizer
@@ -565,7 +567,7 @@ TUPLE: inconsistent-vector-test bool branch ;
 
 ! Test element access -- it should box bignums for int-4 on x86
 : test-accesses ( seq -- failures )
-    [ length iota dup [ >bignum ] map append ] keep
+    [ length <iota> dup [ >bignum ] map append ] keep
     '[ [ _ 1quotation ] dip '[ _ swap nth ] ] [ = ] check-optimizer ; inline
 
 { { } } [ float-4{ 1.0 2.0 3.0 4.0 } test-accesses ] unit-test
@@ -582,7 +584,7 @@ TUPLE: inconsistent-vector-test bool branch ;
 
 "== Checking broadcast" print
 : test-broadcast ( seq -- failures )
-    [ length iota >array ] keep
+    [ length <iota> >array ] keep
     '[ [ _ 1quotation ] dip '[ _ vbroadcast ] ] [ = ] check-optimizer ;
 
 { { } } [ float-4{ 1.0 2.0 3.0 4.0 } test-broadcast ] unit-test

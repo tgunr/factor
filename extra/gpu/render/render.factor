@@ -139,7 +139,7 @@ ERROR: invalid-uniform-type uniform ;
 
 GENERIC: render-vertex-indexes ( primitive-mode vertex-indexes -- )
 
-GENERIC# render-vertex-indexes-instanced 1 ( primitive-mode vertex-indexes instances -- )
+GENERIC#: render-vertex-indexes-instanced 1 ( primitive-mode vertex-indexes instances -- )
 
 GENERIC: gl-array-element-type ( array -- type )
 M: uchar-array  gl-array-element-type drop GL_UNSIGNED_BYTE  ; inline
@@ -239,7 +239,7 @@ DEFER: uniform-texture-accessors
         [ uniform-tuple-texture-accessors ] if
     ] [
         2dup swap empty? not and [
-            iota [
+            <iota> [
                 [ swap nth ] swap prefix
                 over length 1 = [ swap first append ] [ swap suffix ] if
             ] with map
@@ -264,14 +264,14 @@ GENERIC: >uniform-int-array ( sequence -- c-array )
 GENERIC: >uniform-uint-array ( sequence -- c-array )
 GENERIC: >uniform-float-array  ( sequence -- c-array )
 
-GENERIC# >uniform-bvec-array 1 ( sequence dim -- c-array )
-GENERIC# >uniform-ivec-array 1 ( sequence dim -- c-array )
-GENERIC# >uniform-uvec-array 1 ( sequence dim -- c-array )
-GENERIC# >uniform-vec-array  1 ( sequence dim -- c-array )
+GENERIC#: >uniform-bvec-array 1 ( sequence dim -- c-array )
+GENERIC#: >uniform-ivec-array 1 ( sequence dim -- c-array )
+GENERIC#: >uniform-uvec-array 1 ( sequence dim -- c-array )
+GENERIC#: >uniform-vec-array  1 ( sequence dim -- c-array )
 
-GENERIC# >uniform-matrix 2 ( sequence cols rows -- c-array )
+GENERIC#: >uniform-matrix 2 ( sequence cols rows -- c-array )
 
-GENERIC# >uniform-matrix-array 2 ( sequence cols rows -- c-array )
+GENERIC#: >uniform-matrix-array 2 ( sequence cols rows -- c-array )
 
 GENERIC: bind-uniform-bvec2 ( index sequence -- )
 GENERIC: bind-uniform-bvec3 ( index sequence -- )
@@ -398,7 +398,7 @@ DEFER: [bind-uniform-tuple]
         { mat4x3-uniform { [ dim 0 ] dip 4 3 >uniform-matrix-array glUniformMatrix4x3fv } }
         { mat4-uniform   { [ dim 0 ] dip 4 4 >uniform-matrix-array glUniformMatrix4fv   } }
 
-        { texture-uniform { drop dim dup iota [ texture-unit + ] int-array{ } map-as glUniform1iv } }
+        { texture-uniform { drop dim dup <iota> [ texture-unit + ] int-array{ } map-as glUniform1iv } }
     } at [ uniform invalid-uniform-type ] unless* >quotation :> value-quot
 
     type uniform-type-texture-units dim * texture-unit +
@@ -450,7 +450,7 @@ DEFER: [bind-uniform-tuple]
 :: [bind-uniform-struct] ( value>>-quot type texture-unit name dim -- texture-unit' quot )
     dim
     [
-        iota
+        <iota>
         [ [ [ swap nth ] swap prefix ] map ]
         [ [ number>string name "[" append "]." surround ] map ] bi
     ] [

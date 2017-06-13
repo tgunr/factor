@@ -1,11 +1,10 @@
 USING: accessors alien assocs compiler.cfg compiler.cfg.comparisons
 compiler.cfg.def-use compiler.cfg.instructions compiler.cfg.liveness
 compiler.cfg.registers compiler.cfg.ssa.destruction.leaders
-compiler.cfg.utilities compiler.test cpu.architecture
+compiler.cfg.utilities compiler.test compiler.utilities cpu.architecture
 cpu.x86.assembler.operands kernel math namespaces sequences system
 tools.test ;
 IN: compiler.cfg.liveness.tests
-QUALIFIED: sets
 
 ! compute-edge-live-in
 { H{ } } [
@@ -71,7 +70,7 @@ QUALIFIED: sets
         { 124 double-2-rep }
         { 125 tagged-rep }
     } representations set
-    { 123 124 125 } sets:unique gc-roots
+    { 123 124 125 } unique gc-roots
 ] unit-test
 
 ! gen-uses
@@ -92,7 +91,7 @@ QUALIFIED: sets
 ! liveness-step
 { 3 } [
     init-liveness
-    3 iota [ <basic-block> swap >>number ] map <basic-block>
+    3 <iota> [ <basic-block> swap >>number ] map <basic-block>
     [ connect-Nto1-bbs ] keep liveness-step length
 ] unit-test
 

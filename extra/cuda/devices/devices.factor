@@ -14,7 +14,7 @@ IN: cuda.devices
     [ { CUdevice } ] dip '[ _ cuDeviceGet cuda-error ] with-out-parameters ;
 
 : enumerate-cuda-devices ( -- devices )
-    #cuda-devices iota [ n>cuda-device ] map ;
+    #cuda-devices <iota> [ n>cuda-device ] map ;
 
 : with-each-cuda-device ( quot -- )
     [ enumerate-cuda-devices ] dip '[ 0 _ with-cuda-context ] each ; inline
@@ -61,10 +61,14 @@ IN: cuda.devices
         ]
     } cleave ;
 
+: cuda-devices. ( -- )
+    init-cuda
+    enumerate-cuda-devices [ cuda-device. ] each ;
+
 : cuda. ( -- )
     init-cuda
     "CUDA Version: " write cuda-version number>string print nl
-    #cuda-devices iota [ nl ] [ cuda-device. ] interleave ;
+    #cuda-devices <iota> [ nl ] [ cuda-device. ] interleave ;
 
 : up/i ( x y -- z )
     [ 1 - + ] keep /i ; inline

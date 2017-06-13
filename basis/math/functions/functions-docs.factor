@@ -101,8 +101,8 @@ HELP: align
 { $notes "This word will give an incorrect result if " { $snippet "w" } " is not a power of 2." } ;
 
 HELP: e^
-{ $values { "x" number } { "y" number } }
-{ $description "Exponential function, " { $snippet "y=e^x" } "." } ;
+{ $values { "x" number } { "e^x" number } }
+{ $description "Exponential function, raises " { $link e } " to the power of " { $snippet "x" } "." } ;
 
 HELP: frexp
 { $values { "x" number } { "y" float } { "exp" integer } }
@@ -261,7 +261,7 @@ HELP: absq
 { $description "Computes the squared absolute value of a number. For complex numbers this is marginally more efficient than " { $link abs } "." } ;
 
 HELP: ^
-{ $values { "x" number } { "y" number } { "z" number } }
+{ $values { "x" number } { "y" number } { "x^y" number } }
 { $description "Raises " { $snippet "x" } " to the power of " { $snippet "y" } ". If " { $snippet "y" } " is an integer the answer is computed exactly, otherwise a floating point approximation is used." }
 { $errors "Throws an error if " { $snippet "x" } " and " { $snippet "y" } " are both integer 0." } ;
 
@@ -270,7 +270,7 @@ HELP: nth-root
 { $description "Calculates the nth root of a number, such that " { $snippet "y^n=x" } "." } ;
 
 HELP: 10^
-{ $values { "x" number } { "y" number } }
+{ $values { "x" number } { "10^x" number } }
 { $description "Raises 10 to the power of " { $snippet "x" } ". If " { $snippet "x" } " is an integer the answer is computed exactly, otherwise a floating point approximation is used." } ;
 
 HELP: divisor?
@@ -325,6 +325,24 @@ HELP: round
     { $example "USING: math.functions prettyprint ;" "4.4 round ." "4.0" }
 } ;
 
+HELP: round-to-even
+{ $values { "x" real } { "y" "a whole real number" } }
+{ $description "Outputs the whole number closest to " { $snippet "x" } ", rounding out at half, breaking ties towards even numbers. This is also known as banker's rounding or unbiased rounding." }
+{ $notes "The result is not necessarily an integer." }
+{ $examples
+    { $example "USING: math.functions prettyprint ;" "0.5 round-to-even ." "0.0" }
+    { $example "USING: math.functions prettyprint ;" "1.5 round-to-even ." "2.0" }
+} ;
+
+HELP: round-to-odd
+{ $values { "x" real } { "y" "a whole real number" } }
+{ $description "Outputs the whole number closest to " { $snippet "x" } ", rounding out at half, breaking ties towards odd numbers." }
+{ $notes "The result is not necessarily an integer." }
+{ $examples
+    { $example "USING: math.functions prettyprint ;" "0.5 round-to-odd ." "1.0" }
+    { $example "USING: math.functions prettyprint ;" "1.5 round-to-odd ." "1.0" }
+} ;
+
 HELP: roots
 { $values { "x" number } { "t" integer } { "seq" sequence } }
 { $description "Outputs the " { $snippet "t" } " roots of a number " { $snippet "x" } "." }
@@ -336,7 +354,7 @@ HELP: sigmoid
 
 HELP: signum
 { $values { "x" number } { "y" number } }
-{ $description "Calculates the signum value.  For a real number, " { $snippet "x" } ", this is its sign (-1, 0, or 1).  For a complex number, " { $snippet "x" } ", this is the point on the unit circle of the complex plane that is nearest to " { $snippet "x" } "." } ;
+{ $description "Calculates the signum value. For a real number, " { $snippet "x" } ", this is its sign (-1, 0, or 1). For a complex number, " { $snippet "x" } ", this is the point on the unit circle of the complex plane that is nearest to " { $snippet "x" } "." } ;
 
 HELP: copysign
 { $values { "x" number } { "y" number } { "x'" number } }

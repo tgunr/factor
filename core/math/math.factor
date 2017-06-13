@@ -119,9 +119,9 @@ MATH: /mod ( x y -- z w ) foldable
 MATH: bitand ( x y -- z ) foldable
 MATH: bitor  ( x y -- z ) foldable
 MATH: bitxor ( x y -- z ) foldable
-GENERIC# shift 1 ( x n -- y ) foldable
+GENERIC#: shift 1 ( x n -- y ) foldable
 GENERIC: bitnot ( x -- y ) foldable
-GENERIC# bit? 1 ( x n -- ? ) foldable
+GENERIC#: bit? 1 ( x n -- ? ) foldable
 
 GENERIC: abs ( x -- y ) foldable
 
@@ -152,9 +152,9 @@ GENERIC: neg? ( x -- ? )
 : if-zero ( ..a n quot1: ( ..a -- ..b ) quot2: ( ..a n -- ..b ) -- ..b )
     [ dup zero? ] [ [ drop ] prepose ] [ ] tri* if ; inline
 
-: when-zero ( ..a n quot: ( ..a -- ..b ) -- ..b ) [ ] if-zero ; inline
+: when-zero ( ... n quot: ( ... -- ... x ) -- ... x ) [ ] if-zero ; inline
 
-: unless-zero ( ..a n quot: ( ..a n -- ..b ) -- ..b ) [ ] swap if-zero ; inline
+: unless-zero ( ... n quot: ( ... n -- ... ) -- ... ) [ ] swap if-zero ; inline
 
 UNION: integer fixnum bignum ;
 

@@ -54,7 +54,7 @@ ARTICLE: "runtime-cli-args" "Command line switches for the VM"
     { { $snippet "-codeheap=" { $emphasis "n" } } "Code heap size, megabytes" }
     { { $snippet "-pic=" { $emphasis "n" } } "Maximum inline cache size. Setting of 0 disables inline caching, >= 1 enables polymorphic inline caching" }
     { { $snippet "-fep" } "enter low-level debbugger, aka fep mode immediately" }
-    { { $snippet "-nosignals" } "turn off OS signal handling" }
+    { { $snippet "-no-signals" } "turn off OS signal handling" }
     { { $snippet "-console" } "open console if possible" }
 }
 "If an " { $snippet "-i=" } " switch is not present, the default image file is used, which is usually a file named " { $snippet "factor.image" } " in the same directory as the Factor executable." ;
@@ -112,7 +112,7 @@ $nl
 ARTICLE: ".factor-roots" "Additional vocabulary roots file"
 "The vocabulary roots file is named " { $snippet ".factor-roots" } ". If it exists, it is loaded every time Factor starts. It contains a newline-separated list of " { $link "vocabs.roots" } "."
 $nl
-"A word to run this file from an existing Factor session:"
+"A word to load this file from an existing Factor session:"
 { $subsections load-vocab-roots } ;
 
 ARTICLE: "rc-files" "Running code on startup"
@@ -166,6 +166,6 @@ $nl
 HELP: run-script
 { $values { "file" "a pathname string" } }
 { $description "Parses the Factor source code stored in a file and runs it. The initial vocabulary search path is used. If the source file contains a " { $link POSTPONE: MAIN: } " declaration, the main entry point of the file will be also be executed. Loading messages will be suppressed." }
-{ $errors "Throws an error if loading the file fails, there input is malformed, or if a runtime error occurs while calling the parsed quotation or executing the main entry point." }  ;
+{ $errors "Throws an error if loading the file fails, there input is malformed, or if a runtime error occurs while calling the parsed quotation or executing the main entry point." } ;
 
 ABOUT: "command-line"

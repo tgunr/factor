@@ -51,7 +51,7 @@ M: sequence shorten 2dup length < [ set-length ] [ 2drop ] if ; inline
 
 ERROR: bounds-error index seq ;
 
-GENERIC# bounds-check? 1 ( n seq -- ? )
+GENERIC#: bounds-check? 1 ( n seq -- ? )
 
 M: integer bounds-check? ( n seq -- ? )
     dupd length < [ 0 >= ] [ drop f ] if ; inline
@@ -102,18 +102,18 @@ M: f like drop [ f ] when-empty ; inline
 INSTANCE: f immutable-sequence
 
 ! Integer sequences
-TUPLE: iota-tuple { n integer read-only } ;
+TUPLE: iota { n integer read-only } ;
 
 ERROR: non-negative-integer-expected n ;
 
-: iota ( n -- iota )
+: <iota> ( n -- iota )
     dup 0 < [ non-negative-integer-expected ] when
-    iota-tuple boa ; inline
+    iota boa ; inline
 
-M: iota-tuple length n>> ; inline
-M: iota-tuple nth-unsafe drop ; inline
+M: iota length n>> ; inline
+M: iota nth-unsafe drop ; inline
 
-INSTANCE: iota-tuple immutable-sequence
+INSTANCE: iota immutable-sequence
 
 <PRIVATE
 
@@ -608,7 +608,7 @@ PRIVATE>
     (each-index) each-integer ; inline
 
 : map-index-as ( ... seq quot: ( ... elt index -- ... newelt ) exemplar -- ... newseq )
-    [ dup length iota ] 2dip 2map-as ; inline
+    [ dup length <iota> ] 2dip 2map-as ; inline
 
 : map-index ( ... seq quot: ( ... elt index -- ... newelt ) -- ... newseq )
     { } map-index-as ; inline
@@ -635,16 +635,10 @@ PRIVATE>
 : last-index-from ( obj i seq -- n )
     rot [ = ] curry find-last-from drop ;
 
-<PRIVATE
-
-: (indices) ( elt i obj accum -- )
-    [ swap [ = ] dip ] dip [ push ] 2curry when ; inline
-
-PRIVATE>
-
 : indices ( obj seq -- indices )
-    swap V{ } clone
-    [ [ (indices) ] 2curry each-index ] keep ;
+    swap [ = ] curry [ swap ] prepose V{ } clone [
+        [ push ] curry [ [ drop ] if ] curry compose each-index
+    ] keep ;
 
 <PRIVATE
 
@@ -730,7 +724,7 @@ M: slice equal? over slice? [ sequence= ] [ 2drop f ] if ;
 : (filter!) ( ... quot: ( ... elt -- ... ? ) store scan seq -- ... )
     2dup length < [
         [ move-unsafe ] 3keep
-        [ nth-unsafe pick call [ 1 + ] when ] 2keep
+        [ nth-unsafe -rot [ [ call ] keep ] dip rot [ 1 + ] when ] 2keep
         [ 1 + ] dip
         (filter!)
     ] [ nip set-length drop ] if ; inline recursive
@@ -978,20 +972,20 @@ PRIVATE>
 
 <PRIVATE
 
-: (start) ( subseq seq n length -- subseq seq ? )
+: (subseq-start-from) ( subseq seq n length -- subseq seq ? )
     [
         [ 3dup ] dip [ + swap nth-unsafe ] keep rot nth-unsafe =
     ] all-integers? nip ; inline
 
 PRIVATE>
 
-: start* ( subseq seq n -- i )
+: subseq-start-from ( subseq seq n -- i )
     pick length [ pick length swap - 1 + ] keep
-    [ (start) ] curry (find-integer) 2nip ;
+    [ (subseq-start-from) ] curry (find-integer) 2nip ;
 
-: start ( subseq seq -- i ) 0 start* ; inline
+: subseq-start ( subseq seq -- i ) 0 subseq-start-from ; inline
 
-: subseq? ( subseq seq -- ? ) start >boolean ;
+: subseq? ( subseq seq -- ? ) subseq-start >boolean ;
 
 : drop-prefix ( seq1 seq2 -- slice1 slice2 )
     2dup mismatch [ 2dup min-length ] unless*
@@ -1017,8 +1011,7 @@ PRIVATE>
 <PRIVATE
 
 : (map-find) ( seq quot find-quot -- result elt )
-    [ [ f ] 2dip [ [ nip ] dip call dup ] curry ] dip call
-    [ [ drop f ] unless ] dip ; inline
+    [ [ f ] 2dip [ nip ] prepose [ dup ] compose ] dip call nip ; inline
 
 PRIVATE>
 
@@ -1063,7 +1056,7 @@ PRIVATE>
 
 GENERIC: sum ( seq -- n )
 M: object sum 0 [ + ] binary-reduce ; inline
-M: iota-tuple sum length dup 1 - * 2/ ; inline
+M: iota sum length dup 1 - * 2/ ; inline
 M: repetition sum [ elt>> ] [ length>> ] bi * ; inline
 
 : product ( seq -- n ) 1 [ * ] binary-reduce ;
@@ -1118,7 +1111,7 @@ PRIVATE>
 : generic-flip ( matrix -- newmatrix )
     [
         [ first-unsafe length 1 ] keep
-        [ length min ] setup-each (each-integer) iota
+        [ length min ] setup-each (each-integer) <iota>
     ] keep
     [ [ nth-unsafe ] with { } map-as ] curry { } map-as ; inline
 
@@ -1131,7 +1124,7 @@ USE: arrays
     { array } declare
     [
         [ first-unsafe array-length 1 ] keep
-        [ array-length min ] setup-each (each-integer) iota
+        [ array-length min ] setup-each (each-integer) <iota>
     ] keep
     [ [ { array } declare array-nth ] with { } map-as ] curry { } map-as ;
 

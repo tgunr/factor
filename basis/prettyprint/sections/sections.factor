@@ -42,7 +42,8 @@ M: maybe vocabulary-name
 : line-limit? ( -- ? )
     line-limit get dup [ pprinter get line-count>> <= ] when ;
 
-: do-indent ( -- ) pprinter get indent>> CHAR: \s <string> write ;
+: do-indent ( -- )
+    pprinter get indent>> [ CHAR: \s <string> write ] unless-zero ;
 
 : fresh-line ( n -- )
     pprinter get 2dup last-newline>> = [
@@ -325,7 +326,7 @@ SYMBOL: next
 
 : group-flow ( seq -- newseq )
     [
-        dup length iota [
+        dup length <iota> [
             2dup 1 - swap ?nth prev namespaces:set
             2dup 1 + swap ?nth next namespaces:set
             swap nth dup split-before dup , split-after

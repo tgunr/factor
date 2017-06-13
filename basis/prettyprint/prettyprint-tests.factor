@@ -15,9 +15,9 @@ IN: prettyprint.tests
 { "0x1000" } [ 16 number-base [ 4096 unparse ] with-variable ] unit-test
 { "1.0" } [ 1.0 unparse ] unit-test
 { "8.0" } [ 8.0 unparse ] unit-test
-[ 2 number-base [ 8.0 unparse ] with-variable ] [ unsupported-number-base? ] must-fail-with
-[ 8 number-base [ 8.0 unparse ] with-variable ] [ unsupported-number-base? ] must-fail-with
-{ "0x1.0p3" } [ 16 number-base [ 8.0 unparse ] with-variable ] unit-test
+{ "0b1.001p4" } [ 2 number-base [ 18.0 unparse ] with-variable ] unit-test
+{ "0o1.1p4" } [ 8 number-base [ 18.0 unparse ] with-variable ] unit-test
+{ "0x1.2p4" } [ 16 number-base [ 18.0 unparse ] with-variable ] unit-test
 { "1267650600228229401496703205376" } [ 1 100 shift unparse ] unit-test
 
 { "+" } [ \ + unparse ] unit-test
@@ -457,12 +457,12 @@ TUPLE: fo { a intersection{ integer fixnum } initial: 0 } ;
 ] unit-test
 
 { "{ 0 1 2 3 4 }" } [
-    [ 5 length-limit [ 5 iota >array pprint ] with-variable ]
+    [ 5 length-limit [ 5 <iota> >array pprint ] with-variable ]
     with-string-writer
 ] unit-test
 
 { "{ 0 1 2 3 ~2 more~ }" } [
-    [ 5 length-limit [ 6 iota >array pprint ] with-variable ]
+    [ 5 length-limit [ 6 <iota> >array pprint ] with-variable ]
     with-string-writer
 ] unit-test
 

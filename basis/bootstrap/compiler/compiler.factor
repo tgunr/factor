@@ -48,7 +48,7 @@ gc
 
         array? hashtable? vector?
         tuple? sbuf? tombstone?
-        curry? compose? callable?
+        curried? composed? callable?
         quotation?
 
         curry compose uncurry
@@ -89,7 +89,7 @@ gc
     "." write flush
 
     {
-        member-eq? split harvest sift cut cut-slice start index clone
+        member-eq? split harvest sift cut cut-slice subseq-start index clone
         set-at reverse push-all class-of number>string string>number
         like clone-like
     } compile-unoptimized

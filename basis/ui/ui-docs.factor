@@ -46,7 +46,7 @@ HELP: fullscreen?
 { fullscreen? set-fullscreen } related-words
 
 HELP: find-window
-{ $values { "quot" { $quotation ( world -- ? ) } } { "world" { $maybe world } } }
+{ $values { "quot" { $quotation ( world -- ? ) } } { "world/f" { $maybe world } } }
 { $description "Finds a native window such that the gadget passed to " { $link open-window } " satisfies the quotation, outputting " { $link f } " if no such gadget could be found. The front-most native window is checked first." } ;
 
 HELP: register-window
@@ -291,7 +291,7 @@ ARTICLE: "new-gadgets" "Implementing new gadgets"
 $nl
 "Bare gadgets can be constructed directly, which is useful if all you need is a custom appearance with no further behavior (see " { $link "ui-pen-protocol" } "):"
 { $subsections <gadget> }
-"New gadgets are defined as subclasses of an existing gadget type, perhaps even " { $link gadget } " itself. Direct subclasses of " { $link gadget } " can be constructed using " { $link new } ", however some subclasses may define their own parametrized constructors (see " { $link "parametrized-constructors" } ")."
+"New gadgets are defined as subclasses of an existing gadget type, perhaps even " { $link gadget } " itself. Direct subclasses of " { $link gadget } " can be constructed using " { $link new } ", however some subclasses may define their own parameterized constructors (see " { $link "parameterized-constructors" } ")."
 $nl
 "Further topics:"
 { $subsections

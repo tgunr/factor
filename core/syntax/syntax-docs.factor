@@ -412,7 +412,7 @@ $nl
 HELP: W{
 { $syntax "W{ object }" }
 { $values { "object" object } }
-{ $description "Marks the beginning of a literal wrapper. Literal wrappers are terminated by " { $link POSTPONE: } } "." }  ;
+{ $description "Marks the beginning of a literal wrapper. Literal wrappers are terminated by " { $link POSTPONE: } } "." } ;
 
 HELP: POSTPONE:
 { $syntax "POSTPONE: word" }
@@ -631,7 +631,7 @@ HELP: P"
 HELP: (
 { $syntax "( inputs -- outputs )" }
 { $values { "inputs" "a list of tokens" } { "outputs" "a list of tokens" } }
-{ $description "Literal stack effect syntax.  Also used by syntax words (such as " { $link POSTPONE: : } "), typically declaring the stack effect of the word definition which follows." }
+{ $description "Literal stack effect syntax. Also used by syntax words (such as " { $link POSTPONE: : } "), typically declaring the stack effect of the word definition which follows." }
 { $notes "Useful for meta-programming with " { $link define-declared } "." }
 { $examples
     { $example
@@ -669,14 +669,14 @@ HELP: GENERIC:
 { $values { "word" "a new word to define" } }
 { $description "Defines a new generic word in the current vocabulary. Initially, it contains no methods, and thus will throw a " { $link no-method } " error when called." } ;
 
-HELP: GENERIC#
-{ $syntax "GENERIC# word n ( stack -- effect )" }
+HELP: GENERIC#:
+{ $syntax "GENERIC#: word n ( stack -- effect )" }
 { $values { "word" "a new word to define" } { "n" "the stack position to dispatch on" } }
 { $description "Defines a new generic word which dispatches on the " { $snippet "n" } "th most element from the top of the stack in the current vocabulary. Initially, it contains no methods, and thus will throw a " { $link no-method } " error when called." }
 { $notes
     "The following two definitions are equivalent:"
     { $code "GENERIC: foo ( obj -- )" }
-    { $code "GENERIC# foo 0 ( obj -- )" }
+    { $code "GENERIC#: foo 0 ( obj -- )" }
 } ;
 
 HELP: MATH:

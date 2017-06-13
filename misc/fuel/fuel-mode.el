@@ -131,8 +131,7 @@ With prefix argument, ask for the file name."
 (defun fuel-load-usings ()
   "Loads all vocabularies in the current buffer's USING: from.
 Useful to activate autodoc help messages in a vocabulary not yet
-loaded. See documentation for `fuel-autodoc-eval-using-form-p'
-for details."
+loaded."
   (interactive)
   (message "Loading all vocabularies in USING: form ...")
   (let ((err (fuel-eval--retort-error

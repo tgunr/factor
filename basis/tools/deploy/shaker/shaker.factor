@@ -21,6 +21,13 @@ IN: tools.deploy.shaker
         command-line set-global
     ] "command-line" startup-hooks get set-at ;
 
+: set-stop-after-last-window? ( -- )
+    get-namestack [ "stop-after-last-window?" swap key? ] any? [
+        "ui-stop-after-last-window?" "ui.backend" lookup-word [
+            "stop-after-last-window?" get swap set-global
+        ] when*
+    ] when ;
+
 : strip-startup-hooks ( -- )
     "Stripping startup hooks" show
     {
@@ -234,10 +241,12 @@ IN: tools.deploy.shaker
     "Clearing memoized word caches" show
     [ memoized? ] instances [ reset-memoized ] each ;
 
-: compiler-classes ( -- seq )
-    { "compiler" "stack-checker" }
-    [ loaded-child-vocab-names [ vocab-words ] map concat [ class? ] filter ]
-    map concat unique ;
+: compiler-classes ( -- set )
+    { "compiler" "stack-checker" } [
+        loaded-child-vocab-names
+        [ vocab-words ] map concat
+        [ class? ] filter
+    ] map concat fast-set ;
 
 : prune-decision-tree ( tree classes -- )
     [ tuple class>type ] 2dip '[
@@ -246,7 +255,7 @@ IN: tools.deploy.shaker
                 dup array? [
                     [
                         2 group
-                        [ drop _ key? ] assoc-reject
+                        [ drop _ in? ] assoc-reject
                         concat
                     ] map
                 ] when
@@ -630,6 +639,7 @@ SYMBOL: deploy-vocab
                     "Vocabulary has no MAIN: word." print flush 1 exit
                 ] unless
             ] tri
+            set-stop-after-last-window?
             strip
             "Saving final image" show
             save-image-and-exit

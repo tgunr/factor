@@ -94,7 +94,7 @@ HELP: thread
           " - whether the thread is runnable. Initially it is, " { $link f } "."
       }
       {
-          { $snippet "status" }
+          { $snippet "state" }
           " - a " { $link string } " indicating what the thread is waiting for, or " { $link f } ". This slot is intended to be used for debugging purposes."
       }
       {
@@ -167,7 +167,7 @@ HELP: suspend
 { $values { "state" string } { "obj" object } }
 { $description "Suspends the current thread. Control yields to the next runnable thread and the current thread does not execute again until it is resumed, and so the caller of this word must arrange for another thread to later resume the suspended thread with a call to " { $link resume } " or " { $link resume-with } "."
 $nl
-"The status string is for debugging purposes; see " { $link "tools.threads" } "." } ;
+"The state string is for debugging purposes; see " { $link "tools.threads" } "." } ;
 
 HELP: spawn
 { $values { "quot" quotation } { "name" string } { "thread" thread } }
@@ -184,7 +184,7 @@ $nl
     ! Don't use $example below: it won't pass help-lint.
     { $code
       "USING: math.parser threads ;"
-      "[ 10 iota [ number>string write nl yield ] each ] \"test\" spawn drop"
+      "[ 10 <iota> [ number>string write nl yield ] each ] \"test\" spawn drop"
       "10 [ yield ] times"
       "0"
       "1"

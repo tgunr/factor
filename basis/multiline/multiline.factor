@@ -42,7 +42,7 @@ SYNTAX: STRING:
 :: (scan-multiline-string) ( i end lexer -- j )
     lexer line-text>> :> text
     lexer still-parsing? [
-        end text i start* [| j |
+        end text i subseq-start-from [| j |
             i j text subseq % j end length +
         ] [
             text i short tail % CHAR: \n ,
@@ -91,3 +91,19 @@ SYNTAX: HEREDOC:
         [ next-line ]
         [ parse-til-line-begins ]
     } cleave suffix! ;
+
+SYNTAX: [[ "]]" parse-multiline-string suffix! ;
+SYNTAX: [=[ "]=]" parse-multiline-string suffix! ;
+SYNTAX: [==[ "]==]" parse-multiline-string suffix! ;
+SYNTAX: [===[ "]===]" parse-multiline-string suffix! ;
+SYNTAX: [====[ "]====]" parse-multiline-string suffix! ;
+SYNTAX: [=====[ "]=====]" parse-multiline-string suffix! ;
+SYNTAX: [======[ "]======]" parse-multiline-string suffix! ;
+
+SYNTAX: ![[ "]]" parse-multiline-string drop ;
+SYNTAX: ![=[ "]=]" parse-multiline-string drop ;
+SYNTAX: ![==[ "]==]" parse-multiline-string drop ;
+SYNTAX: ![===[ "]===]" parse-multiline-string drop ;
+SYNTAX: ![====[ "]====]" parse-multiline-string drop ;
+SYNTAX: ![=====[ "]=====]" parse-multiline-string drop ;
+SYNTAX: ![======[ "]======]" parse-multiline-string drop ;

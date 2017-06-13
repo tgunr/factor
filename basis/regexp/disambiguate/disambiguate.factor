@@ -11,7 +11,7 @@ TUPLE: parts in out ;
     zip [ first ] partition [ values ] bi@ parts boa ;
 
 : powerset-partition ( sequence -- partitions )
-    [ length [ 2^ iota ] keep ] keep '[ _ <bits> _ make-partition ] map rest ;
+    [ length [ 2^ <iota> ] keep ] keep '[ _ <bits> _ make-partition ] map rest ;
 
 : partition>class ( parts -- class )
     [ out>> [ <not-class> ] map ]
@@ -27,7 +27,7 @@ TUPLE: parts in out ;
     [ nip in>> ] [ out>> append ] 2bi parts boa ;
 
 : intersection ( seq -- elts/f )
-    [ f ] [ unclip [ intersect ] reduce ] if-empty ;
+    [ f ] [ [ ] [ intersect ] map-reduce ] if-empty ;
 
 : meaningful-integers ( partition table -- integers )
     [ [ in>> ] [ out>> ] bi ] dip

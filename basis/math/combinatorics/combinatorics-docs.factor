@@ -73,7 +73,7 @@ HELP: combination
 { $notes "Combinations are 0-based and a bounds error will be thrown if " { $snippet "m" } " is larger than " { $snippet "seq length k nCk" } "." }
 { $examples
     { $example "USING: math.combinatorics sequences prettyprint ;"
-        "6 7 iota 4 combination ." "{ 0 1 3 6 }" }
+        "6 7 <iota> 4 combination ." "{ 0 1 3 6 }" }
     { $example "USING: math.combinatorics prettyprint ;"
         "0 { \"a\" \"b\" \"c\" \"d\" } 2 combination ." "{ \"a\" \"b\" }" }
 } ;
@@ -105,8 +105,8 @@ HELP: each-combination
 <PRIVATE
 HELP: factoradic
 { $values { "n" integer } { "factoradic" sequence } }
-{ $description "Converts a positive integer " { $snippet "n" } " to factoradic form.  The factoradic of an integer is its representation based on a mixed radix numerical system that corresponds to the values of " { $snippet "n" } " factorial." }
-{ $examples { $example "USING: math.combinatorics.private  prettyprint ;" "859 factoradic ." "{ 1 1 0 3 0 1 0 }" } } ;
+{ $description "Converts a positive integer " { $snippet "n" } " to factoradic form. The factoradic of an integer is its representation based on a mixed radix numerical system that corresponds to the values of " { $snippet "n" } " factorial." }
+{ $examples { $example "USING: math.combinatorics.private prettyprint ;" "859 factoradic ." "{ 1 1 0 3 0 1 0 }" } } ;
 
 HELP: >permutation
 { $values { "factoradic" sequence } { "permutation" sequence } }

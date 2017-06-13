@@ -7,7 +7,7 @@ tools.test ;
 IN: math.extras.test
 
 { { 1 -1/2 1/6 0 -1/30 0 1/42 0 -1/30 0 } }
-[ 10 iota [ bernoulli ] map ] unit-test
+[ 10 <iota> [ bernoulli ] map ] unit-test
 
 { -1 } [ -1 7 jacobi ] unit-test
 { 0 } [ 3 3 jacobi ] unit-test
@@ -98,20 +98,6 @@ IN: math.extras.test
 { 3 } [ { 1 2 3 1 2 3 1 2 3 3 } majority ] unit-test
 { CHAR: C } [ "AAACCBBCCCBCC" majority ] unit-test
 
-{ -5 } [ -4-3/5 round-to-even ] unit-test
-{ -4 } [ -4-1/2 round-to-even ] unit-test
-{ -4 } [ -4-2/5 round-to-even ] unit-test
-{ 5 } [ 4+3/5 round-to-even ] unit-test
-{ 4 } [ 4+1/2 round-to-even ] unit-test
-{ 4 } [ 4+2/5 round-to-even ] unit-test
-
-{ -5.0 } [ -4.6 round-to-even ] unit-test
-{ -4.0 } [ -4.5 round-to-even ] unit-test
-{ -4.0 } [ -4.4 round-to-even ] unit-test
-{ 5.0 } [ 4.6 round-to-even ] unit-test
-{ 4.0 } [ 4.5 round-to-even ] unit-test
-{ 4.0 } [ 4.4 round-to-even ] unit-test
-
 { 0.0 } [ 0 2 round-to-decimal ] unit-test
 { 1.0 } [ 1 2 round-to-decimal ] unit-test
 { 1.23 } [ 1.2349 2 round-to-decimal ] unit-test
@@ -143,11 +129,11 @@ IN: math.extras.test
 { { 0 1 2 3 0 0 1 } } [ { 1 2 3 3 2 1 2 } [ <= ] monotonic-count ] unit-test
 { 4 } [ { 1 2 3 1 2 3 4 5 } [ < ] max-monotonic-count ] unit-test
 
-{ 2470 } [ 20 iota sum-squares ] unit-test
-{ 2470 } [ 20 iota >array sum-squares ] unit-test
+{ 2470 } [ 20 <iota> sum-squares ] unit-test
+{ 2470 } [ 20 <iota> >array sum-squares ] unit-test
 
-{ 36100 } [ 20 iota sum-cubes ] unit-test
-{ 36100 } [ 20 iota >array sum-cubes ] unit-test
+{ 36100 } [ 20 <iota> sum-cubes ] unit-test
+{ 36100 } [ 20 <iota> >array sum-cubes ] unit-test
 
 {
     {

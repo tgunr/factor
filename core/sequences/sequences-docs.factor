@@ -114,12 +114,12 @@ HELP: unless-empty
 { $examples "This word is equivalent to " { $link if-empty } " with an empty first quotation:"
     { $example
     "USING: sequences prettyprint ;"
-    "{ 4 5 6 } [ ] [ sum ] if-empty ."
+    "{ 4 5 6 } [ ] [ sum . ] if-empty"
     "15"
     }
     { $example
     "USING: sequences prettyprint ;"
-    "{ 4 5 6 } [ sum ] unless-empty ."
+    "{ 4 5 6 } [ sum . ] unless-empty"
     "15"
     }
 } ;
@@ -180,7 +180,7 @@ HELP: ?nth
 
 HELP: ?set-nth
 { $values { "elt" object } { "n" integer } { "seq" sequence } }
-{ $description "A forgiving version of " { $link set-nth } ".  If the index is out of bounds, does nothing." } ;
+{ $description "A forgiving version of " { $link set-nth } ". If the index is out of bounds, does nothing." } ;
 
 HELP: ?first
 { $values { "seq" sequence } { "elt/f" { $maybe object } } }
@@ -678,7 +678,7 @@ HELP: replace-slice
 { $description "Replaces a range of elements beginning at index " { $snippet "from" } " and ending before index " { $snippet "to" } " with a new sequence." }
 { $errors "Throws an error if " { $snippet "new" } " contains elements whose types are not permissible in " { $snippet "seq" } "." } ;
 
-{ push prefix suffix } related-words
+{ push push-either push-if pop pop* prefix suffix suffix! } related-words
 
 HELP: suffix
 { $values { "seq" sequence } { "elt" object } { "newseq" sequence } }
@@ -757,8 +757,6 @@ HELP: last
 { $values { "seq" sequence } { "elt" object } }
 { $description "Outputs the last element of a sequence." }
 { $errors "Throws an error if the sequence is empty." } ;
-
-{ pop pop* } related-words
 
 HELP: pop*
 { $values { "seq" "a resizable mutable sequence" } }
@@ -850,8 +848,8 @@ HELP: collapse-slice
 
 HELP: <slice>
 { $values { "from" "a non-negative integer" } { "to" "a non-negative integer" } { "seq" sequence } { "slice" slice } }
-{ $description "Outputs a new virtual sequence sharing storage with the subrange of elements in " { $snippet "seq" } " with indices starting from and including " { $snippet "m" } ", and up to but not including " { $snippet "n" } "." }
-{ $errors "Throws an error if " { $snippet "m" } " or " { $snippet "n" } " is out of bounds." }
+{ $description "Outputs a new virtual sequence sharing storage with the subrange of elements in " { $snippet "seq" } " with indices starting from and including " { $snippet "from" } ", and up to but not including " { $snippet "to" } "." }
+{ $errors "Throws an error if " { $snippet "from" } " or " { $snippet "to" } " are out of bounds." }
 { $notes "Taking the slice of a slice outputs a slice of the underlying sequence, instead of a slice of a slice. This means that you cannot assume that the " { $snippet "from" } " and " { $snippet "to" } " slots of the resulting slice will be equal to the values you passed to " { $link <slice> } "." } ;
 
 { <slice> subseq } related-words
@@ -908,7 +906,7 @@ HELP: append-as
     }
 } ;
 
-{ append append-as } related-words
+{ append append-as append! 3append 3append-as push-all } related-words
 
 HELP: prepend
 { $values { "seq1" sequence } { "seq2" sequence } { "newseq" sequence } }
@@ -962,8 +960,6 @@ HELP: 3append-as
         "SBUF\" abc\""
     }
 } ;
-
-{ 3append 3append-as } related-words
 
 HELP: surround
 { $values { "seq1" sequence } { "seq2" sequence } { "seq3" sequence } { "newseq" sequence } }
@@ -1026,10 +1022,14 @@ HELP: head-slice*
 { $description "Outputs a virtual sequence sharing storage with all elements of " { $snippet "seq" } " until the " { $snippet "n" } "th element from the end. In other words, it outputs a sequence of the first " { $snippet "l-n" } " elements of the input sequence, where " { $snippet "l" } " is its length." }
 { $errors "Throws an error if the index is out of bounds." } ;
 
+{ head-slice head-slice* } related-words
+
 HELP: tail-slice*
 { $values { "seq" sequence } { "n" "a non-negative integer" } { "slice" "a slice" } }
 { $description "Outputs a virtual sequence sharing storage with the last " { $snippet "n" } " elements of the input sequence." }
 { $errors "Throws an error if the index is out of bounds." } ;
+
+{ tail-slice tail-slice* } related-words
 
 HELP: head
 { $values { "seq" sequence } { "n" "a non-negative integer" } { "headseq" "a new sequence" } }
@@ -1075,7 +1075,7 @@ HELP: rest
 
 HELP: head*
 { $values { "seq" sequence } { "n" "a non-negative integer" } { "headseq" "a new sequence" } }
-{ $description "Outputs a new sequence consisting of all elements of " { $snippet "seq" } " until the " { $snippet "n" } "th element from the end. In other words, it outputs a sequence of the first " { $snippet "l-n" } " elements of the input sequence, where " { $snippet "l" } " is its length." }
+{ $description "Outputs a new sequence consisting of all elements of " { $snippet "seq" } " until the " { $snippet "n" } "th element from the end. In other words, it removes the last " { $snippet "n" } " elements." }
 { $examples
     { $example "USING: sequences prettyprint ;"
         "{ 1 2 3 4 5 6 7 } 2 head* ."
@@ -1104,6 +1104,12 @@ HELP: tail*
     }
 }
 { $errors "Throws an error if the index is out of bounds." } ;
+
+{ tail tail* tail-slice tail-slice* } related-words
+{ head head* head-slice head-slice* } related-words
+{ cut cut* cut-slice } related-words
+{ unclip unclip-slice unclip-last unclip-last-slice } related-words
+{ first last but-last but-last-slice rest rest-slice } related-words
 
 HELP: shorter?
 { $values { "seq1" sequence } { "seq2" sequence } { "?" boolean } }
@@ -1140,11 +1146,11 @@ HELP: cut*
 { $values { "seq" sequence } { "n" "a non-negative integer" } { "before" sequence } { "after" sequence } }
 { $description "Outputs a pair of sequences, where " { $snippet "after" } " consists of the last " { $snippet "n" } " elements of " { $snippet "seq" } ", while " { $snippet "before" } " holds the remaining elements. Both output sequences have the same type as " { $snippet "seq" } "." } ;
 
-HELP: start*
+HELP: subseq-start-from
 { $values { "subseq" sequence } { "seq" sequence } { "n" "a start index" } { "i" "a start index" } }
 { $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ", starting the search from the " { $snippet "n" } "th element. If no matching subsequence is found, outputs " { $link f } "." } ;
 
-HELP: start
+HELP: subseq-start
 { $values { "subseq" sequence } { "seq" sequence } { "i" "a start index" } }
 { $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ", or " { $link f } " if no matching subsequence is found." } ;
 
@@ -1177,7 +1183,7 @@ HELP: unclip-last
 
 HELP: unclip-last-slice
 { $values { "seq" sequence } { "butlast-slice" slice } { "last" object } }
-{ $description "Outputs a head sequence and the last element of " { $snippet "seq" } "; the head sequence consists of all elements of " { $snippet "seq" } " but the last Unlike " { $link unclip-last } ", this word does not make a copy of the input sequence, and runs in constant time." } ;
+{ $description "Outputs a head sequence and the last element of " { $snippet "seq" } "; the head sequence consists of all elements of " { $snippet "seq" } " but the last. Unlike " { $link unclip-last } ", this word does not make a copy of the input sequence, and runs in constant time." } ;
 
 HELP: sum
 { $values { "seq" { $sequence number } } { "n" number } }
@@ -1243,7 +1249,7 @@ HELP: selector
 { $description "Creates a new vector to accumulate the values which return true for a predicate. Returns a new quotation which accepts an object to be tested and stored in the collector if the test yields true. The collector is left on the stack for convenience." }
 { $examples
     { $example "! Find all the even numbers:" "USING: prettyprint sequences math kernel ;"
-               "10 iota [ even? ] selector [ each ] dip ."
+               "10 <iota> [ even? ] selector [ each ] dip ."
                "V{ 0 2 4 6 8 }"
     }
 }
@@ -1479,7 +1485,7 @@ HELP: binary-reduce
 { $description "Like " { $link reduce } ", but splits the sequence in half recursively until each sequence is small enough, and calls the quotation on these smaller sequences. If the quotation computes values that depend on the size of their input, such as bignum arithmetic, then this algorithm can be more efficient than using " { $link reduce } "." }
 { $examples "Computing factorial:"
     { $example "USING: prettyprint sequences math ;"
-    "40 iota rest-slice 1 [ * ] binary-reduce ."
+    "40 <iota> rest-slice 1 [ * ] binary-reduce ."
     "20397882081197443358640281739902897356800000000" }
 } ;
 
@@ -1577,13 +1583,13 @@ HELP: shorten
     "V{ 1 2 3 }"
 } } ;
 
-HELP: iota
+HELP: <iota>
 { $values { "n" integer } { "iota" iota } }
 { $description "Creates an immutable virtual sequence containing the integers from 0 to " { $snippet "n-1" } "." }
 { $examples
   { $example
     "USING: math sequences prettyprint ;"
-    "3 iota [ sq ] map ."
+    "3 <iota> [ sq ] map ."
     "{ 0 1 4 }"
   }
 } ;
@@ -1670,12 +1676,12 @@ $nl
 
 ARTICLE: "sequences-integers" "Counted loops"
 "A virtual sequence is defined for iterating over integers from zero."
-{ $subsection iota }
-"For example, calling " { $link iota } " on the integer 3 produces a sequence containing the elements 0, 1, and 2. This is very useful for performing counted loops using words such as " { $link each } ":"
-{ $example "USING: sequences prettyprint ; 3 iota [ . ] each" "0\n1\n2" }
+{ $subsection <iota> }
+"For example, calling " { $link <iota> } " on the integer 3 produces a sequence containing the elements 0, 1, and 2. This is very useful for performing counted loops using words such as " { $link each } ":"
+{ $example "USING: sequences prettyprint ; 3 <iota> [ . ] each" "0\n1\n2" }
 "A common idiom is to iterate over a sequence, while also maintaining a loop counter. This can be done using " { $link each-index } ", " { $link map-index } " and " { $link reduce-index } "."
 $nl
-"Combinators that produce new sequences, such as " { $link map } ", will output an array if the input is an instance of " { $link iota } "."
+"Combinators that produce new sequences, such as " { $link map } ", will output an array if the input is an instance of " { $link <iota> } "."
 $nl
 "More elaborate counted loops can be performed with " { $link "math.ranges" } "." ;
 
@@ -1853,7 +1859,7 @@ ARTICLE: "sequences-search" "Searching sequences"
     last-index-from
 }
 "Finding the start of a subsequence:"
-{ $subsections start start* }
+{ $subsections subseq-start subseq-start-from }
 "Finding the index of an element satisfying a predicate:"
 { $subsections
     find
