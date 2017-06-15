@@ -179,7 +179,7 @@ parsing-file-level [ 0 ] initialize
 
 : (parsing-file-level) ( -- string )
     parsing-file-level get dup
-    [ "" swap iota [ drop "." append ] each ]
+    [ "" swap <iota> [ drop "." append ] each ]
     [ drop "" ] if
     ;
 
