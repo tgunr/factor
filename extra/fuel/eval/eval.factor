@@ -1,23 +1,15 @@
 ! Copyright (C) 2009 Jose Antonio Ortega Ruiz.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays continuations debugger fuel.pprint io
-io.streams.string kernel listener namespaces prettyprint.config sequences
-vocabs.parser ;
+io.streams.string kernel listener namespaces parser.notes
+prettyprint.config sequences sets vocabs.parser ;
 IN: fuel.eval
 
-TUPLE: status manifest restarts ;
-
-SYMBOL: status-stack
-V{ } clone status-stack set-global
-
-SYMBOL: eval-error
-f eval-error set-global
+SYMBOL: restarts-stack
+V{ } clone restarts-stack set-global
 
 SYMBOL: eval-result
 f eval-result set-global
-
-SYMBOL: eval-output
-f eval-output set-global
 
 SYMBOL: eval-res-flag
 t eval-res-flag set-global
@@ -26,41 +18,27 @@ t eval-res-flag set-global
     eval-res-flag get-global ;
 
 : push-status ( -- )
-    manifest get clone restarts get-global clone status boa
-    status-stack get push ;
+    restarts get-global clone restarts-stack get push ;
 
 : pop-restarts ( restarts -- )
     eval-restartable? [ drop ] [ clone restarts set-global ] if ;
 
 : pop-status ( -- )
-    status-stack get [
-        pop
-        [ manifest>> clone manifest set ]
-        [ restarts>> pop-restarts ]
-        bi
-    ] unless-empty ;
+    restarts-stack get [ pop pop-restarts ] unless-empty ;
 
-: forget-status ( -- )
-    f eval-error set-global
-    f eval-result set-global
-    f eval-output set-global ;
-
-: send-retort ( -- )
-    eval-error get-global
-    eval-result get-global
-    eval-output get-global 3array
-    [ fuel-pprint ] without-limits
-    flush nl "<~FUEL~>" write nl flush ;
+: send-retort ( error result output -- )
+    3array [ fuel-pprint ] without-limits flush nl
+    "<~FUEL~>" write nl flush ;
 
 : begin-eval ( -- )
-    push-status forget-status ;
+    f eval-result set-global push-status ;
 
-: end-eval ( output -- )
-    eval-output set-global send-retort pop-status ;
+: end-eval ( error/f output -- )
+    eval-result get-global swap send-retort pop-status ;
 
-: eval ( lines -- )
-    [ parse-lines-interactive call( -- ) ] curry
-    [ [ eval-error set-global ] [ print-error ] bi ] recover ;
+: eval ( lines -- error/f )
+    [ parse-lines-interactive call( -- ) f ] curry
+    [ dup print-error ] recover ;
 
 : eval-usings ( usings -- )
     [ [ use-vocab ] curry ignore-errors ] each ;
@@ -68,7 +46,22 @@ t eval-res-flag set-global
 : eval-in ( in -- )
     [ set-current-vocab ] when* ;
 
-: eval-in-context ( lines in usings -- )
+: eval-in-context ( lines in usings/f -- )
     begin-eval
-    [ eval-usings eval-in eval ] with-string-writer
-    end-eval ;
+    [
+        parser-quiet? on
+        [
+            ! The idea is that a correct usings list should always be
+            ! specified. But a lot of code in FUEL sends empty usings
+            ! lists so then we have to use the current manifests
+            ! vocabs instead.
+            manifest get search-vocab-names>> members
+        ] [
+            ! These vocabs are always needed in the manifest. syntax for
+            ! obvious reasons, fuel for FUEL stuff and debugger for the :N
+            ! words.
+            { "fuel" "syntax" "debugger" } prepend
+        ] if-empty
+        <manifest> manifest namespaces:set
+        [ eval-usings eval-in eval ] with-string-writer
+    ] with-scope end-eval ;

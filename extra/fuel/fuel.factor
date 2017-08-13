@@ -20,7 +20,7 @@ IN: fuel
 : fuel-eval-set-result ( obj -- )
     clone eval-result set-global ; inline
 
-: fuel-retort ( -- ) send-retort ; inline
+: fuel-retort ( -- ) f f "" send-retort ; inline
 
 ! Loading files
 
@@ -108,7 +108,7 @@ PRIVATE>
 
 ! Help support
 
-: fuel-get-article ( name -- ) lookup-article fuel-eval-set-result ;
+: fuel-get-article ( name -- ) fuel.help:get-article fuel-eval-set-result ;
 
 : fuel-get-article-title ( name -- )
     articles get at [ article-title ] [ f ] if* fuel-eval-set-result ;

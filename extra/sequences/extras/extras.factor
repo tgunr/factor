@@ -5,7 +5,7 @@ vectors ;
 IN: sequences.extras
 
 : find-all ( ... seq quot: ( ... elt -- ... ? ) -- ... elts )
-    [ <enum> ] dip '[ nip @ ] assoc-filter ; inline
+    [ <enumerated> ] dip '[ nip @ ] assoc-filter ; inline
 
 : reduce-from ( ... seq identity quot: ( ... prev elt -- ... next ) i -- ... result )
     [ swap ] 2dip each-from ; inline
@@ -403,10 +403,10 @@ INSTANCE: odds immutable-sequence
     [ dup empty? ] swap until drop ; inline
 
 : arg-max ( seq -- n )
-    <enum> [ second-unsafe ] supremum-by first ;
+    <enumerated> [ second-unsafe ] supremum-by first ;
 
 : arg-min ( seq -- n )
-    <enum> [ second-unsafe ] infimum-by first ;
+    <enumerated> [ second-unsafe ] infimum-by first ;
 
 <PRIVATE
 
@@ -558,6 +558,16 @@ PRIVATE>
 
 : infimum-by* ( ... seq quot: ( ... elt -- ... x ) -- ... i elt )
     [ before? ] select-by* ; inline
+
+: ?supremum ( seq/f -- elt/f )
+    [ f ] [
+        [ ] [ 2dup and [ max ] [ dupd ? ] if ] map-reduce
+    ] if-empty ;
+
+: ?infimum ( seq/f -- elt/f )
+    [ f ] [
+        [ ] [ 2dup and [ min ] [ dupd ? ] if ] map-reduce
+    ] if-empty ;
 
 : change-last ( seq quot -- )
     [ drop length 1 - ] [ change-nth ] 2bi ; inline

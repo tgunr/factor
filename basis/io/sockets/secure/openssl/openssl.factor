@@ -1,13 +1,13 @@
 ! Copyright (C) 2007, 2008, Slava Pestov, Elie CHAFTARI.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien alien.c-types alien.data alien.strings
-assocs byte-arrays classes.struct combinators
-combinators.short-circuit destructors fry io io.backend
-io.binary io.buffers io.encodings.8-bit.latin1 io.encodings.utf8
-io.files io.pathnames io.ports io.sockets io.sockets.secure
-io.timeouts kernel libc locals math math.functions math.order
-math.parser memoize namespaces openssl openssl.libcrypto
-openssl.libssl random sequences sets splitting unicode ;
+USING: accessors alien alien.c-types alien.data alien.enums
+alien.strings assocs byte-arrays classes.struct combinators
+combinators.short-circuit destructors fry io io.backend io.binary
+io.buffers io.encodings.8-bit.latin1 io.encodings.utf8 io.files
+io.pathnames io.ports io.sockets io.sockets.secure io.timeouts kernel
+libc locals math math.functions math.order math.parser memoize
+namespaces openssl openssl.libcrypto openssl.libssl random sequences
+sets splitting unicode ;
 IN: io.sockets.secure.openssl
 
 GENERIC: ssl-method ( symbol -- method )
@@ -323,8 +323,8 @@ M: ssl-handle dispose*
     ] with-destructors ;
 
 : check-verify-result ( ssl-handle -- )
-    SSL_get_verify_result dup X509_V_OK =
-    [ drop ] [ verify-message certificate-verify-error ] if ;
+    SSL_get_verify_result X509_V_ERROR number>enum dup X509_V_ERR_OK =
+    [ drop ] [ certificate-verify-error ] if ;
 
 : x509name>string ( x509name -- string )
     NID_commonName 256 <byte-array>
@@ -337,8 +337,16 @@ M: ssl-handle dispose*
 : issuer-name ( certificate -- issuer )
     X509_get_issuer_name x509name>string ;
 
+: sk-value ( stack v -- obj )
+    ssl-new-api? get-global [ OPENSSL_sk_value ] [ sk_value ] if ;
+
+: sk-num ( stack -- num )
+    ssl-new-api? get-global [ OPENSSL_sk_num ] [ sk_num ] if ;
+
 : name-stack>sequence ( name-stack -- seq )
-    dup sk_num <iota> [ sk_value GENERAL_NAME_st memory>struct ] with map ;
+    dup sk-num <iota> [
+        sk-value GENERAL_NAME_st memory>struct
+    ] with map ;
 
 : alternative-dns-names ( certificate -- dns-names )
     NID_subject_alt_name f f X509_get_ext_d2i

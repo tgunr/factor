@@ -1,8 +1,7 @@
-USING: arrays assocs classes.tuple combinators command-line
-effects generic generic.math generic.single help.markup
-help.syntax io.pathnames kernel math parser sequences
-vocabs.loader vocabs.parser words words.alias words.constant
-words.symbol ;
+USING: arrays assocs classes.algebra.private classes.tuple combinators
+command-line effects generic generic.math generic.single help.markup
+help.syntax io.pathnames kernel math parser sequences vocabs.loader
+vocabs.parser words words.alias words.constant words.symbol ;
 IN: syntax
 
 ARTICLE: "parser-algorithm" "Parser algorithm"
@@ -34,11 +33,11 @@ ARTICLE: "syntax-immediate" "Parse time evaluation"
 } ;
 
 ARTICLE: "syntax-integers" "Integer syntax"
-"The printed representation of an integer consists of a sequence of digits, optionally prefixed by a sign."
+"The printed representation of an integer consists of a sequence of digits, optionally prefixed by a sign and arbitrarily separated by commas."
 { $code
     "123456"
     "-10"
-    "2432902008176640000"
+    "2,432,902,008,176,640,000"
 }
 "Integers are entered in base 10 unless prefixed with a base-changing prefix. " { $snippet "0x" } " begins a hexadecimal literal, " { $snippet "0o" } " an octal literal, and " { $snippet "0b" } " a binary literal. A sign, if any, goes before the base prefix."
 { $example
@@ -363,6 +362,11 @@ HELP: B{
 { $values { "elements" "a list of integers" } }
 { $description "Marks the beginning of a literal byte array. Literal byte arrays are terminated by " { $link POSTPONE: } } "." }
 { $examples { $code "B{ 1 2 3 }" } } ;
+
+HELP: intersection{
+{ $syntax "intersection{ elements... }" }
+{ $values { "elements" "a list of classoids" } }
+{ $description "Marks the beginning of a literal " { $link anonymous-intersection } " class." } ;
 
 HELP: H{
 { $syntax "H{ { key value }... }" }
