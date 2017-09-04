@@ -10,7 +10,7 @@ GENERIC: #rows ( result-set -- n )
 GENERIC: #columns ( result-set -- n )
 GENERIC: advance-row ( result-set -- )
 GENERIC: more-rows? ( result-set -- ? )
-GENERIC# column 2 ( result-set column type -- sql )
+GENERIC#: column 2 ( result-set column type -- sql )
 GENERIC: get-type ( binder/word -- type )
 HOOK: statement>result-set db2-connection ( statement -- result-set )
 
