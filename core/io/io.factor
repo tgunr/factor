@@ -50,7 +50,7 @@ SYMBOL: error-stream
 : write ( seq -- ) output-stream get stream-write ; inline
 : flush ( -- ) output-stream get stream-flush ; inline
 
-: nl ( -- ) output-stream get stream-nl ; inline
+: nl ( -- )   output-stream get stream-nl ; inline
 
 : with-input-stream* ( stream quot -- )
     input-stream swap with-variable ; inline
@@ -251,7 +251,12 @@ M: input-stream stream-length drop f ; inline
 
 M: output-stream stream-write [ stream-write1 ] curry each ; inline
 M: output-stream stream-flush drop ; inline
-M: output-stream stream-nl CHAR: \n swap stream-write1 ; inline
+SYMBOL: nonl
+: nonl-t ( -- )   t nonl set ;
+: nonl-f ( -- )   f nonl set ;
+M: output-stream stream-nl nonl get
+    [ drop ]
+    [ CHAR: \n swap stream-write1 ] if ; inline
 M: output-stream stream-seekable? drop f ; inline
 M: output-stream stream-length drop f ; inline
 
