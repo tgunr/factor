@@ -47,35 +47,18 @@ M: object reader-quot
     ">>" append "accessors" create-word
     dup t "reader" set-word-prop ;
 
-: Read-word ( name -- word )
-    "Read" append "accessors" create-word
-    dup t "reader" set-word-prop ;
-
 : reader-props ( slot-spec -- assoc )
     "reading" associate ;
 
 : define-reader-generic ( name -- )
     reader-word ( object -- value ) define-simple-generic ;
 
-: define-Read-generic ( name -- )
-    Read-word ( object -- value ) define-simple-generic ;
-
 : define-reader ( class slot-spec -- )
-    2dup
     [ nip name>> define-reader-generic ]
-    [ 
+    [
         {
             [ drop ]
-            [ nip name>> Read-word ]
-            [ reader-quot ]
-            [ nip reader-props ]
-        } 2cleave define-typecheck
-    ] 2bi 
-    [ nip name>> define-Read-generic ]
-    [ 
-        {
-            [ drop ]
-            [ nip name>> Read-word ]
+            [ nip name>> reader-word ]
             [ reader-quot ]
             [ nip reader-props ]
         } 2cleave define-typecheck
