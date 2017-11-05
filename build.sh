@@ -11,12 +11,9 @@ ECHO=echo
 OS=
 ARCH=
 WORD=
-NO_UI=${NO_UI-}
 GIT_PROTOCOL=${GIT_PROTOCOL:="git"}
 GIT_URL=${GIT_URL:=$GIT_PROTOCOL"://factorcode.org/git/factor.git"}
 SCRIPT_ARGS="$*"
-SKIP_UPDATE=false
-DO_CLEAN=true
 
 # return 1 on found
 test_program_installed() {
@@ -123,50 +120,50 @@ semver_into() {
         export "$4=${BASH_REMATCH[3]}"
         export "$5=${BASH_REMATCH[4]}"
     elif [[ $1 =~ $CLANG_RE_OLD ]] ; then
-	export "$2=${BASH_REMATCH[1]}"
-	export "$3=${BASH_REMATCH[2]}"
-	export "$4=0"
-	export "$5=${BASH_REMATCH[3]}"
+        export "$2=${BASH_REMATCH[1]}"
+        export "$3=${BASH_REMATCH[2]}"
+        export "$4=0"
+        export "$5=${BASH_REMATCH[3]}"
     else
-	echo "unsupported version number, please report a bug: $1"
-	exit 123
+        echo "unsupported version number, please report a bug: $1"
+        exit 123
     fi
 }
 
 # issue 1440
 gcc_version_ok() {
-	GCC_VERSION=`gcc -dumpversion`
-	local GCC_MAJOR local GCC_MINOR local GCC_PATCH local GCC_SPECIAL
-	semver_into $GCC_VERSION GCC_MAJOR GCC_MINOR GCC_PATCH GCC_SPECIAL
+    GCC_VERSION=`gcc -dumpversion`
+    local GCC_MAJOR local GCC_MINOR local GCC_PATCH local GCC_SPECIAL
+    semver_into $GCC_VERSION GCC_MAJOR GCC_MINOR GCC_PATCH GCC_SPECIAL
 
-	if [[ $GCC_MAJOR -lt 4
-		|| ( $GCC_MAJOR -eq 4 && $GCC_MINOR -lt 7 )
-		|| ( $GCC_MAJOR -eq 4 && $GCC_MINOR -eq 7 && $GCC_PATCH -lt 3 )
-		|| ( $GCC_MAJOR -eq 4 && $GCC_MINOR -eq 8 && $GCC_PATCH -eq 0 )
-		]] ; then
-		echo "gcc version required >= 4.7.3, != 4.8.0, >= 4.8.1, got $GCC_VERSION"
-		return 1
-	fi
-	return 0
+    if [[ $GCC_MAJOR -lt 4
+        || ( $GCC_MAJOR -eq 4 && $GCC_MINOR -lt 7 )
+        || ( $GCC_MAJOR -eq 4 && $GCC_MINOR -eq 7 && $GCC_PATCH -lt 3 )
+        || ( $GCC_MAJOR -eq 4 && $GCC_MINOR -eq 8 && $GCC_PATCH -eq 0 )
+        ]] ; then
+        echo "gcc version required >= 4.7.3, != 4.8.0, >= 4.8.1, got $GCC_VERSION"
+        return 1
+    fi
+    return 0
 }
 
 clang_version_ok() {
-	CLANG_VERSION=`clang --version | head -n1`
-	CLANG_VERSION_RE='^[a-zA-Z0-9 ]* version (.*)$' # 3.3-5
-	if [[ $CLANG_VERSION =~ $CLANG_VERSION_RE ]] ; then
-		export "CLANG_VERSION=${BASH_REMATCH[1]}"
-		local CLANG_MAJOR local CLANG_MINOR local CLANG_PATCH local CLANG_SPECIAL
-		semver_into "$CLANG_VERSION" CLANG_MAJOR CLANG_MINOR CLANG_PATCH CLANG_SPECIAL
-		if [[ $CLANG_MAJOR -lt 3
-			|| ( $CLANG_MAJOR -eq 3 && $CLANG_MINOR -le 1 )
-			]] ; then
-			echo "clang version required >= 3.1, got $CLANG_VERSION"
-			return 1
-		fi
-	else
-		return 1
-	fi
-	return 0
+    CLANG_VERSION=`clang --version | head -n1`
+    CLANG_VERSION_RE='^[a-zA-Z0-9 ]* version (.*)$' # 3.3-5
+    if [[ $CLANG_VERSION =~ $CLANG_VERSION_RE ]] ; then
+        export "CLANG_VERSION=${BASH_REMATCH[1]}"
+        local CLANG_MAJOR local CLANG_MINOR local CLANG_PATCH local CLANG_SPECIAL
+        semver_into "$CLANG_VERSION" CLANG_MAJOR CLANG_MINOR CLANG_PATCH CLANG_SPECIAL
+        if [[ $CLANG_MAJOR -lt 3
+            || ( $CLANG_MAJOR -eq 3 && $CLANG_MINOR -le 1 )
+            ]] ; then
+            echo "clang version required >= 3.1, got $CLANG_VERSION"
+            return 1
+        fi
+    else
+        return 1
+    fi
+    return 0
 }
 
 set_cc() {
@@ -192,16 +189,6 @@ set_make() {
     MAKE='make'
 }
 
-check_git_branch() {
-	if [[ $SKIP_UPDATE == false ]] ; then
-		BRANCH=`git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,'`
-		if [ "$BRANCH" != "master" ] ; then
-			$ECHO "git branch is $BRANCH, not master"
-			exit_script 3
-		fi
-	fi
-}
-
 check_installed_programs() {
     ensure_program_installed chmod
     ensure_program_installed uname
@@ -222,8 +209,6 @@ check_library_exists() {
     $CC $GCC_TEST -o $GCC_OUT -l $1 2>&-
     if [[ $? -ne 0 ]] ; then
         $ECHO "not found."
-        $ECHO "***Factor will compile NO_UI=1"
-        NO_UI=1
     else
         $ECHO "found."
     fi
@@ -234,25 +219,21 @@ check_library_exists() {
 }
 
 check_X11_libraries() {
-    if [ -z "$NO_UI" ]; then
-        check_library_exists GL
-        check_library_exists X11
-        check_library_exists pango-1.0
-    fi
+    check_library_exists GL
+    check_library_exists X11
+    check_library_exists pango-1.0
 }
 
 check_gtk_libraries() {
-    if [ -z "$NO_UI" ]; then
-        check_library_exists gobject-2.0
-        check_library_exists gtk-x11-2.0
-        check_library_exists gdk-x11-2.0
-        check_library_exists gdk_pixbuf-2.0
-        check_library_exists gtkglext-x11-1.0
-        check_library_exists atk-1.0
-        check_library_exists gio-2.0
-        check_library_exists gdkglext-x11-1.0
-        check_library_exists pango-1.0
-    fi
+    check_library_exists gobject-2.0
+    check_library_exists gtk-x11-2.0
+    check_library_exists gdk-x11-2.0
+    check_library_exists gdk_pixbuf-2.0
+    check_library_exists gtkglext-x11-1.0
+    check_library_exists atk-1.0
+    check_library_exists gio-2.0
+    check_library_exists gdkglext-x11-1.0
+    check_library_exists pango-1.0
 }
 
 
@@ -306,6 +287,17 @@ find_architecture() {
     esac
 }
 
+find_num_cores() {
+    $ECHO "Finding num cores..."
+    NUM_CORES=7ZZ
+    uname_s=`uname -s`
+    check_ret uname
+    case $uname_s in
+        CYGWIN_NT-5.2-WOW64 | *CYGWIN_NT* | *CYGWIN* | MINGW32*) NUM_CORES=$NUMBER_OF_PROCESSORS;;
+        *darwin* | *Darwin* | *linux* | *Linux*) NUM_CORES=$(getconf _NPROCESSORS_ONLN);;
+    esac
+}
+
 write_test_program() {
     #! Must be 'echo'
     echo "#include <stdio.h>" > $C_WORD.c
@@ -347,7 +339,7 @@ find_word_size() {
 set_factor_binary() {
     case $OS in
         windows) FACTOR_BINARY=factor.com;;
-        *) FACTOR_BINARY=$(dirname $0)/factor;;
+        *) FACTOR_BINARY=factor;;
     esac
 }
 
@@ -367,6 +359,7 @@ set_factor_image() {
 echo_build_info() {
     $ECHO OS=$OS
     $ECHO ARCH=$ARCH
+    $ECHO NUM_CORES=$NUM_CORES
     $ECHO WORD=$WORD
     $ECHO DEBUG=$DEBUG
     $ECHO FACTOR_BINARY=$FACTOR_BINARY
@@ -440,6 +433,7 @@ parse_build_info() {
 find_build_info() {
     find_os
     find_architecture
+    find_num_cores
     set_cc
     find_word_size
     set_factor_binary
@@ -483,20 +477,18 @@ update_script_changed() {
 }
 
 git_fetch_factorcode() {
-	if [[ $SKIP_UPDATE == false ]] ; then
-		$ECHO "Fetching the git repository from factorcode.org..."
+    $ECHO "Fetching the git repository from factorcode.org..."
 
-		rm -f `update_script_name`
-		invoke_git fetch "$GIT_URL" master
+    rm -f `update_script_name`
+    invoke_git fetch "$GIT_URL" master
 
-		if update_script_changed; then
-			$ECHO "Updating and restarting the factor.sh script..."
-			update_script
-		else
-			$ECHO "Updating the working tree..."
-			invoke_git pull "$GIT_URL" master
-		fi
-	fi
+    if update_script_changed; then
+        $ECHO "Updating and restarting the build.sh script..."
+        update_script
+    else
+        $ECHO "Updating the working tree..."
+        invoke_git pull "$GIT_URL" master
+    fi
 }
 
 cd_factor() {
@@ -527,46 +519,44 @@ backup_factor() {
     $ECHO "Done with backup."
 }
 
-restore_factor() {
-    $ECHO "Restoring factor..."
-    $COPY $FACTOR_BINARY.bak $FACTOR_BINARY
-    $COPY $FACTOR_LIBRARY.bak $FACTOR_LIBRARY
-    $COPY $BOOT_IMAGE.bak $BOOT_IMAGE
-    $COPY $FACTOR_IMAGE.bak $FACTOR_IMAGE
-    $ECHO "Done with restore."
-}
-
 check_makefile_exists() {
     if [[ ! -e "GNUmakefile" ]] ; then
         $ECHO ""
         $ECHO "***GNUmakefile not found***"
         $ECHO "You are likely in the wrong directory."
         $ECHO "Run this script from your factor directory:"
-        $ECHO "     ./build-support/factor.sh"
+        $ECHO "     ./build.sh"
         exit_script 6
     fi
 }
 
 invoke_make() {
     check_makefile_exists
-	echo $MAKE $MAKE_OPTS $*
     $MAKE $MAKE_OPTS $*
     check_ret $MAKE
 }
 
 make_clean() {
-	if [[ $DO_CLEAN == true ]] ; then
-		invoke_make clean
-	fi
+    invoke_make clean
 }
 
 make_factor() {
-    invoke_make CC=$CC CXX=$CXX NO_UI=$NO_UI $MAKE_TARGET -j5
+    $ECHO "Building factor with $NUM_CORES cores"
+    invoke_make CC=$CC CXX=$CXX $MAKE_TARGET -j$NUM_CORES
 }
 
 make_clean_factor() {
     make_clean
     make_factor
+}
+
+current_git_branch() {
+    git rev-parse --abbrev-ref HEAD
+}
+
+checksum_url() {
+    branch=$(current_git_branch)
+    echo "http://downloads.factorcode.org/images/$branch/checksums.txt"
 }
 
 update_boot_images() {
@@ -576,42 +566,31 @@ update_boot_images() {
     $DELETE $BOOT_IMAGE.{?,??} > /dev/null 2>&1
     $DELETE temp/staging.*.image > /dev/null 2>&1
     if [[ -f $BOOT_IMAGE ]] ; then
-		set -e
-        if [[ $(get_url http://downloads.factorcode.org/images/latest/checksums.txt) ]] ; then
-			factorcode_md5=`cat checksums.txt|grep $BOOT_IMAGE|cut -f2 -d' '`
-			set_md5sum
-			disk_md5=`$MD5SUM $BOOT_IMAGE|cut -f1 -d' '`
-			$ECHO "Factorcode md5: $factorcode_md5";
-			$ECHO "Disk md5: $disk_md5";
-			if [[ "$factorcode_md5" == "$disk_md5" ]] ; then
-				$ECHO "Your disk boot image matches the one on factorcode.org."
-			else
-				$DELETE $BOOT_IMAGE > /dev/null 2>&1
-				get_boot_image;
-			fi
-		else
-		    $ECHO "Could not connect to server to check image checksum"
-		fi
-		set +e
+        get_url $(checksum_url)
+        factorcode_md5=`cat checksums.txt|grep $BOOT_IMAGE|cut -f2 -d' '`
+        set_md5sum
+        disk_md5=`$MD5SUM $BOOT_IMAGE|cut -f1 -d' '`
+        $ECHO "Factorcode md5: $factorcode_md5";
+        $ECHO "Disk md5: $disk_md5";
+        if [[ "$factorcode_md5" == "$disk_md5" ]] ; then
+            $ECHO "Your disk boot image matches the one on factorcode.org."
+        else
+            $DELETE $BOOT_IMAGE > /dev/null 2>&1
+            get_boot_image;
+        fi
     else
         get_boot_image
     fi
 }
 
+boot_image_url() {
+    branch=$(current_git_branch)
+    echo "http://downloads.factorcode.org/images/$branch/$BOOT_IMAGE"
+}
+
 get_boot_image() {
     $ECHO "Downloading boot image $BOOT_IMAGE."
-	if ! [[ $($DOWNLOADER http://downloads.factorcode.org/images/latest/$BOOT_IMAGE) ]] ; then
-		$ECHO "Download complete."
-	else
-		$ECHO "Could not connect to server to download image."
-		$ECHO "Use the backup images? (y|n)"
-		read ok
-		if [[ "$ok" == "y" ]] ; then
-			$COPY $BOOT_IMAGE.bak $BOOT_IMAGE
-		else
-			exit_script 7
-		fi
-	fi
+    get_url $(boot_image_url)
 }
 
 get_url() {
@@ -651,14 +630,7 @@ install() {
 
 update() {
     get_config_info
-    check_git_branch
     git_fetch_factorcode
-    backup_factor
-    make_clean_factor
-}
-
-thiscommit() {
-    get_config_info
     backup_factor
     make_clean_factor
 }
@@ -675,13 +647,12 @@ net_bootstrap_no_pull() {
 }
 
 refresh_image() {
-    $FACTOR_BINARY -script -e="USING: vocabs.loader vocabs.refresh system memory ; refresh-all save 0 exit"
+    ./$FACTOR_BINARY -script -e="USING: vocabs.loader vocabs.refresh system memory ; refresh-all save 0 exit"
     check_ret factor
 }
 
 make_boot_image() {
-    echo $FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
-    $FACTOR_BINARY -no-user-init -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
+    ./$FACTOR_BINARY -script -e="\"$MAKE_IMAGE_TARGET\" USING: system bootstrap.image memory ; make-image save 0 exit"
     check_ret factor
 }
 
@@ -727,9 +698,6 @@ usage() {
     $ECHO "  bootstrap - bootstrap with existing boot image"
     $ECHO "  net-bootstrap - recompile, download a boot image, bootstrap"
     $ECHO "  make-target - find and print the os-arch-cpu string"
-    $ECHO "  make-clean - same as update, but use current git commit"
-    $ECHO "  make - same as make-boot, but does not clean first"
-    $ECHO "  restore - restore from backup files"
     $ECHO "  report - print the build variables"
     $ECHO ""
     $ECHO "If you are behind a firewall, invoke as:"
@@ -756,16 +724,12 @@ case "$1" in
     deps-macosx) install_deps_macosx ;;
     deps-dnf) install_deps_dnf ;;
     self-update) update; make_boot_image; bootstrap;;
-    make-clean) SKIP_UPDATE=true; update; make_boot_image; bootstrap;;
-    make) DO_CLEAN=false; SKIP_UPDATE=true; update; make_boot_image; bootstrap;;
     quick-update) update; refresh_image ;;
     update) update; download_and_bootstrap ;;
-    thiscommit) thiscommit; download_and_bootstrap ;;
     latest) update; download_and_bootstrap ;;
     bootstrap) get_config_info; bootstrap ;;
     net-bootstrap) net_bootstrap_no_pull ;;
     make-target) FIND_MAKE_TARGET=true; ECHO=false; find_build_info; exit_script ;;
-	restore) restore_factor ;;
     report) find_build_info ;;
     full-report) find_build_info; check_installed_programs; check_libraries ;;
     *) usage ;;

@@ -5,7 +5,7 @@ vectors ;
 IN: sequences.extras
 
 : find-all ( ... seq quot: ( ... elt -- ... ? ) -- ... elts )
-    [ <enum> ] dip '[ nip @ ] assoc-filter ; inline
+    [ <enumerated> ] dip '[ nip @ ] assoc-filter ; inline
 
 : reduce-from ( ... seq identity quot: ( ... prev elt -- ... next ) i -- ... result )
     [ swap ] 2dip each-from ; inline
@@ -293,6 +293,14 @@ PRIVATE>
 : 2count ( ... seq1 seq2 quot: ( ... elt1 elt2 -- ... ? ) -- ... n )
     [ 1 0 ? ] compose 2map-sum ; inline
 
+: 3each-from
+    ( ... seq1 seq2 seq3 quot: ( ... elt1 elt2 elt3 -- ... ) i -- ... )
+    [ (3each) ] dip -rot (each-integer) ; inline
+
+: 3map-reduce
+    ( ..a seq1 seq2 seq3 map-quot: ( ..a elt1 elt2 elt3 -- ..b intermediate ) reduce-quot: ( ..b prev intermediate -- ..a next ) -- ..a result )
+    [ [ [ [ first ] tri@ ] 3keep ] dip [ 3dip ] keep ] dip compose 1 3each-from ; inline
+
 : round-robin ( seq -- newseq )
     [ { } ] [
         [ longest length <iota> ] keep
@@ -403,10 +411,10 @@ INSTANCE: odds immutable-sequence
     [ dup empty? ] swap until drop ; inline
 
 : arg-max ( seq -- n )
-    <enum> [ second-unsafe ] supremum-by first ;
+    <enumerated> [ second-unsafe ] supremum-by first ;
 
 : arg-min ( seq -- n )
-    <enum> [ second-unsafe ] infimum-by first ;
+    <enumerated> [ second-unsafe ] infimum-by first ;
 
 <PRIVATE
 
@@ -558,6 +566,16 @@ PRIVATE>
 
 : infimum-by* ( ... seq quot: ( ... elt -- ... x ) -- ... i elt )
     [ before? ] select-by* ; inline
+
+: ?supremum ( seq/f -- elt/f )
+    [ f ] [
+        [ ] [ 2dup and [ max ] [ dupd ? ] if ] map-reduce
+    ] if-empty ;
+
+: ?infimum ( seq/f -- elt/f )
+    [ f ] [
+        [ ] [ 2dup and [ min ] [ dupd ? ] if ] map-reduce
+    ] if-empty ;
 
 : change-last ( seq quot -- )
     [ drop length 1 - ] [ change-nth ] 2bi ; inline

@@ -3,9 +3,34 @@
 USING: accessors arrays assocs combinators combinators.short-circuit
 fry help help.crossref help.markup help.markup.private help.topics
 help.vocabs io io.streams.string kernel make namespaces parser
-prettyprint see sequences summary vocabs vocabs.hierarchy
+prettyprint see sequences splitting summary vocabs vocabs.hierarchy
 vocabs.metadata vocabs.parser words ;
 IN: fuel.help
+
+SYMBOLS: $doc-path $next-link $prev-link $fuel-nav-crumbs ;
+
+: articles-crumbs ( seq -- crumbs )
+    [ dup article-title \ article 3array ] map ;
+
+: base-crumbs ( -- crumbs )
+    { "handbook" "vocab-index" } [ dup article-title \ article 3array ] map ;
+
+: vocab-own-crumbs ( vocab-name -- crumbs )
+    "." split unclip [
+        [ CHAR: . suffix ] dip append
+    ] accumulate swap suffix
+    [ dup "." split last \ vocab 3array ] map ;
+
+: vocab-crumbs ( vocab-name -- crumbs )
+    vocab-own-crumbs base-crumbs prepend ;
+
+: article-parents ( article-name -- parents )
+    [ article-parent ] follow
+    dup last "handbook" = [ "handbook" suffix ] unless
+    reverse but-last ;
+
+: article-crumbs ( article-name -- crumbs )
+    article-parents [ dup article-title \ article 3array ] map ;
 
 <PRIVATE
 
@@ -26,8 +51,6 @@ IN: fuel.help
 : parent-topics ( word -- seq )
     help-path [ dup article-title swap 2array ] map ; inline
 
-SYMBOLS: $doc-path $next-link $prev-link ;
-
 : next/prev-link ( link link-symbol -- 3arr )
     swap [ name>> ] [ [ link-long-text ] with-string-writer ] bi 3array ;
 
@@ -35,7 +58,7 @@ SYMBOLS: $doc-path $next-link $prev-link ;
     \ article swap dup article-title swap
     [
         {
-            [ \ $vocabulary swap vocabulary>> 2array , ]
+            [ vocabulary>> vocab-crumbs \ $fuel-nav-crumbs prefix , ]
             [
                 >link
                 [ prev-article [ \ $prev-link next/prev-link , ] when* ]
@@ -75,12 +98,14 @@ SYMBOL: describe-words
     disk-vocabs-for-prefix do-vocab-list ; inline
 
 : vocab-describe-words ( name -- element )
-    [ words. ] with-string-writer \ describe-words swap 2array ; inline
+    [ words. ] with-string-writer dup "\n" = [ drop f ] when
+    \ describe-words swap 2array ; inline
 
 : vocab-element ( name -- element )
     dup require \ article swap dup >vocab-link
     [
         {
+            [ name>> vocab-crumbs but-last \ $fuel-nav-crumbs prefix , ]
             [ vocab-authors [ \ $authors prefix , ] when* ]
             [ vocab-tags [ \ $tags prefix , ] when* ]
             [ summary [ { $heading "Summary" } swap 2array , ] when* ]
@@ -109,13 +134,33 @@ PRIVATE>
 : vocab-help ( name -- str )
     dup empty? [ vocab-children-help ] [ vocab-element ] if ;
 
+: add-crumb ( crumbs article -- crumbs' )
+    dup article-name 2array suffix ;
+
+: simple-element ( title content crumbs -- element )
+    \ $fuel-nav-crumbs prefix prefix \ article -rot 3array ;
+
 : get-vocabs/author ( author -- element )
-    [ "Vocabularies by " prepend \ $heading swap 2array ]
-    [ authored do-vocab-list ] bi 2array ;
+    [ "Vocabularies by " prepend ] [ authored do-vocab-list ] bi
+    base-crumbs "vocab-authors" add-crumb simple-element ;
 
 : get-vocabs/tag ( tag -- element )
-    [ "Vocabularies tagged " prepend \ $heading swap 2array ]
-    [ tagged do-vocab-list ] bi 2array ;
+    [ "Vocabularies tagged " prepend ] [ tagged do-vocab-list ] bi
+    base-crumbs "vocab-tags" add-crumb simple-element ;
 
 : format-index ( seq -- seq )
     [ [ >link name>> ] [ article-title ] bi 2array \ $subsection prefix ] map ;
+
+: article-element ( name -- element )
+    \ article swap dup lookup-article
+    [ nip title>> ]
+    [
+        [ article-crumbs \ $fuel-nav-crumbs prefix ] [ content>> ] bi*
+        \ $nl prefix swap prefix
+    ] 2bi 3array ;
+
+: vocab-help-article?  ( name -- ? )
+    dup lookup-vocab [ help>> = ] [ drop f ] if* ;
+
+: get-article ( name -- element )
+    dup vocab-help-article? [ vocab-help ] [ article-element ] if ;

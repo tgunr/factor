@@ -3,11 +3,11 @@
 USING: accessors arrays assocs combinators command-line
 compiler.units continuations debugger effects fry
 generalizations io io.files.temp io.files.unique kernel lexer
-locals macros namespaces parser prettyprint quotations sequences
-sequences.generalizations source-files source-files.errors
-source-files.errors.debugger splitting stack-checker summary
-system tools.errors unicode vocabs vocabs.files vocabs.metadata
-vocabs.parser words ;
+locals macros math.functions math.vectors namespaces parser
+prettyprint quotations sequences sequences.generalizations
+source-files source-files.errors source-files.errors.debugger
+splitting stack-checker summary system tools.errors unicode
+vocabs vocabs.files vocabs.metadata vocabs.parser words ;
 FROM: vocabs.hierarchy => load ;
 IN: tools.test
 
@@ -63,6 +63,19 @@ SYMBOL: current-test-file
 
 : (long-unit-test) ( output input -- error/f failed? tested? )
     long-unit-tests-enabled? get [ (unit-test) ] [ 2drop f f f ] if ;
+
+: (unit-test-comparator) ( output input comparator -- error/f failed? tested? )
+    swapd '[
+        { } _ with-datastack _ >quotation
+        [ 3dup @ [ 3drop t ] [ drop assert ] if ] compose
+        with-datastack first dup not
+    ] [ t ] recover t ; inline
+
+: (unit-test~) ( output input -- error/f failed? tested? )
+    [ ~ ] (unit-test-comparator) ;
+
+: (unit-test-v~) ( output input -- error/f failed? tested? )
+    [ v~ ] (unit-test-comparator) ;
 
 : short-effect ( effect -- pair )
     [ in>> length ] [ out>> length ] bi 2array ;
@@ -172,6 +185,9 @@ PRIVATE>
     [ cleanup-unique-directory ] with-temp-directory ; inline
 
 TEST: unit-test
+TEST: unit-test~
+TEST: unit-test-v~
+TEST: unit-test-comparator
 TEST: long-unit-test
 TEST: must-infer-as
 TEST: must-infer
@@ -188,9 +204,11 @@ M: test-failure error. ( error -- )
 
 : :test-failures ( -- ) test-failures get errors. ;
 
-: test ( prefix -- ) loaded-child-vocab-names test-vocabs ;
+: test ( prefix -- )
+    loaded-child-vocab-names test-vocabs ;
 
-: test-all ( -- ) loaded-vocab-names filter-don't-test test-vocabs ;
+: test-all ( -- )
+    loaded-vocab-names [ don't-test? ] reject test-vocabs ;
 
 : test-main ( -- )
     command-line get [ [ load ] [ test ] bi ] each

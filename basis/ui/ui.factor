@@ -76,8 +76,7 @@ SYMBOL: ui-windows
 M: world graft*
     [ (open-window) ]
     [
-        [ set-up-window ]
-        [ [ clean-up-broken-window ] [ ui-error ] bi* ] recover
+        [ set-up-window ] [ ] [ clean-up-broken-window ] cleanup
     ] bi ;
 
 : dispose-window-resources ( world -- )
@@ -133,8 +132,6 @@ M: world ungraft*
     redraw-worlds
     send-queued-gestures ;
 
-SYMBOL: ui-thread
-
 : ui-running ( quot -- )
     t \ ui-running set-global
     [ f \ ui-running set-global ] [ ] cleanup ; inline
@@ -152,19 +149,22 @@ PRIVATE>
 <PRIVATE
 
 : update-ui-loop ( -- )
-    ! Note the logic: if update-ui fails, we open an error window
-    ! and run one iteration of update-ui. If that also fails, well,
-    ! the whole UI subsystem is broken so we exit out of the
-    ! update-ui-loop.
-    [ { [ ui-running? ] [ ui-thread get-global self eq? ] } 0&& ]
+    ! Note the logic: if update-ui fails, we open an error window and
+    ! run one iteration of update-ui. If that also fails, well, the
+    ! whole UI subsystem is broken so we throw the error to terminate
+    ! the update-ui-loop.
+    [ ui-running? ]
     [
         ui-notify-flag get lower-flag
-        [ update-ui ] [ ui-error update-ui ] recover
+        [ update-ui ] [
+            [ ui-error update-ui ] [
+                stop-event-loop nip rethrow
+            ] recover
+        ] recover
     ] while ;
 
 : start-ui-thread ( -- )
-    [ self ui-thread set-global update-ui-loop ]
-    "UI update" spawn drop ;
+    [ update-ui-loop ] "UI update" spawn drop ;
 
 : start-ui ( quot -- )
     call( -- ) notify-ui-thread start-ui-thread ;

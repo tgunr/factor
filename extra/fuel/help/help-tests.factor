@@ -1,6 +1,7 @@
 ! Copyright (C) 2009 Jose Antonio Ortega Ruiz.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: fuel.help.private help help.topics sequences tools.test ;
+USING: fuel.help fuel.help.private help help.topics sequences
+tools.test ;
 IN: fuel.help.tests
 
 {
@@ -15,4 +16,30 @@ IN: fuel.help.tests
 
 { { $next-link POSTPONE: unit-test "unit-test" } } [
     \ unit-test >link \ $next-link next/prev-link
+] unit-test
+
+{
+    { describe-words f }
+} [
+    "help.handbook" vocab-describe-words
+] unit-test
+
+{ f t } [
+    "io" vocab-help-article?
+    "help.lint" vocab-help-article?
+] unit-test
+
+{
+    { "handbook" "io.servers" }
+} [
+    "server-config" article-parents
+] unit-test
+
+{
+    {
+        { "handbook" "Factor handbook" article }
+        { "first-program" "Your first program" article }
+    }
+} [
+    "first-program-test" article-crumbs
 ] unit-test

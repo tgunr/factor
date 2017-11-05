@@ -1,10 +1,9 @@
 ! Copyright (C) 2007 Elie CHAFTARI
 ! Portions copyright (C) 2008 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: alien alien.c-types alien.destructors alien.libraries alien.parser
-alien.syntax assocs classes.struct combinators kernel lexer
-literals namespaces openssl.libcrypto parser quotations
-sequences system words ;
+USING: alien alien.c-types alien.destructors alien.libraries
+alien.parser alien.syntax classes.struct combinators kernel literals
+namespaces openssl.libcrypto system ;
 
 IN: openssl.libssl
 
@@ -320,7 +319,7 @@ STRUCT: ssl_method_st
     { ssl_ctx_callback_ctrl void* } ;
 TYPEDEF: ssl_method_st* ssl-method
 
-STRUCT: ssl_st
+STRUCT: SSL
     { version int }
     { type int }
     { method ssl_method_st* }
@@ -373,13 +372,30 @@ STRUCT: ssl_st
     { psk_client_callback void* }
     { psk_server_callback void* }
     { ctx SSL_CTX* } ;
-TYPEDEF: ssl_st SSL
 
-! Must be called before any other action takes place
+! ------------------------------------------------------------------------------
+! API >= 1.1.0
+! ------------------------------------------------------------------------------
+CONSTANT: OPENSSL_INIT_NO_LOAD_CRYPTO_STRINGS 0x00000001
+CONSTANT: OPENSSL_INIT_LOAD_CRYPTO_STRINGS    0x00000002
+CONSTANT: OPENSSL_INIT_NO_LOAD_SSL_STRINGS    0x00100000
+CONSTANT: OPENSSL_INIT_LOAD_SSL_STRINGS       0x00200000
+CONSTANT: OPENSSL_INIT_ADD_ALL_CIPHERS        0x00000004
+CONSTANT: OPENSSL_INIT_ADD_ALL_DIGESTS        0x00000008
+CONSTANT: OPENSSL_INIT_NO_ADD_ALL_CIPHERS     0x00000010
+CONSTANT: OPENSSL_INIT_NO_ADD_ALL_DIGESTS     0x00000020
+
+
+FUNCTION: int OPENSSL_init_ssl ( uint64_t opts, void *settings )
+! ------------------------------------------------------------------------------
+! API < 1.1.0, removed in new versions
+! ------------------------------------------------------------------------------
+! Initialization functions
 FUNCTION: int SSL_library_init (  )
 
 ! Maps OpenSSL errors to strings
 FUNCTION: void SSL_load_error_strings (  )
+! ------------------------------------------------------------------------------
 
 ! Sets the default SSL version
 FUNCTION: ssl-method SSLv2_client_method (  )
@@ -513,63 +529,48 @@ FUNCTION: void SSL_CTX_set_tmp_rsa_callback ( SSL_CTX* ctx, void* rsa )
 ! ===============================================
 ! x509_vfy.h
 ! ===============================================
-<<
-
-SYMBOL: verify-messages
-
-H{ } clone verify-messages set-global
-
-: verify-message ( n -- word ) verify-messages get-global at ;
-
-SYNTAX: X509_V_:
-    scan-token "X509_V_" prepend create-word-in
-    scan-number
-    [ 1quotation ( -- value ) define-inline ]
-    [ verify-messages get set-at ]
-    2bi ;
->>
-
-X509_V_: OK 0
-X509_V_: ERR_UNABLE_TO_GET_ISSUER_CERT 2
-X509_V_: ERR_UNABLE_TO_GET_CRL 3
-X509_V_: ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE 4
-X509_V_: ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE 5
-X509_V_: ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY 6
-X509_V_: ERR_CERT_SIGNATURE_FAILURE 7
-X509_V_: ERR_CRL_SIGNATURE_FAILURE 8
-X509_V_: ERR_CERT_NOT_YET_VALID 9
-X509_V_: ERR_CERT_HAS_EXPIRED 10
-X509_V_: ERR_CRL_NOT_YET_VALID 11
-X509_V_: ERR_CRL_HAS_EXPIRED 12
-X509_V_: ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD 13
-X509_V_: ERR_ERROR_IN_CERT_NOT_AFTER_FIELD 14
-X509_V_: ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD 15
-X509_V_: ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD 16
-X509_V_: ERR_OUT_OF_MEM 17
-X509_V_: ERR_DEPTH_ZERO_SELF_SIGNED_CERT 18
-X509_V_: ERR_SELF_SIGNED_CERT_IN_CHAIN 19
-X509_V_: ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY 20
-X509_V_: ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE 21
-X509_V_: ERR_CERT_CHAIN_TOO_LONG 22
-X509_V_: ERR_CERT_REVOKED 23
-X509_V_: ERR_INVALID_CA 24
-X509_V_: ERR_PATH_LENGTH_EXCEEDED 25
-X509_V_: ERR_INVALID_PURPOSE 26
-X509_V_: ERR_CERT_UNTRUSTED 27
-X509_V_: ERR_CERT_REJECTED 28
-X509_V_: ERR_SUBJECT_ISSUER_MISMATCH 29
-X509_V_: ERR_AKID_SKID_MISMATCH 30
-X509_V_: ERR_AKID_ISSUER_SERIAL_MISMATCH 31
-X509_V_: ERR_KEYUSAGE_NO_CERTSIGN 32
-X509_V_: ERR_UNABLE_TO_GET_CRL_ISSUER 33
-X509_V_: ERR_UNHANDLED_CRITICAL_EXTENSION 34
-X509_V_: ERR_KEYUSAGE_NO_CRL_SIGN 35
-X509_V_: ERR_UNHANDLED_CRITICAL_CRL_EXTENSION 36
-X509_V_: ERR_INVALID_NON_CA 37
-X509_V_: ERR_PROXY_PATH_LENGTH_EXCEEDED 38
-X509_V_: ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE 39
-X509_V_: ERR_PROXY_CERTIFICATES_NOT_ALLOWED 40
-X509_V_: ERR_APPLICATION_VERIFICATION 50
+ENUM: X509_V_ERROR
+    X509_V_ERR_OK
+    { X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT 2 }
+    X509_V_ERR_UNABLE_TO_GET_CRL
+    X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE
+    X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE
+    X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY
+    X509_V_ERR_CERT_SIGNATURE_FAILURE
+    X509_V_ERR_CRL_SIGNATURE_FAILURE
+    X509_V_ERR_CERT_NOT_YET_VALID
+    X509_V_ERR_CERT_HAS_EXPIRED
+    X509_V_ERR_CRL_NOT_YET_VALID
+    X509_V_ERR_CRL_HAS_EXPIRED
+    X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD
+    X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD
+    X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD
+    X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD
+    X509_V_ERR_OUT_OF_MEM
+    X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+    X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN
+    X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY
+    X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE
+    X509_V_ERR_CERT_CHAIN_TOO_LONG
+    X509_V_ERR_CERT_REVOKED
+    X509_V_ERR_INVALID_CA
+    X509_V_ERR_PATH_LENGTH_EXCEEDED
+    X509_V_ERR_INVALID_PURPOSE
+    X509_V_ERR_CERT_UNTRUSTED
+    X509_V_ERR_CERT_REJECTED
+    X509_V_ERR_SUBJECT_ISSUER_MISMATCH
+    X509_V_ERR_AKID_SKID_MISMATCH
+    X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH
+    X509_V_ERR_KEYUSAGE_NO_CERTSIGN
+    X509_V_ERR_UNABLE_TO_GET_CRL_ISSUER
+    X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION
+    X509_V_ERR_KEYUSAGE_NO_CRL_SIGN
+    X509_V_ERR_UNHANDLED_CRITICAL_CRL_EXTENSION
+    X509_V_ERR_INVALID_NON_CA
+    X509_V_ERR_PROXY_PATH_LENGTH_EXCEEDED
+    X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE
+    X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED
+    { X509_V_ERR_APPLICATION_VERIFICATION 50 } ;
 
 ! ===============================================
 ! obj_mac.h
@@ -606,18 +607,22 @@ FUNCTION: void X509_free ( X509 *a )
 DESTRUCTOR: X509_free
 FUNCTION: X509* d2i_X509 ( X509** px, uchar** in, int len )
 FUNCTION: int i2d_X509 ( X509* x, uchar** out )
-! FUNCTION: X509* d2i_X509_bio ( BIO* bp, X509** x )
-! FUNCTION: X509* d2i_X509_fp ( FILE* fp, X509** x )
-! FUNCTION: int i2d_X509_bio ( BIO* bp, X509* x )
-! FUNCTION: int i2d_X509_fp ( FILE* fp, X509* x )
 FUNCTION: int i2d_re_X509_tbs ( X509* x, uchar** out )
 
 C-TYPE: X509_STORE
 FUNCTION: X509_STORE* X509_STORE_new ( )
 FUNCTION: int X509_STORE_add_cert ( X509_STORE* ctx, X509* x )
 
-! ===============================================
-! stack.h
-! ===============================================
+! ------------------------------------------------------------------------------
+! API >= 1.1.0
+! ------------------------------------------------------------------------------
+FUNCTION: int OPENSSL_sk_num ( _STACK *s )
+FUNCTION: void* OPENSSL_sk_value ( _STACK *s, int v )
+
+! ------------------------------------------------------------------------------
+! API < 1.1.0, removed in new versions
+! ------------------------------------------------------------------------------
 FUNCTION: int sk_num ( _STACK *s )
 FUNCTION: void* sk_value ( _STACK *s, int v )
+
+! ------------------------------------------------------------------------------

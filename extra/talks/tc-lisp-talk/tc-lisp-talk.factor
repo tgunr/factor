@@ -180,7 +180,7 @@ computer-name"
     }
     { $slide "Functor for sorting"
         { $code
-            "FUNCTOR: define-sorting ( NAME QUOT -- )
+            "<FUNCTOR: define-sorting ( NAME QUOT -- )
 
 NAME<=> DEFINES ${NAME}<=>
 NAME>=< DEFINES ${NAME}>=<
@@ -191,7 +191,7 @@ WHERE
 : NAME>=< ( obj1 obj2 -- >=< )
     NAME<=> invert-comparison ;
 
-;FUNCTOR"
+;FUNCTOR>"
         }
     }
     { $slide "Example of sorting functor"
@@ -333,7 +333,7 @@ var price = (order == null ? null : order.price);" }
     }
     { $slide "Macro example"
         "Return the caaar of a sequence"
-        { "Return " { $snippet f } " on failure" }
+        { "Return " { $snippet "f" } " on failure" }
         { $code ": caaar ( seq/f -- x/f )
     {
         [ first ]

@@ -127,7 +127,7 @@ HELP: unless-empty
 HELP: delete-all
 { $values { "seq" "a resizable sequence" } }
 { $description "Resizes the sequence to zero length, removing all elements. Not all sequences are resizable." }
-{ $errors "Throws a " { $link bounds-error } " if the new length is negative, or if the sequence is not resizable." }
+{ $errors "Throws an error if the sequence is not resizable." }
 { $side-effects "seq" } ;
 
 HELP: resize
@@ -1204,6 +1204,16 @@ HELP: supremum
 { $errors "Throws an error if the sequence is empty." } ;
 
 { min max supremum infimum } related-words
+
+HELP: shortest
+{ $values { "seq" sequence } { "elt" object } }
+{ $description "Outputs the shortest element of " { $snippet "seq" } "." } ;
+
+HELP: longest
+{ $values { "seq" sequence } { "elt" object } }
+{ $description "Outputs the longest element of " { $snippet "seq" } "." } ;
+
+{ shortest longest } related-words
 
 HELP: produce
 { $values { "pred" { $quotation ( ..a -- ..b ? ) } } { "quot" { $quotation ( ..b -- ..a obj ) } } { "seq" sequence } }

@@ -5,7 +5,7 @@ combinators.smart fry generalizations io io.streams.string
 kernel macros math math.functions math.parser namespaces
 peg.ebnf present prettyprint quotations sequences
 sequences.generalizations strings unicode vectors
-math.functions.integer-logs splitting ;
+math.functions.integer-logs splitting multiline ;
 FROM: math.parser.private => format-float ;
 IN: formatting
 
@@ -61,18 +61,15 @@ IN: formatting
 : format-fast-scientific? ( x digits -- x' digits ? )
     over float? [ t ]
     [ 2dup
-        [ abs integer-log10 abs 308 < ]
+        [ [ t ] [ abs integer-log10 abs 308 < ] if-zero ]
         [ 15 < ] bi* and
         [ [ [ >float ] dip ] when ] keep
     ] if ;
 
-: ?fix-nonsignificant-zero ( string digits -- string )
-    [ ".0" "" replace ] [ drop ] if-zero ;
-
 : format-scientific ( x digits -- string )
     format-fast-scientific?  [
         [ "e" format-float-fast ]
-        [ ?fix-nonsignificant-zero ] bi
+        [ [ ".0e" "e" replace ] [ drop ] if-zero ] bi
     ] [ format-scientific-simple ] if ;
 
 : format-fast-decimal? ( x digits -- x' digits ? )
@@ -91,12 +88,12 @@ IN: formatting
 : format-decimal ( x digits -- string )
     format-fast-decimal? [
         [ "f" format-float-fast ]
-        [ ?fix-nonsignificant-zero ] bi
+        [ [ ".0" ?tail drop ] [ drop ] if-zero ] bi
     ] [ format-decimal-simple ] if ;
 
 ERROR: unknown-printf-directive ;
 
-EBNF: parse-printf
+EBNF: parse-printf [=[
 
 zero      = "0"                  => [[ CHAR: 0 ]]
 char      = "'" (.)              => [[ second ]]
@@ -149,7 +146,7 @@ plain-text = (!("%").)+          => [[ >string ]]
 
 text      = (formats|plain-text)* => [[ ]]
 
-;EBNF
+]=]
 
 : printf-quot ( format-string -- format-quot n )
     parse-printf [ [ callable? ] count ] keep [
@@ -214,7 +211,7 @@ MACRO: sprintf ( format-string -- quot )
 
 : week-of-year-monday ( timestamp -- n ) 1 week-of-year ; inline
 
-EBNF: parse-strftime
+EBNF: parse-strftime [=[
 
 fmt-%     = "%"                  => [[ "%" ]]
 fmt-a     = "a"                  => [[ [ day-of-week day-abbreviation3 ] ]]
@@ -250,7 +247,7 @@ plain-text = (!("%").)+          => [[ >string ]]
 
 text      = (formats|plain-text)* => [[ ]]
 
-;EBNF
+]=]
 
 PRIVATE>
 
