@@ -56,6 +56,8 @@ void factor_vm::primitive_callstack_to_array() {
                                      cell size,
                                      code_block* owner,
                                      cell addr) {
+    (void)frame_top;
+    (void)size;
     data_root<object> executing_quot(owner->owner_quot(), this);
     data_root<object> executing(owner->owner, this);
     data_root<object> scan(owner->scan(this, addr), this);
@@ -102,6 +104,12 @@ void factor_vm::primitive_set_innermost_stack_frame_quotation() {
   code_block* block = code->code_block_for_address(addr);
   cell offset = block->offset(addr);
   *(cell*)inner = quot->entry_point + offset;
+}
+
+// Allocates memory (allot_alien)
+void factor_vm::primitive_callstack_bounds() {
+  ctx->push(allot_alien(ctx->callstack_seg->start));
+  ctx->push(allot_alien(ctx->callstack_seg->end));
 }
 
 }

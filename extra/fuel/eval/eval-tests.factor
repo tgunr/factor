@@ -2,7 +2,6 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: continuations fuel fuel.eval io.streams.string kernel math
 namespaces random.data sequences tools.test vocabs.parser ;
-IN: fuel.eval.tests
 
 ! pop-restarts
 { V{ "um" } } [
@@ -51,10 +50,10 @@ IN: fuel.eval.tests
 ] unit-test
 
 {
-    "(nil nil \"9\\n\")\n<~FUEL~>\n"
+    "(nil 9 \"\")\n<~FUEL~>\n"
 } [
     [
-        { "3 sq . " } "hi99"
-        { "math" "prettyprint" "kernel" } eval-in-context
+        { "3 sq" } "hi99"
+        { "math" "kernel" } eval-in-context
     ] with-string-writer
 ] unit-test

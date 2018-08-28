@@ -76,7 +76,7 @@ SYMBOL: total
 ! Part II: Topologically sorting specializers
 : maximal-element ( seq quot -- n elt )
     dupd [
-        swapd [ call +lt+ = ] 2curry any? not
+        swapd [ call +lt+ = ] 2curry none?
     ] 2curry find [ "Topological sort failed" throw ] unless* ;
     inline
 
@@ -216,7 +216,7 @@ M: no-method error.
     [ "multi-method-generic" word-prop ] bi prefix ;
 
 : define-generic ( word effect -- )
-    over set-stack-effect
+    [ set-stack-effect ] keepd
     dup "multi-methods" word-prop [ drop ] [
         [ H{ } clone "multi-methods" set-word-prop ]
         [ update-generic ]

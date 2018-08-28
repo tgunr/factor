@@ -46,6 +46,8 @@ M: interactor manifest>>
 
 GENERIC: (word-at-caret) ( token completion-mode -- obj )
 
+M: object (word-at-caret) 2drop f ;
+
 M: vocab-completion (word-at-caret)
     drop
     [ dup vocab-exists? [ >vocab-link ] [ drop f ] if ]
@@ -56,11 +58,8 @@ M: word-completion (word-at-caret)
         '[ _ _ search-manifest ] [ drop f ] recover
     ] [ drop f ] if* ;
 
-M: char-completion (word-at-caret) 2drop f ;
-
-M: path-completion (word-at-caret) 2drop f ;
-
-M: color-completion (word-at-caret) 2drop f ;
+M: vocab-word-completion (word-at-caret)
+    vocab-name>> lookup-word ;
 
 : word-at-caret ( token interactor -- obj )
     completion-mode (word-at-caret) ;
@@ -446,6 +445,11 @@ interactor "completion" f {
 
 \ com-auto-use H{ { +nullary+ t } { +listener+ t } } define-command
 
+: com-file-drop ( -- files )
+    dropped-files get-global ;
+
+\ com-file-drop H{ { +nullary+ t } { +listener+ t } } define-command
+
 listener-gadget "toolbar" f {
     { f restart-listener }
     { T{ key-down f { A+ } "u" } com-auto-use }
@@ -466,6 +470,17 @@ listener-gadget "scrolling"
 
 listener-gadget "multi-touch" f {
     { up-action refresh-all }
+} define-command-map
+
+listener-gadget "touchbar" f {
+    { f refresh-all }
+    { f com-auto-use }
+    { f com-help }
+} define-command-map
+
+listener-gadget "file-drop" "Files can be drag-and-dropped onto the listener."
+{
+    { T{ file-drop f f } com-file-drop }
 } define-command-map
 
 M: listener-gadget graft*

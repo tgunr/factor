@@ -1,4 +1,3 @@
-
 language: cpp
 compiler:
   - clang
@@ -6,20 +5,25 @@ compiler:
 os:
   - linux
   - osx
-branches:
-  only:
-    - master
 sudo: required
 dist: trusty
+group: deprecated-2017Q4
 services:
   - postgresql
   - redis-server
+branches:
+  except:
+  - clean-windows-x86-64
+  - clean-windows-x86-32
+  - clean-linux-x86-64
+  - clean-linux-x86-32
+  - clean-macosx-x86-64
+  - clean-macosx-x86-32
 addons:
   apt:
     packages:
       - links
       - libblas-dev
-      - libfftw3-dev
       - libmagic-dev
       - libsnappy-dev
       - libzmq-dev
@@ -36,27 +40,33 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew ls --versions redis > /dev/null || brew install redis; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew ls --versions zeromq > /dev/null || brew install zeromq; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew ls --versions postgresql > /dev/null || brew install postgresql; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew ls --versions fftw > /dev/null || brew install fftw; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start memcached; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start redis; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start postgresql; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start memcached; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rm -rf ~/.gnupg/; fi  # https://github.com/rvm/rvm/issues/3110
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then curl -#LO https://rvm.io/mpapis.asc; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then gpg --import mpapis.asc; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then curl -sSL https://get.rvm.io | bash -s stable; fi  # https://github.com/travis-ci/travis-ci/issues/6307
   - >
     wget https://github.com/vmt/udis86/archive/v1.7.2.tar.gz && tar xzvf v1.7.2.tar.gz &&
     ( cd udis86-1.7.2/ && ./autogen.sh && ./configure --enable-shared=yes && make && sudo make install ) &&
     ( [[ "$TRAVIS_OS_NAME" != "osx" ]] && sudo ldconfig || true )
-  - >
-      ( git clone -b v1.2 git://github.com/couchbase/forestdb &&
-      cd forestdb && mkdir build && cd build && cmake ../ &&
-      make all &&
-      [[ "$TRAVIS_OS_NAME" != "osx" ]] && ( sudo cp libforestdb.so /usr/lib && sudo ldconfig ) || ( true )
-      )
-script: >
-  ( echo "=== Bootstrap ===" ;  ./build.sh net-bootstrap < /dev/null ; ret=$? ; echo "=== $ret ==="; [ $ret == 0 ] )  &&
-  ( echo "=== Factor Configure Postgresql ===" ; ./factor -e='USING: db.postgresql namespaces memory ; T{ postgresql-db f "localhost" f f f f "postgres" "" } \ postgresql-db set-global save' ; ret=$? ; echo "=== $ret ==="; [ $ret == 0 ] ) &&
-  ( echo "=== Factor Configure Imap ===" ; ./factor -e='USING: imap namespaces memory environment accessors ; T{ imap-settings { host "imap.gmail.com" }  } "FACTOR_IMAP_USER" os-env >>email "FACTOR_IMAP_PASSWORD" os-env >>password \ imap-settings set-global save' ; ret=$? ; echo "=== $ret ==="; [ $ret == 0 ] ) &&
-  ( echo "=== Mkdir ===" ; mkdir -p mason/builds ; ret=$? ; echo "=== $ret ==="; [ $ret == 0 ] ) &&
-  ( echo "=== Factor tests ===" ; cd mason/builds && ../../factor -e='USING: namespaces tools.test mason.test ; f long-unit-tests-enabled? set-global  do-all' < /dev/null | awk 'NR<1000 || /^Loading resource|Unit Test/' ; ret=${PIPESTATUS[0]} ; echo "=== $ret ==="; [ $ret == 0 ]) &&
-  ( echo "=== Factor report === " ; cd mason && ../factor -e='USING: mason.config mason.report namespaces ; "." builds-dir [ successful-report ] with-variable'  ; ret=$? ; echo "=== $ret ==="; [ $ret == 0 ]) &&
-  ( echo "=== Dump report === " ;[[ "$TRAVIS_OS_NAME" != "osx" ]] && links -dump mason/report || cat mason/report  ; ret=$? ; echo "=== $ret ==="; [ $ret == 0 ]) &&
-  [ ! -s mason/test-all-errors ]
+  - git remote set-branches --add origin master
+  - git remote set-branches --add origin clean-windows-x86-64
+  - git remote set-branches --add origin clean-windows-x86-32
+  - git remote set-branches --add origin clean-linux-x86-64
+  - git remote set-branches --add origin clean-linux-x86-32
+  - git remote set-branches --add origin clean-macosx-x86-64
+  - git remote set-branches --add origin clean-macosx-x86-32
+  - git fetch # so we can see which vocabs changed versus origin/master...
+script:
+  - echo "TRAVIS_BRANCH=$TRAVIS_BRANCH, TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
+  - export CI_BRANCH="${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}"
+  - echo "CI_BRANCH=${CI_BRANCH}"
+  - DEBUG=1 ./build.sh net-bootstrap < /dev/null
+  - "./factor -e='USING: memory vocabs.hierarchy ; \"zealot\" load save'"
+  - './factor -run=zealot.cli-changed-vocabs'
+  - './factor -run=tools.test `./factor -run=zealot.cli-changed-vocabs | paste -s -d " " -`'
+  - './factor -run=help.lint `./factor -run=zealot.cli-changed-vocabs | paste -s -d " " -`'
+  - "./factor -e='USING: modern.paths tools.test sequences system kernel math random ; core-vocabs os macosx? [ dup length 3 /i sample ] when [ test ] each'"

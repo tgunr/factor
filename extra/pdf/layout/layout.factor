@@ -1,6 +1,5 @@
 ! Copyright (C) 2011-2012 John Benediktsson
 ! See http://factorcode.org/license.txt for BSD license
-
 USING: accessors assocs calendar combinators environment fonts
 formatting fry io io.streams.string kernel literals locals make
 math math.order math.ranges namespaces pdf.canvas pdf.values
@@ -150,7 +149,7 @@ M: hr pdf-render
     [
         [ dup 0 > pick avail-lines 0 > and ] [
             over avail-width over min [ - ] keep [
-                [ over ] dip [ draw-line ] [ inc-x ] 2bi
+                overd [ draw-line ] [ inc-x ] 2bi
             ] unless-zero dup 0 > [ over line-break ] when
         ] while
     ] change-width nip dup width>> 0 > [ drop f ] unless ;
@@ -252,7 +251,7 @@ M: table-row pdf-render
     ] each widths >alist sort-keys values
 
     ! make last cell larger
-    dup sum 400 swap [-] [ + ] curry dupd change-last
+    dup sum 400 swap [-] [ + ] curry dupd sequences.extras:change-last
 
     ! size down each column
     dup sum dup 400 > [ 400 swap / [ * ] curry map ] [ drop ] if ;

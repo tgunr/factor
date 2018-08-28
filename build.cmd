@@ -1,14 +1,20 @@
 @echo off
 setlocal
 
+: Check which branch we are on, or just assume master if we are not in a git repository
+for /f %%z in ('git rev-parse --abbrev-ref HEAD') do set GIT_BRANCH=%%z
+if not defined GIT_BRANCH (
+    set GIT_BRANCH=master
+)
+
 if "%1"=="/?" (
     goto usage
 ) else if "%1"=="" (
-    set _bootimage_version=latest
+    set _bootimage_version=%GIT_BRANCH%
 ) else if "%1"=="latest" (
-    set _bootimage_version=latest
+    set _bootimage_version=%GIT_BRANCH%
 ) else if "%1"=="update" (
-    set _bootimage_version=latest
+    set _bootimage_version=%GIT_BRANCH%
 ) else if "%1"=="clean" (
     set _bootimage_version=clean
 ) else goto usage
@@ -28,14 +34,6 @@ if not errorlevel 1 (
         set _bootimage=boot.windows-x86.64.image
     ) else goto nocl
 )
-
-: Fun syntax
-for /f %%x in ('git describe --all') do set GIT_DESCRIBE=%%x
-for /f %%y in ('git rev-parse HEAD') do set GIT_ID=%%y
-for /f %%z in ('git rev-parse --abbrev-ref HEAD') do set GIT_BRANCH=%%z
-
-set git_label=%GIT_DESCRIBE%-%GIT_ID%
-set version=0.98
 
 echo Deleting staging images from temp/...
 del temp\staging.*.image

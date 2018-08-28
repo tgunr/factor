@@ -1,13 +1,14 @@
 ! Copyright (C) 2006, 2010 Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.data alien.strings
-arrays assocs cocoa cocoa.application cocoa.classes
-cocoa.pasteboard cocoa.runtime cocoa.subclassing cocoa.types
-cocoa.views combinators core-foundation.strings core-graphics
-core-graphics.types core-text io.encodings.utf8 kernel literals
-locals math math.rectangles namespaces opengl sequences threads
-ui.gadgets ui.gadgets.private ui.gadgets.worlds ui.gestures
-ui.private ;
+arrays assocs classes cocoa cocoa.application cocoa.classes
+cocoa.pasteboard cocoa.runtime cocoa.subclassing cocoa.touchbar
+cocoa.types cocoa.views combinators core-foundation.strings
+core-graphics core-graphics.types core-text io.encodings.utf8
+kernel literals locals math math.order math.parser
+math.rectangles namespaces opengl sequences splitting threads
+ui.commands ui.gadgets ui.gadgets.private ui.gadgets.worlds
+ui.gestures ui.private words ;
 IN: ui.backend.cocoa.views
 
 : send-mouse-moved ( view event -- )
@@ -160,6 +161,26 @@ CONSTANT: selector>action H{
     selector>action at
     [ swap world-focus parents-handle-gesture? t ] [ drop f f ] if* ;
 
+: touchbar-commands ( -- commands/f gadget )
+    world get-global [
+        children>> [
+            class-of "commands" word-prop
+            "touchbar" of dup [ commands>> ] when
+        ] map-find
+    ] [ f f ] if* ;
+
+TUPLE: send-touchbar-command target command ;
+
+M: send-touchbar-command send-queued-gesture
+    [ target>> ] [ command>> ] bi invoke-command ;
+
+: touchbar-invoke-command ( n -- )
+    [ touchbar-commands ] dip over [
+        rot nth second
+        send-touchbar-command queue-gesture notify-ui-thread
+        yield
+    ] [ 3drop ] if ;
+
 <CLASS: FactorView < NSOpenGLView
     COCOA-PROTOCOL: NSTextInput
 
@@ -168,11 +189,9 @@ CONSTANT: selector>action H{
         self SEL: setWantsBestResolutionOpenGLSurface:
         -> respondsToSelector: c-bool> [
 
-            self SEL: setWantsBestResolutionOpenGLSurface: 1
-            void f "objc_msgSend" { id SEL char } f alien-invoke
+            self 1 { void { id SEL char } } ?-> setWantsBestResolutionOpenGLSurface:
 
-            self SEL: backingScaleFactor
-            double f "objc_msgSend" { id SEL } f alien-invoke
+            self { double { id SEL } } ?-> backingScaleFactor
 
             dup 1.0 > [
                 gl-scale-factor set-global t retina? set-global
@@ -180,6 +199,30 @@ CONSTANT: selector>action H{
             ] [ drop ] if
 
         ] when
+    ] ;
+
+    ! TouchBar
+    METHOD: void touchBarCommand0 [ 0 touchbar-invoke-command ] ;
+    METHOD: void touchBarCommand1 [ 1 touchbar-invoke-command ] ;
+    METHOD: void touchBarCommand2 [ 2 touchbar-invoke-command ] ;
+    METHOD: void touchBarCommand3 [ 3 touchbar-invoke-command ] ;
+    METHOD: void touchBarCommand4 [ 4 touchbar-invoke-command ] ;
+    METHOD: void touchBarCommand5 [ 5 touchbar-invoke-command ] ;
+    METHOD: void touchBarCommand6 [ 6 touchbar-invoke-command ] ;
+    METHOD: void touchBarCommand7 [ 7 touchbar-invoke-command ] ;
+
+    METHOD: id makeTouchBar [
+        touchbar-commands drop [
+            length 8 min <iota> [ number>string ] map
+        ] [ { } ] if* self make-touchbar
+    ] ;
+
+    METHOD: id touchBar: id touchbar makeItemForIdentifier: id string [
+        touchbar-commands drop [
+            [ self string CF>string dup string>number ] dip nth
+            second name>> "com-" ?head drop over
+            "touchBarCommand" prepend make-NSTouchBar-button
+        ] [ f ] if*
     ] ;
 
     ! Rendering
@@ -226,29 +269,29 @@ CONSTANT: selector>action H{
         ] [ 0 ] if*
     ] ;
 
-    METHOD: id undo: id event [ self event undo-action send-action$ f ] ;
+    METHOD: void undo: id event [ self event undo-action send-action$ ] ;
 
-    METHOD: id redo: id event [ self event redo-action send-action$ f ] ;
+    METHOD: void redo: id event [ self event redo-action send-action$ ] ;
 
-    METHOD: id cut: id event [ self event cut-action send-action$ f ] ;
+    METHOD: void cut: id event [ self event cut-action send-action$ ] ;
 
-    METHOD: id copy: id event [ self event copy-action send-action$ f ] ;
+    METHOD: void copy: id event [ self event copy-action send-action$ ] ;
 
-    METHOD: id paste: id event [ self event paste-action send-action$ f ] ;
+    METHOD: void paste: id event [ self event paste-action send-action$ ] ;
 
-    METHOD: id delete: id event [ self event delete-action send-action$ f ] ;
+    METHOD: void delete: id event [ self event delete-action send-action$ ] ;
 
-    METHOD: id selectAll: id event [ self event select-all-action send-action$ f ] ;
+    METHOD: void selectAll: id event [ self event select-all-action send-action$ ] ;
 
-    METHOD: id newDocument: id event [ self event new-action send-action$ f ] ;
+    METHOD: void newDocument: id event [ self event new-action send-action$ ] ;
 
-    METHOD: id openDocument: id event [ self event open-action send-action$ f ] ;
+    METHOD: void openDocument: id event [ self event open-action send-action$ ] ;
 
-    METHOD: id saveDocument: id event [ self event save-action send-action$ f ] ;
+    METHOD: void saveDocument: id event [ self event save-action send-action$ ] ;
 
-    METHOD: id saveDocumentAs: id event [ self event save-as-action send-action$ f ] ;
+    METHOD: void saveDocumentAs: id event [ self event save-as-action send-action$ ] ;
 
-    METHOD: id revertDocumentToSaved: id event [ self event revert-action send-action$ f ] ;
+    METHOD: void revertDocumentToSaved: id event [ self event revert-action send-action$ ] ;
 
     ! Multi-touch gestures
     METHOD: void magnifyWithEvent: id event

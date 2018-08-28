@@ -77,6 +77,7 @@ M: gtk-clipboard set-clipboard-contents
 :: with-timer ( quot -- )
     <timer-funcs> &free
     GSource heap-size g_source_new &g_source_unref :> source
+    source G_PRIORITY_DEFAULT_IDLE g_source_set_priority
     source f g_source_attach drop
     [ quot call( -- ) ]
     [ source g_source_destroy ] [ ] cleanup ;
@@ -502,16 +503,14 @@ M:: gtk-ui-backend system-alert ( caption text -- )
     ] with-destructors ;
 
 M: gtk-ui-backend (with-ui)
+    f f gtk_init_check [ "Unable to initialize GTK" throw ] unless
+    f f gtk_gl_init
+    load-icon
+    init-clipboard
+    start-ui
     [
-        f f gtk_init
-        f f gtk_gl_init
-        load-icon
-        init-clipboard
-        start-ui
-        [
-            [ [ gtk_main ] with-timer ] with-event-loop
-        ] with-destructors
-    ] ui-running ;
+        [ [ gtk_main ] with-timer ] with-event-loop
+    ] with-destructors ;
 
 M: gtk-ui-backend stop-event-loop
     gtk_main_quit ;

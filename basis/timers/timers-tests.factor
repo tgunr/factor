@@ -1,7 +1,6 @@
 USING: timers timers.private calendar concurrency.count-downs
 concurrency.promises fry kernel math math.order sequences
 threads tools.test tools.time ;
-IN: timers.tests
 
 { } [
     1 <count-down>
@@ -64,4 +63,13 @@ IN: timers.tests
     <timer> dup start-timer
     700 milliseconds sleep dup restart-timer
     700 milliseconds sleep stop-timer 500 milliseconds sleep
+] unit-test
+
+{ { 2 } } [
+    { 0 }
+    dup '[ 0 _ [ 1 + ] change-nth ] 300 milliseconds f <timer>
+    dup restart-timer
+    700 milliseconds sleep
+    dup restart-timer drop
+    700 milliseconds sleep
 ] unit-test

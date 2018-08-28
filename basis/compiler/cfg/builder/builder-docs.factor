@@ -1,7 +1,7 @@
-USING: assocs compiler.cfg compiler.cfg.builder.blocks
-compiler.cfg.instructions compiler.cfg.stacks.local compiler.tree
-help.markup help.syntax kernel literals math multiline quotations
-sequences vectors words ;
+USING: arrays assocs compiler.cfg compiler.cfg.builder.blocks
+compiler.cfg.instructions compiler.cfg.stacks.local
+compiler.tree help.markup help.syntax kernel literals math
+multiline quotations sequences vectors words ;
 IN: compiler.cfg.builder
 
 <<
@@ -78,7 +78,7 @@ HELP: emit-loop-call
 
 HELP: emit-node
 { $values { "block" basic-block } { "node" node } { "block'" basic-block } }
-{ $description "Emits CFG instructions for the given SSA node. The word can add one or more basic blocks to the " { $link cfg } ". The next block to operate on is pushed onto the stack. "
+{ $description "Emits CFG instructions for the given SSA node. The word can add one or more basic blocks to the " { $link cfg } ". The next block to operate on is pushed onto the stack."
 $nl
 "The following classes emit-node methods does not change the current block:"
   { $list
@@ -104,7 +104,7 @@ HELP: end-word
 { $description "Ends the word by adding a basic block containing a " { $link ##return } " instructions to the " { $link cfg } "." } ;
 
 HELP: height-changes
-{ $values { "#shuffle" #shuffle } { "height-changes" sequence } }
+{ $values { "#shuffle" #shuffle } { "height-changes" pair } }
 { $description "Returns a two-tuple which represents how much the " { $link #shuffle } " node increases or decreases the data and retainstacks." }
 { $examples
   { $example
@@ -115,7 +115,7 @@ HELP: height-changes
 } ;
 
 HELP: out-vregs/stack
-{ $values { "#shuffle" #shuffle } { "seq" sequence } }
+{ $values { "#shuffle" #shuffle } { "pair" sequence } }
 { $description "Returns a sequence of what vregs are on which stack locations after the shuffle instruction." } ;
 
 HELP: trivial-branch?

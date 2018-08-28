@@ -78,7 +78,7 @@ M: linux x>hid-bit-order
     } ; inline
 
 : x-bits>hid-bits ( bit-array -- bit-array )
-    256 <iota> [ 2array ] { } 2map-as [ first ] filter values
+    256 <iota> { } zip-as [ first ] filter values
     x>hid-bit-order [ nth ] curry map
     256 <bit-array> swap [ t swap pick set-nth ] each ;
 
@@ -90,7 +90,7 @@ M: x11-game-input-backend read-keyboard
     dpy get dup XDefaultRootWindow
     { int int int int int int int }
     [ XQueryPointer drop ] with-out-parameters
-    [ 4 ndrop ] 3dip ;
+    [ 4drop ] 3dip ;
 
 SYMBOL: mouse-reset?
 
