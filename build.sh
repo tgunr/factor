@@ -19,7 +19,7 @@ REQUIRE_CLANG_VERSION=3.1
 
 # return 1 on found
 test_program_installed() {
-    if ! [[ -n $(type -p $1) ]] ; then
+    if ! [[ -n $(type -p $1) ]] ; then 
         return 0;
     fi
     return 1;
@@ -447,11 +447,15 @@ update_script_name() {
     $ECHO "$(dirname $0)/_update.sh"
 }
 
+GIT_PULL="y"
+
 update_script() {
     local -r update_script=$(update_script_name)
     local -r bash_path=$(which bash)
     $ECHO "#!$bash_path" >"$update_script"
-    $ECHO "git pull \"$GIT_URL\" master" >>"$update_script"
+    if [[ "$GIT_PULL" != "" ]] ; then
+	$ECHO "git pull \"$GIT_URL\" master" >>"$update_script"
+    fi
     $ECHO "if [[ \$? -eq 0 ]]; then exec \"$0\" $SCRIPT_ARGS; else echo \"git pull failed\"; exit 2; fi" \
         >>"$update_script"
     $ECHO "exit 0" >>"$update_script"
@@ -714,6 +718,7 @@ usage() {
     $ECHO "  self-update - git pull, recompile, make local boot image, bootstrap"
     $ECHO "  quick-update - git pull, refresh-all, save"
     $ECHO "  update|latest - git pull, recompile, download a boot image, bootstrap"
+    $ECHO "  compile - recompile current branch, download a boot image, bootstrap"
     $ECHO "  bootstrap - bootstrap with existing boot image"
     $ECHO "  net-bootstrap - recompile, download a boot image, bootstrap"
     $ECHO "  make-target - find and print the os-arch-cpu string"
@@ -747,6 +752,7 @@ case "$1" in
     quick-update) update; refresh_image ;;
     update) update; download_and_bootstrap ;;
     latest) update; download_and_bootstrap ;;
+    compile) GIT_PULL=''; update; download_and_bootstrap ;;
     bootstrap) get_config_info; bootstrap ;;
     net-bootstrap) net_bootstrap_no_pull ;;
     make-target) FIND_MAKE_TARGET=true; ECHO=false; find_build_info; exit_script ;;
