@@ -1,7 +1,11 @@
 ! Copyright (C) 2009 Daniel Ehrenberg, Slava Pestov
 ! See http://factorcode.org/license.txt for BSD license.
-USING: io kernel sequences splitting ;
+USING: io kernel sequences splitting namespaces ;
 IN: io.crlf
+
+SYMBOL: nonl
+: nonl-t ( -- )   t nonl set ;
+: nonl-f ( -- )   f nonl set ;
 
 : crlf ( -- )
     "\r\n" write ;

@@ -1,6 +1,6 @@
 ! Copyright (C) 2005, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: io kernel namespaces ;
+USING: io io.crlf kernel namespaces ;
 IN: io.streams.plain
 
 MIXIN: plain-writer
