@@ -162,9 +162,12 @@ M: string add-using drop ;
 M: object add-using ( object -- )
     vocabulary>> using get [ adjoin ] [ drop ] if* ;
 
+: 4bl ( -- )
+    "    " write ; inline
+
 : ($values.) ( array -- )
     [
-        "    " write
+        4bl
         [ bl ] [
             "{ " write
             dup array? [ first ] when

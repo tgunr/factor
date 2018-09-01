@@ -32,4 +32,5 @@ a.out
 checksums.txt
 factor.com
 factor.image.fresh
-*.icloud
+Factor.png
+.*.icloud

@@ -87,6 +87,7 @@ in another window."
   ;;     (add-hook 'post-command-hook 'fuel-autohelp-schedule-timer nil t)
   ;;   (remove-hook 'post-command-hook 'fuel-autohelp-schedule-timer)))
 
+
 ;;;###autoload
 (defun turn-on-fuel-autohelp-mode ()
   "Unequivocally turn on FUEL's Autohelp mode (see command
