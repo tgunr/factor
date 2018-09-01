@@ -1,10 +1,10 @@
-! (c)Joe Groff bsd license
-USING: accessors arrays classes classes.tuple combinators
-combinators.short-circuit definitions effects fry generalizations
-hints math kernel kernel.private namespaces parser quotations
-sequences slots words locals effects.parser
-locals.parser macros stack-checker.dependencies
-classes.maybe classes.algebra ;
+! Copyright (C) 2009, 2010, 2011 Joe Groff, Slava Pestov, Doug Coleman.
+! See http://factorcode.org/license.txt for BSD license.
+USING: accessors arrays classes classes.algebra classes.tuple
+combinators combinators.short-circuit definitions effects
+effects.parser fry generalizations kernel kernel.private locals
+locals.parser macros quotations sequences slots
+stack-checker.dependencies words ;
 FROM: classes.tuple.private => tuple-layout ;
 IN: typed
 

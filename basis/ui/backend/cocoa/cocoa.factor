@@ -76,8 +76,8 @@ M: pasteboard set-clipboard-contents
     ! after register-window.
     dup { 0 0 } = [
         drop
-        ui-windows get-global length 1 <= [ -> center ] [
-            ui-windows get-global last second window-loc>>
+        worlds get-global length 1 <= [ -> center ] [
+            worlds get-global last second window-loc>>
             dupd first2 <CGPoint> -> cascadeTopLeftFromPoint:
             -> setFrameTopLeftPoint:
         ] if
@@ -215,15 +215,13 @@ cocoa-startup-hook [
 
 M: cocoa-ui-backend (with-ui)
     "UI" assert.app [
-        [
-            init-clipboard
-            cocoa-startup-hook get call( -- )
-            start-ui
-            stop-io-thread
-            init-thread-timer
-            reset-thread-timer
-            NSApp -> run
-        ] ui-running
+        init-clipboard
+        cocoa-startup-hook get call( -- )
+        start-ui
+        stop-io-thread
+        init-thread-timer
+        reset-thread-timer
+        NSApp -> run
     ] with-cocoa ;
 
 cocoa-ui-backend ui-backend set-global

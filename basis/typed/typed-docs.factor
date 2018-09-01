@@ -1,4 +1,5 @@
-! (c)2009 Joe Groff bsd license
+! Copyright (C) 2009 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: arrays effects help.markup help.syntax locals math quotations words ;
 IN: typed
 
@@ -31,13 +32,13 @@ HELP: TYPED::
 { $example
 "USING: kernel math math.libm prettyprint typed ;
 IN: scratchpad
-
+<<
 TYPED:: quadratic-roots ( a: float b: float c: float -- q1: float q2: float )
     b neg
     b sq 4.0 a * c * - fsqrt
     [ + ] [ - ] 2bi
     [ 2.0 a * / ] bi@ ;
-
+>>
 1 0 -9/4 quadratic-roots [ . ] bi@"
 "1.5
 -1.5" } } ;

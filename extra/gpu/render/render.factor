@@ -1,4 +1,5 @@
-! (c)2009 Joe Groff bsd license
+! Copyright (C) 2009 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.data arrays
 assocs classes classes.mixin classes.parser classes.singleton classes.struct
 classes.tuple classes.tuple.private combinators combinators.tuple destructors fry
@@ -553,7 +554,7 @@ SYNTAX: UNIFORM-TUPLE:
 
 : bind-output-attachments ( program-instance framebuffer attachments -- )
     dup first sequence?
-    [ bind-named-output-attachments ] [ [ drop ] 2dip bind-unnamed-output-attachments ] if ;
+    [ bind-named-output-attachments ] [ nipd bind-unnamed-output-attachments ] if ;
 
 GENERIC: bind-transform-feedback-output ( output -- )
 

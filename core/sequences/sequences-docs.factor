@@ -127,7 +127,7 @@ HELP: unless-empty
 HELP: delete-all
 { $values { "seq" "a resizable sequence" } }
 { $description "Resizes the sequence to zero length, removing all elements. Not all sequences are resizable." }
-{ $errors "Throws a " { $link bounds-error } " if the new length is negative, or if the sequence is not resizable." }
+{ $errors "Throws an error if the sequence is not resizable." }
 { $side-effects "seq" } ;
 
 HELP: resize
@@ -528,7 +528,7 @@ HELP: find-index
           { "quot" { $quotation ( ... elt i -- ... ? ) } }
           { "i" { $maybe "the index of the first match" } }
           { "elt" { $maybe "the first matching element" } } }
-{ $description "A varient of " { $link find } " where the quotation takes both an element and its index." } ;
+{ $description "A variant of " { $link find } " where the quotation takes both an element and its index." } ;
 
 HELP: find-index-from
 { $values { "n" "a starting index" }
@@ -536,7 +536,7 @@ HELP: find-index-from
           { "quot" { $quotation ( ... elt i -- ... ? ) } }
           { "i" { $maybe "the index of the first match" } }
           { "elt" { $maybe "the first matching element" } } }
-{ $description "A varient of " { $link find-from } " where the quotation takes both an element and its index." } ;
+{ $description "A variant of " { $link find-from } " where the quotation takes both an element and its index." } ;
 
 HELP: map-find
 { $values { "seq" sequence } { "quot" { $quotation ( ... elt -- ... result/f ) } } { "result" "the first non-false result of the quotation" } { "elt" { $maybe "the first matching element" } } }
@@ -545,6 +545,10 @@ HELP: map-find
 HELP: any?
 { $values { "seq" sequence } { "quot" { $quotation ( ... elt -- ... ? ) } } { "?" boolean } }
 { $description "Tests if the sequence contains an element satisfying the predicate, by applying the predicate to each element in turn until a true value is found. If the sequence is empty or if the end of the sequence is reached, outputs " { $link f } "." } ;
+
+HELP: none?
+{ $values { "seq" sequence } { "quot" { $quotation ( ... elt -- ... ? ) } } { "?" boolean } }
+{ $description "Tests if the sequence does not contain any element satisfying the predicate, by applying the predicate to each element in turn until a true value is found. If the sequence is empty or if the end of the sequence is reached, outputs " { $link t } "." } ;
 
 HELP: all?
 { $values { "seq" sequence } { "quot" { $quotation ( ... elt -- ... ? ) } } { "?" boolean } }
@@ -1206,12 +1210,12 @@ HELP: supremum
 { min max supremum infimum } related-words
 
 HELP: shortest
-{ $values { "seq" sequence } { "elt" object } }
-{ $description "Outputs the shortest element of " { $snippet "seq" } "." } ;
+{ $values { "seqs" sequence } { "elt" object } }
+{ $description "Outputs the shortest sequence from " { $snippet "seqs" } "." } ;
 
 HELP: longest
-{ $values { "seq" sequence } { "elt" object } }
-{ $description "Outputs the longest element of " { $snippet "seq" } "." } ;
+{ $values { "seqs" sequence } { "elt" object } }
+{ $description "Outputs the longest sequence from " { $snippet "seqs" } "." } ;
 
 { shortest longest } related-words
 
@@ -1343,7 +1347,7 @@ HELP: sift
 { $values
      { "seq" sequence }
      { "newseq" sequence } }
- { $description "Outputs a new sequence with all instance of " { $link f } " removed." }
+ { $description "Outputs a new sequence with all instances of " { $link f } " removed." }
  { $examples
     { $example "USING: prettyprint sequences ;"
         "{ \"a\" 3 { } f } sift ."

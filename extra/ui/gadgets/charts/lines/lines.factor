@@ -2,12 +2,13 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs binary-search colors.constants
 combinators combinators.short-circuit fry kernel locals make
-math math.order math.statistics math.vectors namespaces opengl
-opengl.gl sequences
-specialized-arrays.instances.alien.c-types.float
-splitting.monotonic ui.gadgets ui.gadgets.charts
-ui.gadgets.charts.utils ui.render ;
+math math.order math.statistics math.vectors opengl opengl.gl
+sequences specialized-arrays splitting.monotonic ui.gadgets
+ui.gadgets.charts ui.gadgets.charts.utils ui.render ;
+QUALIFIED-WITH: alien.c-types c
 IN: ui.gadgets.charts.lines
+
+SPECIALIZED-ARRAY: c:float
 
 ! Data must be a sequence of { x y } coordinates sorted by
 ! non-descending x vaues.
@@ -112,7 +113,7 @@ ALIAS: y second
 : calc-point-y ( slope y point -- xy ) over [ calc-x ] dip 2array ;
 
 : xyy>chunk ( x y1 y2 -- chunk )
-    [ over ] dip 2array [ 2array ] dip 2array ;
+    overd 2array [ 2array ] dip 2array ;
 
 :: 2-point-chunk ( left right ymin ymax -- chunk )
     left last :> left-point

@@ -29,7 +29,7 @@ SYMBOL: pending-interval-assoc
 : remove-pending ( live-interval -- )
     vreg>> pending-interval-assoc get delete-at ;
 
-: vreg>spill-slot ( vreg -- slot )
+: vreg>spill-slot ( vreg -- spill-slot )
     dup rep-of lookup-spill-slot ;
 
 : vreg>reg ( vreg -- reg/spill-slot )
@@ -102,8 +102,8 @@ RENAMING: assign [ vreg>reg ] [ vreg>reg ] [ vreg>reg ]
     } cleave ;
 
 : change-insn-gc-roots ( gc-map-insn quot: ( x -- x ) -- )
-    [ gc-map>> ] dip [ swap gc-roots>> swap map! drop ]
-    [ '[ [ [ @ ] bi@ ] assoc-map ] change-derived-roots drop ] 2bi ; inline
+    [ gc-map>> ] dip [ [ gc-roots>> ] dip map! drop ]
+    [ '[ [ _ bi@ ] assoc-map ] change-derived-roots drop ] 2bi ; inline
 
 : spill-required? ( live-interval root-leaders n -- ? )
     [ [ vreg>> ] dip sets:in? ] [ swap covers? ] bi-curry* bi or ;

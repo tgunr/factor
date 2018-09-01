@@ -1,78 +1,94 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: alien alien.data ascii byte-arrays byte-vectors grouping io
-io.encodings.binary io.files io.streams.string kernel math math.parser
-namespaces sequences ;
+
+USING: accessors ascii byte-arrays byte-vectors combinators
+command-line destructors fry io io.encodings io.encodings.binary
+io.files io.streams.string kernel literals locals math
+math.parser namespaces sequences sequences.private strings typed
+;
 
 IN: tools.hexdump
 
 <PRIVATE
 
-SYMBOL: hexdump-group 1 hexdump-group set
-SYMBOL: hexdump-address f hexdump-address set
+CONSTANT: line# "00000000  "
 
-: write-header ( len -- )
-    hexdump-address get
-    [ "Address: 0x" write
-      hexdump-address get  alien-address >hex
-      " " append write 
-    ] when
-    "Length: " write
-    [ number>string write "d, " write ]
-    [ >hex write "h" write nl ] bi ;
+: inc-line# ( -- )
+    7 [ CHAR: 0 = over 0 > and ] [
+        1 - dup line# [
+            {
+                { CHAR: 9 [ CHAR: a ] }
+                { CHAR: f [ CHAR: 0 ] }
+                [ 1 + ]
+            } case dup
+        ] change-nth-unsafe
+    ] do while drop ;
 
-: write-offset ( lineno -- )
-    hexdump-address get
-    [ "0x" write
-      16 * hexdump-address get alien-address +
-      >hex  16 CHAR: 0 pad-head
-      " " append  write ] 
-    [ 16 * >hex 8 CHAR: 0 pad-head  " " append write ]
-    if ;
+: reset-line# ( -- )
+    8 [ CHAR: 0 swap line# set-nth ] each-integer ;
 
-: group-digits ( seq -- seq )
-    hexdump-group get dup [ ] [ drop 1 ] if
-    group
-    [ concat " " append ] { } map-as ;
+CONSTANT: hex-digits $[
+    256 <iota> [ >hex 2 CHAR: 0 pad-head " " append ] map
+]
 
-: >hex-digit ( digit -- str )
-    >hex 2 CHAR: 0 pad-head ;
+: all-bytes ( bytes -- from to bytes )
+    [ 0 swap length ] keep ; inline
 
-: >hex-digits ( bytes -- str )
-    [ >hex-digit ] { } map-as 
-    group-digits concat
-    32 CHAR: \s pad-tail ;
+: each-byte ( from to bytes quot: ( elt -- ) -- )
+    '[ _ nth-unsafe @ ] (each-integer) ; inline
 
-: >ascii ( bytes -- str )
-    [ [ printable? ] keep CHAR: . ? ] "" map-as ;
+: write-bytes ( from to bytes stream -- )
+    '[ hex-digits nth-unsafe _ stream-write ] each-byte ; inline
 
-: write-hex-line ( bytes lineno -- )
-    write-offset [ >hex-digits write ] [ >ascii write ] bi nl ;
+: write-space ( from to bytes stream -- )
+    [ drop - 16 + ] dip '[
+        3 * CHAR: \s <string> _ stream-write
+    ] unless-zero ; inline
 
-: hexdump-bytes ( bytes -- )
-    [ length write-header ]
-    [ 16 <groups> [ write-hex-line ] each-index ] bi ;
+: write-ascii ( from to bytes stream -- )
+    dup stream-bl '[
+        [ printable? ] keep CHAR: . ? _ stream-write1
+    ] each-byte ; inline
 
-: hexdump-set-address ( n -- )  hexdump-address set ;
+TYPED: write-hex-line ( from: fixnum to: fixnum bytes: byte-array -- )
+    line# write inc-line# output-stream get {
+        [ write-bytes ]
+        [ write-space ]
+        [ write-ascii ]
+    } 4cleave nl ;
+
+:: hexdump-bytes ( from to bytes -- )
+    reset-line#
+    to from - :> len
+    len 16 /mod
+    [ [ 16 * dup 16 + bytes write-hex-line ] each-integer ]
+    [ [ len swap - len bytes write-hex-line ] unless-zero ] bi*
+    len >hex 8 CHAR: 0 pad-head print ;
+
+: hexdump-stream ( stream -- )
+    reset-line# 0 swap [
+        all-bytes [ write-hex-line ] [ length + ] bi
+    ] 16 (each-stream-block) >hex 8 CHAR: 0 pad-head print ;
 
 PRIVATE>
 
 GENERIC: hexdump. ( byte-array -- )
 
-M: byte-array hexdump. f hexdump-set-address hexdump-bytes ;
+M: byte-array hexdump. all-bytes hexdump-bytes ;
 
-M: byte-vector hexdump. f hexdump-set-address hexdump-bytes ;
-
-GENERIC: .nhexdump ( n obj -- )
-M: alien .nhexdump  dup hexdump-set-address  swap memory>byte-array hexdump-bytes ;
+M: byte-vector hexdump. all-bytes underlying>> hexdump-bytes ;
 
 : hexdump ( byte-array -- str )
     [ hexdump. ] with-string-writer ;
 
 : hexdump-file ( path -- )
-    binary file-contents hexdump. ;
+    binary <file-reader> [ hexdump-stream ] with-disposal ;
 
-: hexdump1 ( -- )  1 hexdump-group set ;
-: hexdump2 ( -- )  2 hexdump-group set ;
-: hexdump4 ( -- )  4 hexdump-group set ;
-: hexdump8 ( -- )  8 hexdump-group set ;
+: hexdump-main ( -- )
+    command-line get [
+        input-stream get binary re-decode hexdump-stream
+    ] [
+        [ hexdump-file ] each
+    ] if-empty ;
+
+MAIN: hexdump-main

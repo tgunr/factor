@@ -40,11 +40,11 @@ M: unix addrspec-of-family
 ! Client sockets - TCP and Unix domain
 M: object (get-local-address)
     [ handle-fd ] dip empty-sockaddr/size int <ref>
-    [ getsockname io-error ] 2keep drop ;
+    [ getsockname io-error ] keepd ;
 
 M: object (get-remote-address)
     [ handle-fd ] dip empty-sockaddr/size int <ref>
-    [ getpeername io-error ] 2keep drop ;
+    [ getpeername io-error ] keepd ;
 
 : init-client-socket ( fd -- )
     SOL_SOCKET SO_OOBINLINE set-socket-option ;
@@ -95,7 +95,7 @@ M: object (server)
 
 : do-accept ( server addrspec -- fd sockaddr )
     [ handle>> handle-fd ] [ empty-sockaddr/size int <ref> ] bi*
-    [ unix.ffi:accept ] 2keep drop ; inline
+    [ unix.ffi:accept ] keepd ; inline
 
 M: object (accept)
     2dup do-accept over 0 >= [
@@ -134,7 +134,7 @@ M: unix (broadcast)
     recvfrom sockaddr ; inline
 
 : (receive-loop) ( n buf datagram -- count sockaddr )
-    3dup do-receive over 0 > [ [ 3drop ] 2dip ] [
+    3dup do-receive over 0 > [ 3nipd ] [
         2drop [ +input+ wait-for-port ] [ (receive-loop) ] bi
     ] if ; inline recursive
 

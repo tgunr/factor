@@ -1,11 +1,11 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien arrays assocs byte-arrays calendar
-classes combinators combinators.short-circuit fry hashtables
-help.markup interpolate io io.directories io.encodings.utf8
-io.files io.pathnames io.streams.string kernel math math.parser
-namespaces prettyprint quotations sequences sets sorting
-splitting strings system timers unicode urls vocabs
+classes classes.error combinators combinators.short-circuit fry
+hashtables help.markup interpolate io io.directories
+io.encodings.utf8 io.files io.pathnames io.streams.string kernel
+math math.parser namespaces prettyprint quotations sequences
+sets sorting splitting strings system timers unicode urls vocabs
 vocabs.loader vocabs.metadata words words.symbol ;
 IN: tools.scaffold
 
@@ -14,18 +14,15 @@ SYMBOL: using
 
 ERROR: not-a-vocab-root string ;
 
+ERROR: vocab-must-not-exist string ;
+
 <PRIVATE
 
 : vocab-root? ( string -- ? )
-    trim-tail-separators
-    vocab-roots get member? ;
-
-: contains-dot? ( string -- ? ) ".." swap subseq? ;
-
-: contains-separator? ( string -- ? ) [ path-separator? ] any? ;
+    trim-tail-separators vocab-roots get member? ;
 
 : ensure-vocab-exists ( string -- string )
-    dup loaded-vocab-names member? [ no-vocab ] unless ;
+    dup lookup-vocab [ no-vocab ] unless ;
 
 : check-root ( string -- string )
     dup vocab-root? [ not-a-vocab-root ] unless ;
@@ -34,15 +31,14 @@ ERROR: not-a-vocab-root string ;
     [ check-root ] [ check-vocab-name ] bi* ;
 
 : replace-vocab-separators ( vocab -- path )
-    path-separator first CHAR: . associate substitute ; inline
+    path-separator first CHAR: . associate substitute ;
 
 : vocab-root/vocab>path ( vocab-root vocab -- path )
     check-vocab-root/vocab
     [ ] [ replace-vocab-separators ] bi* append-path ;
 
 : vocab>path ( vocab -- path )
-    check-vocab
-    [ find-vocab-root ] keep vocab-root/vocab>path ;
+    check-vocab [ find-vocab-root ] keep vocab-root/vocab>path ;
 
 : vocab-root/vocab/file>path ( vocab-root vocab file -- path )
     [ vocab-root/vocab>path ] dip append-path ;
@@ -150,8 +146,10 @@ ERROR: not-a-vocab-root string ;
         { "exemplar" object }
         { "assoc" assoc }
         { "alist" "an array of key/value pairs" }
-        { "keys" sequence } { "values" sequence }
-        { "class" class } { "tuple" tuple }
+        { "keys" sequence }
+        { "values" sequence }
+        { "class" class }
+        { "tuple" tuple }
         { "url" url }
     } at* [ swap [ \ $maybe swap 2array ] when ] dip ;
 
@@ -202,20 +200,25 @@ M: object add-using ( object -- )
         ] if
     ] when* ;
 
+: error-description. ( word -- )
+    [ $values. ] [
+        "{ $description \"Throws " write
+        name>> dup a/an write " \" { $link " write
+        write " } \" error.\" }" print
+    ] bi "{ $error-description \"\" } ;" print ;
+
 : class-description. ( word -- )
-    drop
-    "{ $class-description \"\" } ;" print ;
+    drop "{ $class-description \"\" } ;" print ;
 
 : symbol-description. ( word -- )
-    drop
-    "{ $var-description \"\" } ;" print ;
+    drop "{ $var-description \"\" } ;" print ;
 
 : $description. ( word -- )
-    drop
-    "{ $description \"\" } ;" print ;
+    drop "{ $description \"\" } ;" print ;
 
 : docs-body. ( word/symbol -- )
     {
+        { [ dup error-class? ] [ error-description. ] }
         { [ dup class? ] [ class-description. ] }
         { [ dup symbol? ] [ symbol-description. ] }
         [ [ $values. ] [ $description. ] bi ]
@@ -301,7 +304,11 @@ PRIVATE>
 : scaffold-platforms ( vocab platforms -- )
     [ "platforms.txt" ] dip scaffold-metadata ;
 
+: delete-from-root-cache ( string -- )
+    root-cache get delete-at ;
+
 : scaffold-vocab ( vocab-root string -- )
+    dup delete-from-root-cache
     {
         [ scaffold-directory ]
         [ scaffold-main ]
@@ -370,12 +377,12 @@ ${example-indent}}
 : scaffold-examples ( word -- )
     2 swap scaffold-n-examples ;
 
-: touch. ( path -- )
+: scaffold-file ( path -- )
     [ touch-file ]
     [ "Click to edit: " write <pathname> . ] bi ;
 
 : scaffold-rc ( path -- )
-    [ home ] dip append-path touch. ;
+    [ home ] dip append-path scaffold-file ;
 
 : scaffold-factor-boot-rc ( -- )
     ".factor-boot-rc" scaffold-rc ;

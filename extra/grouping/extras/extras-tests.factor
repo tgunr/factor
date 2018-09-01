@@ -1,5 +1,5 @@
-USING: arrays kernel math math.functions sequences tools.test ;
-IN: grouping.extras
+USING: arrays grouping.extras kernel math math.functions
+sequences tools.test ;
 
 { { } } [ { 1 } [ 2array ] 2clump-map ] unit-test
 { { { 1 2 } } } [ { 1 2 } [ 2array ] 2clump-map ] unit-test
@@ -36,3 +36,9 @@ IN: grouping.extras
 [ 10 <iota> [ drop t ] group-by ] unit-test
 
 { V{ } } [ { } [ drop t ] group-by ] unit-test
+
+{ { { } { } { } } } [ { } 3 n-group ] unit-test
+{ { { 1 } { } { } } } [ { 1 } 3 n-group ] unit-test
+{ { { 1 } { 2 } { } } } [ { 1 2 } 3 n-group ] unit-test
+{ { { 1 } { 2 } { 3 } } } [ { 1 2 3 } 3 n-group ] unit-test
+{ { { 1 2 } { 3 } { 4 } } } [ { 1 2 3 4 } 3 n-group ] unit-test

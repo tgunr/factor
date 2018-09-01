@@ -1,4 +1,5 @@
-! (c)2010 Joe Groff bsd license
+! Copyright (C) 2010 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: combinators combinators.short-circuit
 compiler.tree.propagation.transforms fry generalizations kernel
 locals math sequences sequences.private ;
@@ -24,7 +25,7 @@ PRIVATE>
     (unrolled-collect) unrolled-each-integer ; inline
 
 : unrolled-map-integers ( n quot: ( n -- value ) exemplar -- newseq )
-    [ over ] dip [ [ unrolled-collect ] keep ] new-like ; inline
+    overd [ [ unrolled-collect ] keep ] new-like ; inline
 
 ERROR: unrolled-bounds-error
     seq unroll-length ;
@@ -69,7 +70,7 @@ ERROR: unrolled-2bounds-error
     pick unrolled-map-as-unsafe ; inline
 
 : unrolled-2map-unsafe ( xseq yseq len quot: ( x y -- newx ) -- newseq )
-    4 npick unrolled-2map-as-unsafe ; inline
+    reach unrolled-2map-as-unsafe ; inline
 
 PRIVATE>
 
@@ -92,7 +93,7 @@ PRIVATE>
     pick unrolled-map-as ; inline
 
 : unrolled-2map ( xseq yseq len quot: ( x y -- newx ) -- newseq )
-    4 npick unrolled-2map-as ; inline
+    reach unrolled-2map-as ; inline
 
 : unrolled-map-index ( seq len quot: ( x i -- newx ) -- newseq )
     [ dup length <iota> ] 2dip unrolled-2map ; inline

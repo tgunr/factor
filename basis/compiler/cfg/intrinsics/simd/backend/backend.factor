@@ -1,4 +1,5 @@
-! (c)2009 Joe Groff bsd license
+! Copyright (C) 2009 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays classes combinators
 compiler.cfg.instructions compiler.cfg.registers
 compiler.cfg.stacks compiler.cfg.stacks.local
@@ -69,7 +70,7 @@ M: ##horizontal-shl-vector-imm insn-available? rep>> %horizontal-shl-vector-imm-
 M: ##horizontal-shr-vector-imm insn-available? rep>> %horizontal-shr-vector-imm-reps member? ;
 
 : [vector-op-checked] ( #dup quot -- quot )
-    '[ _ ndup [ @ ] { } make dup [ insn-available? ] all? ] ;
+    '[ _ ndup _ { } make dup [ insn-available? ] all? ] ;
 
 GENERIC#: >vector-op-cond 2 ( quot #pick #dup -- quotpair )
 M:: callable >vector-op-cond ( quot #pick #dup -- quotpair )

@@ -1,4 +1,5 @@
-! (c)2010 Joe Groff bsd license
+! Copyright (C) 2010 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: fry globs io.directories io.directories.hierarchy io.files.info
 io.pathnames kernel regexp sequences sets vocabs.loader
 vocabs.metadata ;
@@ -32,10 +33,12 @@ ERROR: resource-missing pattern ;
     '[ _ match-pattern ] gather ;
 
 : vocab-resource-files ( vocab -- filenames )
-    [ vocab-resources ] [ vocab-dir-in-root ] bi
-    [
-        match-patterns [ expand-resource ] map concat
-    ] with-directory-files ;
+    dup vocab-resources [
+        swap vocab-dir-in-root
+        [
+            match-patterns [ expand-resource ] map concat
+        ] with-directory-files
+    ] [ drop f ] if* ;
 
 : copy-vocab-resources ( dir vocab -- )
     dup vocab-resource-files

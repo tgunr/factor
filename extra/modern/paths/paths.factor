@@ -5,40 +5,14 @@ splitting vocabs.files vocabs.hierarchy vocabs.loader
 vocabs.metadata sets ;
 IN: modern.paths
 
-: modern-if-available ( path -- path' )
-    dup ".factor" ?tail [
-        ".modern" append
-        dup exists? [ nip ] [ drop ] if
-    ] [
-        drop
-    ] if ;
-
 ERROR: not-a-source-path path ;
-: force-modern-path ( path -- path' )
-    ".factor" ?tail [ ".modern" append ] [ not-a-source-path ] if ;
-: modern-docs-path ( path -- path' )
-    vocab-docs-path modern-if-available ;
-: modern-tests-path ( path -- path' )
-    vocab-tests-path modern-if-available ;
-: modern-source-path ( path -- path' )
-    vocab-source-path modern-if-available ;
-: modern-syntax-path ( path -- path' )
-    vocab-source-path ".factor" ?tail drop "-syntax.modern" append ;
-
-: force-modern-docs-path ( path -- path' )
-    vocab-docs-path force-modern-path ;
-: force-modern-tests-path ( path -- path' )
-    vocab-tests-path force-modern-path ;
-: force-modern-source-path ( path -- path' )
-    vocab-source-path force-modern-path ;
 
 : vocabs-from ( root -- vocabs )
     "" disk-vocabs-in-root/prefix
     no-prefixes [ name>> ] map ;
 
-: core-vocabs ( -- seq ) "resource:core" vocabs-from ;
-: less-core-test-vocabs ( seq -- seq' )
-    {
+CONSTANT: core-broken-vocabs
+   {
         "vocabs.loader.test.a"
         "vocabs.loader.test.b"
         "vocabs.loader.test.c"
@@ -55,10 +29,10 @@ ERROR: not-a-source-path path ;
         "vocabs.loader.test.n"
         "vocabs.loader.test.o"
         "vocabs.loader.test.p"
-    } diff ;
+    }
 
-: core-bootstrap-vocabs ( -- seq )
-    core-vocabs less-core-test-vocabs ;
+: core-vocabs ( -- seq )
+    "resource:core" vocabs-from core-broken-vocabs diff ;
 
 : basis-vocabs ( -- seq ) "resource:basis" vocabs-from ;
 : extra-vocabs ( -- seq ) "resource:extra" vocabs-from ;
@@ -77,44 +51,56 @@ ERROR: not-a-source-path path ;
         "resource:core/vocabs/loader/test/a/a.factor"
         "resource:core/vocabs/loader/test/b/b.factor"
         "resource:core/vocabs/loader/test/c/c.factor"
-        "resource:extra/math/blas/vectors/vectors.factor" ! need .modern file
-        "resource:extra/math/blas/matrices/matrices.factor" ! need .modern file
+        ! Here down have parse errors
+        "resource:core/vocabs/loader/test/d/d.factor"
+        "resource:core/vocabs/loader/test/e/e.factor"
+        "resource:core/vocabs/loader/test/f/f.factor"
+        "resource:core/vocabs/loader/test/g/g.factor"
+        "resource:core/vocabs/loader/test/h/h.factor"
+        "resource:core/vocabs/loader/test/i/i.factor"
+        "resource:core/vocabs/loader/test/j/j.factor"
+        "resource:core/vocabs/loader/test/k/k.factor"
+        "resource:core/vocabs/loader/test/l/l.factor"
+        "resource:core/vocabs/loader/test/m/m.factor"
+        "resource:core/vocabs/loader/test/n/n.factor"
+        "resource:core/vocabs/loader/test/o/o.factor"
+        "resource:core/vocabs/loader/test/p/p.factor"
     } diff
     ! Don't parse .modern files yet
     [ ".modern" tail? ] reject ;
 
 : modern-source-paths ( names -- paths )
-    [ modern-source-path ] map filter-exists reject-some-paths ;
+    [ vocab-source-path ] map filter-exists reject-some-paths ;
 : modern-docs-paths ( names -- paths )
-    [ modern-docs-path ] map filter-exists reject-some-paths ;
+    [ vocab-docs-path ] map filter-exists reject-some-paths ;
 : modern-tests-paths ( names -- paths )
-    [ vocab-tests ] map concat
-    [ modern-if-available ] map filter-exists reject-some-paths ;
+    [ vocab-tests ] map concat filter-exists reject-some-paths ;
 
 : all-source-paths ( -- seq )
     all-vocabs modern-source-paths ;
 
-: all-docs-paths ( -- seq )
-    all-vocabs modern-docs-paths ;
+: core-docs-paths ( -- seq ) core-vocabs modern-docs-paths ;
+: basis-docs-paths ( -- seq ) basis-vocabs modern-docs-paths ;
+: extra-docs-paths ( -- seq ) extra-vocabs modern-docs-paths ;
 
-: all-tests-paths ( -- seq )
-    all-vocabs modern-tests-paths ;
+: core-test-paths ( -- seq ) core-vocabs modern-tests-paths ;
+: basis-test-paths ( -- seq ) basis-vocabs modern-tests-paths ;
+: extra-test-paths ( -- seq ) extra-vocabs modern-tests-paths ;
 
-: all-syntax-paths ( -- seq )
-    all-vocabs [ modern-syntax-path ] map filter-exists reject-some-paths ;
 
-: all-factor-files ( -- seq )
+: all-docs-paths ( -- seq ) all-vocabs modern-docs-paths ;
+ : all-tests-paths ( -- seq ) all-vocabs modern-tests-paths ;
+
+: all-paths ( -- seq )
     [
-        all-syntax-paths all-source-paths all-docs-paths all-tests-paths
+        all-source-paths all-docs-paths all-tests-paths
     ] { } append-outputs-as ;
 
-: vocab-names>syntax ( strings -- seq )
-    [ modern-syntax-path ] map [ exists? ] filter ;
-
-: core-syntax-files ( -- seq ) core-vocabs vocab-names>syntax reject-some-paths ;
-: basis-syntax-files ( -- seq ) basis-vocabs vocab-names>syntax reject-some-paths ;
-: extra-syntax-files ( -- seq ) extra-vocabs vocab-names>syntax reject-some-paths ;
-
-: core-source-files ( -- seq ) core-vocabs modern-source-paths reject-some-paths ;
-: basis-source-files ( -- seq ) basis-vocabs modern-source-paths reject-some-paths ;
-: extra-source-files ( -- seq ) extra-vocabs modern-source-paths reject-some-paths ;
+: core-source-paths ( -- seq )
+    core-vocabs modern-source-paths reject-some-paths ;
+: basis-source-paths ( -- seq )
+    basis-vocabs
+    modern-source-paths reject-some-paths ;
+: extra-source-paths ( -- seq )
+    extra-vocabs
+    modern-source-paths reject-some-paths ;

@@ -1,4 +1,5 @@
-! (c)2010 Joe Groff bsd license
+! Copyright (C) 2010 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.libraries alien.syntax
 classes.struct combinators kernel system ;
 IN: cuda.ffi
@@ -308,6 +309,7 @@ FUNCTION: CUresult cuDeviceGetCount ( int* count )
 FUNCTION: CUresult cuDeviceGetName ( char* name, int len, CUdevice dev )
 FUNCTION: CUresult cuDeviceComputeCapability ( int* major, int* minor, CUdevice dev )
 FUNCTION: CUresult cuDeviceTotalMem ( uint* bytes, CUdevice dev )
+FUNCTION: CUresult cuDeviceTotalMem_v2 ( ulonglong* bytes, CUdevice dev )
 FUNCTION: CUresult cuDeviceGetProperties ( CUdevprop* prop, CUdevice dev )
 FUNCTION: CUresult cuDeviceGetAttribute ( int* pi, CUdevice_attribute attrib, CUdevice dev )
 

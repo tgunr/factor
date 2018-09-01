@@ -1,9 +1,9 @@
 ! Copyright (C) 2006, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: assocs combinators continuations fry help
-help.lint.checks help.topics io kernel namespaces parser
-sequences source-files.errors vocabs.hierarchy vocabs words
-classes locals tools.errors listener ;
+USING: assocs classes combinators command-line continuations fry
+help help.lint.checks help.topics io kernel listener locals
+namespaces parser sequences source-files.errors system
+tools.errors vocabs vocabs.hierarchy ;
 IN: help.lint
 
 SYMBOL: lint-failures
@@ -28,7 +28,7 @@ M: help-lint-error error-type drop +help-lint-failure+ ;
 <PRIVATE
 
 : <help-lint-error> ( error topic -- help-lint-error )
-    \ help-lint-error <definition-error> ;
+    help-lint-error new-source-file-error ;
 
 PRIVATE>
 
@@ -97,3 +97,12 @@ PRIVATE>
     [ word-help ] reject
     [ article-parent ] filter
     [ predicate? ] reject ;
+
+: test-lint-main ( -- )
+    command-line get [ load ] each
+    help-lint-all
+    lint-failures get assoc-empty?
+    [ [ "==== FAILING LINT" print :lint-failures flush ] unless ]
+    [ 0 1 ? exit ] bi ;
+
+MAIN: test-lint-main

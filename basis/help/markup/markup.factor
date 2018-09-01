@@ -77,7 +77,7 @@ ALIAS: $slot $snippet
     [ strong-style get print-element* ] ($span) ;
 
 : $url ( children -- )
-    first dup >url [
+    [ ?second ] [ first ] bi [ or ] keep >url [
         dup present href associate url-style get assoc-union
         [ write-object ] with-style
     ] ($span) ;
@@ -349,6 +349,8 @@ GENERIC: ($instance) ( element -- )
 M: word ($instance) dup name>> a/an write bl ($link) ;
 
 M: string ($instance) write ;
+
+M: array ($instance) print-element ;
 
 M: f ($instance) ($link) ;
 

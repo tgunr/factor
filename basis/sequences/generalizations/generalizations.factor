@@ -1,4 +1,5 @@
-! (c)2009 Joe Groff bsd license
+! Copyright (C) 2009 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: kernel sequences sequences.private math
 combinators macros math.order math.ranges quotations fry effects
 memoize.private generalizations ;
@@ -116,7 +117,7 @@ MACRO: (ncollect) ( n -- quot )
     [ { } swap dupn ] keep nproduce-as ; inline
 
 MACRO: nmap-reduce ( map-quot reduce-quot n -- quot )
-    -rot dupd compose [ over ] dip over '[
+    -rot dupd compose overd over '[
         [ [ first ] _ napply @ 1 ] _ nkeep
         _ _ (neach) (each-integer)
     ] ;

@@ -51,7 +51,7 @@ ARTICLE: "power-functions" "Powers and logarithms"
 "Exponential and natural logarithm:"
 { $subsections e^ cis log }
 "Other logarithms:"
-{ $subsections log1+ log10 }
+{ $subsections log1+ log10 logn }
 "Raising a number to a power:"
 { $subsections ^ e^ 10^ }
 "Logistics functions:"
@@ -116,6 +116,10 @@ HELP: ldexp
 HELP: log
 { $values { "x" number } { "y" number } }
 { $description "Natural logarithm function. Outputs negative infinity if " { $snippet "x" } " is 0." } ;
+
+HELP: logn
+{ $values { "x" number } { "n" number } { "y" number } }
+{ $description "Finds the base " { $snippet "n" } " logarithm of " { $snippet "x" } "." } ;
 
 HELP: log1+
 { $values { "x" number } { "y" number } }

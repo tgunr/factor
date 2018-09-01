@@ -24,9 +24,11 @@ ERROR: not-a-tuple object ;
 
 ERROR: no-slot name tuple ;
 
+: ?offset-of-slot ( name tuple -- n/f )
+    class-of all-slots slot-named [ offset>> ] [ f ] if* ;
+
 : offset-of-slot ( name tuple -- n )
-    2dup class-of all-slots slot-named
-    [ 2nip offset>> ] [ no-slot ] if* ;
+    2dup ?offset-of-slot [ 2nip ] [ no-slot ] if* ;
 
 : get-slot-named ( name tuple -- value )
     [ nip ] [ offset-of-slot ] 2bi slot ;
@@ -206,7 +208,7 @@ M: object final-class? drop f ;
     pick [
         [ [ swap nth dup ] dip instance? ] dip swap
         [ drop ] [ nip ] if
-    ] [ [ 3drop ] dip ] if ;
+    ] [ 3nip ] if ;
 
 : apply-slot-permutation ( old-values triples -- new-values )
     [ first3 update-slot ] with map ;

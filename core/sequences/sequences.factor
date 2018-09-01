@@ -90,7 +90,7 @@ M: sequence nth-unsafe nth ; inline
 M: sequence set-nth-unsafe set-nth ; inline
 
 : change-nth-unsafe ( i seq quot -- )
-    [ [ nth-unsafe ] dip call ] 3keep drop set-nth-unsafe ; inline
+    [ [ nth-unsafe ] dip call ] 2keepd set-nth-unsafe ; inline
 
 PRIVATE>
 
@@ -380,7 +380,7 @@ PRIVATE>
 : glue ( seq1 seq2 seq3 -- newseq ) swap 3append ; inline
 
 : change-nth ( ..a i seq quot: ( ..a elt -- ..b newelt ) -- ..b )
-    [ [ nth ] dip call ] 3keep drop set-nth-unsafe ; inline
+    [ [ nth ] dip call ] 2keepd set-nth-unsafe ; inline
 
 : min-length ( seq1 seq2 -- n ) [ length ] bi@ min ; inline
 
@@ -388,14 +388,14 @@ PRIVATE>
 
 <PRIVATE
 
-: (setup-each) ( seq -- n quot )
+: setup-each ( seq -- n quot )
     [ length check-length ] keep [ nth-unsafe ] curry ; inline
 
-: setup-each ( seq quot -- n quot' )
-    [ (setup-each) ] dip compose ; inline
+: (each) ( seq quot -- n quot' )
+    [ setup-each ] dip compose ; inline
 
 : (each-index) ( seq quot -- n quot' )
-    [ (setup-each) [ keep ] curry ] dip compose ; inline
+    [ setup-each [ keep ] curry ] dip compose ; inline
 
 : (collect) ( quot into -- quot' )
     [ [ keep ] dip set-nth-unsafe ] 2curry ; inline
@@ -404,7 +404,7 @@ PRIVATE>
     (collect) each-integer ; inline
 
 : map-into ( seq quot into -- )
-    [ setup-each ] dip collect ; inline
+    [ (each) ] dip collect ; inline
 
 : 2nth-unsafe ( n seq1 seq2 -- elt1 elt2 )
     [ nth-unsafe ] bi-curry@ bi ; inline
@@ -418,17 +418,18 @@ PRIVATE>
 : 3nth-unsafe ( n seq1 seq2 seq3 -- elt1 elt2 elt3 )
     [ nth-unsafe ] tri-curry@ tri ; inline
 
+: setup-3each ( seq1 seq2 seq3 -- n quot )
+    [ [ length ] tri@ min min check-length ]
+    [ [ 3nth-unsafe ] 3curry ] 3bi ; inline
+
 : (3each) ( seq1 seq2 seq3 quot -- n quot' )
-    [
-        [ [ length ] tri@ min min check-length ]
-        [ [ 3nth-unsafe ] 3curry ] 3bi
-    ] dip compose ; inline
+    [ setup-3each ] dip compose ; inline
 
 : finish-find ( i seq -- i elt )
     over [ dupd nth-unsafe ] [ drop f ] if ; inline
 
 : (find) ( seq quot quot' -- i elt )
-    pick [ [ setup-each ] dip call ] dip finish-find ; inline
+    pick [ [ (each) ] dip call ] dip finish-find ; inline
 
 : (find-from) ( n seq quot quot' -- i elt )
     [ 2dup bounds-check? ] 2dip
@@ -446,7 +447,7 @@ PRIVATE>
     if ; inline
 
 : (accumulate) ( seq identity quot -- identity seq quot )
-    swapd [ curry keep ] curry ; inline
+    swapd [ keepd ] curry ; inline
 
 : (accumulate*) ( seq identity quot -- identity seq quot )
     swapd [ dup ] compose ; inline
@@ -454,19 +455,19 @@ PRIVATE>
 PRIVATE>
 
 : each ( ... seq quot: ( ... x -- ... ) -- ... )
-    setup-each each-integer ; inline
+    (each) each-integer ; inline
 
 : each-from ( ... seq quot: ( ... x -- ... ) i -- ... )
-    -rot setup-each (each-integer) ; inline
+    -rot (each) (each-integer) ; inline
 
 : reduce ( ... seq identity quot: ( ... prev elt -- ... next ) -- ... result )
     swapd each ; inline
 
 : map-integers ( ... len quot: ( ... i -- ... elt ) exemplar -- ... newseq )
-    [ over ] dip [ [ collect ] keep ] new-like ; inline
+    overd [ [ collect ] keep ] new-like ; inline
 
 : map-as ( ... seq quot: ( ... elt -- ... newelt ) exemplar -- ... newseq )
-    [ setup-each ] dip map-integers ; inline
+    [ (each) ] dip map-integers ; inline
 
 : map ( ... seq quot: ( ... elt -- ... newelt ) -- ... newseq )
     over map-as ; inline
@@ -505,7 +506,7 @@ PRIVATE>
     [ (2each) ] dip -rot (each-integer) ; inline
 
 : 2reduce ( ... seq1 seq2 identity quot: ( ... prev elt1 elt2 -- ... next ) -- ... result )
-    [ -rot ] dip 2each ; inline
+    -rotd 2each ; inline
 
 : 2map-as ( ... seq1 seq2 quot: ( ... elt1 elt2 -- ... newelt ) exemplar -- ... newseq )
     [ (2each) ] dip map-integers ; inline
@@ -523,7 +524,7 @@ PRIVATE>
     [ (3each) ] dip map-integers ; inline
 
 : 3map ( ... seq1 seq2 seq3 quot: ( ... elt1 elt2 elt3 -- ... newelt ) -- ... newseq )
-    [ pick ] dip swap 3map-as ; inline
+    pickd swap 3map-as ; inline
 
 : find-from ( ... n seq quot: ( ... elt -- ... ? ) -- ... i elt )
     [ (find-integer) ] (find-from) ; inline
@@ -544,7 +545,7 @@ PRIVATE>
     [ find-integer ] (find-index) ; inline
 
 : all? ( ... seq quot: ( ... elt -- ... ? ) -- ... ? )
-    setup-each all-integers? ; inline
+    (each) all-integers? ; inline
 
 : push-if ( ..a elt quot: ( ..a elt -- ..b ? ) accum -- ..b )
     [ keep ] dip rot [ push ] [ 2drop ] if ; inline
@@ -652,6 +653,9 @@ PRIVATE>
 
 : any? ( ... seq quot: ( ... elt -- ... ? ) -- ... ? )
     find drop >boolean ; inline
+
+: none? ( ... seq quot: ( ... elt -- ... ? ) -- ... ? )
+    any? not ; inline
 
 : member? ( elt seq -- ? )
     [ = ] with any? ;
@@ -789,7 +793,7 @@ PRIVATE>
     2over = [
         4drop
     ] [
-        [ [ pick [ dup dup ] dip + swap ] dip move-unsafe 1 - ] keep
+        [ [ [ ] [ nip + ] [ 2nip ] 3tri ] dip move-unsafe 1 - ] keep
         move-forward
     ] if ;
 
@@ -804,7 +808,7 @@ PRIVATE>
     pick 0 = [
         3drop
     ] [
-        pick over length + over
+        [ ] [ nip length + ] [ 2nip ] 3tri
         [ pick 0 > [ [ length ] keep ] dip (open-slice) ] 2dip
         set-length
     ] if ;
@@ -1001,12 +1005,10 @@ PRIVATE>
     [ rest-slice ] [ first-unsafe ] bi ; inline
 
 : map-reduce ( ..a seq map-quot: ( ..a elt -- ..b intermediate ) reduce-quot: ( ..b prev intermediate -- ..a next ) -- ..a result )
-    [ [ dup first ] dip [ call ] keep ] dip compose
-    swapd 1 each-from ; inline
+    [ [ [ first ] keep ] dip [ dip ] keep ] dip compose 1 each-from ; inline
 
 : 2map-reduce ( ..a seq1 seq2 map-quot: ( ..a elt1 elt2 -- ..b intermediate ) reduce-quot: ( ..b prev intermediate -- ..a next ) -- ..a result )
-    [ [ 2dup [ first ] bi@ ] dip [ call ] keep ] dip compose
-    [ -rot ] dip 1 2each-from ; inline
+    [ [ [ [ first ] bi@ ] 2keep ] dip [ 2dip ] keep ] dip compose 1 2each-from ; inline
 
 <PRIVATE
 
@@ -1087,7 +1089,7 @@ M: repetition sum [ elt>> ] [ length>> ] bi * ; inline
         [ keep swap ] curry [ [ first ] dip call ] 2keep
         [ curry 2dip pick over ] curry
     ] [
-        [ [ 2drop ] [ [ 2drop ] 2dip ] if ] compose
+        [ [ 2drop ] [ 2nipd ] if ] compose
     ] bi* compose 1 each-from drop ; inline
 
 PRIVATE>
@@ -1111,7 +1113,7 @@ PRIVATE>
 : generic-flip ( matrix -- newmatrix )
     [
         [ first-unsafe length 1 ] keep
-        [ length min ] setup-each (each-integer) <iota>
+        [ length min ] (each) (each-integer) <iota>
     ] keep
     [ [ nth-unsafe ] with { } map-as ] curry { } map-as ; inline
 
@@ -1124,7 +1126,7 @@ USE: arrays
     { array } declare
     [
         [ first-unsafe array-length 1 ] keep
-        [ array-length min ] setup-each (each-integer) <iota>
+        [ array-length min ] (each) (each-integer) <iota>
     ] keep
     [ [ { array } declare array-nth ] with { } map-as ] curry { } map-as ;
 

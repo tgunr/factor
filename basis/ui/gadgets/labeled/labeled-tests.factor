@@ -1,8 +1,6 @@
-USING: accessors sequences tools.test ui.gadgets
-ui.gadgets.labeled ;
-IN: ui.gadgets.labeled.tests
+USING: accessors colors.constants sequences tools.test
+ui.gadgets ui.gadgets.labeled ;
 
 { t } [
-    <gadget> "Hey" <labeled-gadget>
-    children>> first content>> gadget?
+    <gadget> "Hey" <labeled-gadget> content>> gadget?
 ] unit-test

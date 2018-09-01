@@ -8,7 +8,7 @@ HELP: <multiline-editor>
 { $description "Creates a new multi-line editor gadget." } ;
 
 HELP: editor
-{ $class-description "An editor is a control for editing a multi-line passage of text stored in a " { $link document } " model. Editors are crated by calling " { $link <editor> } "."
+{ $class-description "An editor is a control for editing a multi-line passage of text stored in a " { $link document } " model. Editors are created by calling " { $link <editor> } "."
 $nl
 "Editors have the following slots:"
 { $list
@@ -65,7 +65,7 @@ HELP: <model-field>
 
 HELP: <action-field>
 { $values { "quot" { $quotation ( string -- ) } } { "gadget" editor } }
-{ $description "Creates an editor gadget with a blank model. Whenever a value is entered into the editor and Return pressed, the value is pushed on the stack as a string and the specified quotation is called. Note that the quotation cannot update the value in the field. " } ;
+{ $description "Creates an editor gadget with a blank model. Whenever a value is entered into the editor and Return pressed, the value is pushed on the stack as a string and the specified quotation is called. Note that the quotation cannot update the value in the field." } ;
 
 
 HELP: editor-string

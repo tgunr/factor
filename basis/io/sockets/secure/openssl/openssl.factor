@@ -2,12 +2,12 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.data alien.enums
 alien.strings assocs byte-arrays classes.struct combinators
-combinators.short-circuit destructors fry io io.backend io.binary
-io.buffers io.encodings.8-bit.latin1 io.encodings.utf8 io.files
-io.pathnames io.ports io.sockets io.sockets.secure io.timeouts kernel
-libc locals math math.functions math.order math.parser memoize
-namespaces openssl openssl.libcrypto openssl.libssl random sequences
-sets splitting unicode ;
+combinators.short-circuit destructors fry io io.backend
+io.binary io.buffers io.encodings.latin1 io.encodings.utf8
+io.files io.pathnames io.ports io.sockets io.sockets.secure
+io.timeouts kernel libc locals math math.functions math.order
+math.parser memoize namespaces openssl openssl.libcrypto
+openssl.libssl random sequences sets splitting unicode ;
 IN: io.sockets.secure.openssl
 
 GENERIC: ssl-method ( symbol -- method )
@@ -238,7 +238,7 @@ SYMBOL: default-secure-context
     ] [ nip (ssl-error) ] if-zero ;
 
 : check-ssl-error ( ssl ret exra-cases/f -- event/f )
-    [ swap over SSL_get_error ] dip
+    [ tuck SSL_get_error ] dip
     {
         { SSL_ERROR_NONE [ drop f ] }
         { SSL_ERROR_WANT_READ [ drop +input+ ] }

@@ -4,7 +4,6 @@ USING: byte-arrays destructors io io.encodings.ascii
 io.encodings.binary io.files io.streams.byte-array
 io.streams.memory io.streams.peek io.streams.string kernel make
 namespaces sequences strings tools.test ;
-IN: io.streams.peek.tests
 
 { CHAR: a }
 [ "abc" <string-reader> <peek-stream> stream-read1 ] unit-test
@@ -130,7 +129,7 @@ IN: io.streams.peek.tests
 ] unit-test
 
 ! Issue #1317
-{ "Red" } [
+{ "Cop" } [
     "resource:LICENSE.txt" binary [
         input-stream [ <peek-stream> ] change
         peek1 drop
@@ -138,7 +137,7 @@ IN: io.streams.peek.tests
     ] with-file-reader
 ] unit-test
 
-{ "ist" } [
+{ "yri" } [
     "resource:LICENSE.txt" binary [
         input-stream [ <peek-stream> ] change
         peek1 drop

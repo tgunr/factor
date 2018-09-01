@@ -132,7 +132,7 @@ unit-test
     int { int int int int } stdcall alien-indirect
     gc ;
 
-[ f ] [ "f-stdcall" load-library f = ] unit-test
+[ f ] [ "f-stdcall" library-dll f = ] unit-test
 [ stdcall ] [ "f-stdcall" lookup-library abi>> ] unit-test
 
 : ffi_test_18 ( w x y z -- int )
@@ -151,7 +151,7 @@ unit-test
 
 : multi_ffi_test_18 ( w x y z w' x' y' z' -- int int )
     [ int "f-stdcall" "ffi_test_18" { int int int int } f alien-invoke ]
-    4 ndip
+    4dip
     int "f-stdcall" "ffi_test_18" { int int int int } f alien-invoke
     gc ;
 
@@ -642,7 +642,7 @@ os windows? [
 
 [ ] [ assembly-test-1 ] unit-test
 
-[ f ] [ "f-fastcall" load-library f = ] unit-test
+[ f ] [ "f-fastcall" library-dll f = ] unit-test
 [ fastcall ] [ "f-fastcall" lookup-library abi>> ] unit-test
 
 : ffi_test_49 ( x -- int )
@@ -917,11 +917,11 @@ FUNCTION: void* bug1021_test_1 ( void* s, int x )
     ] [ 2drop ] if ; inline recursive
 
 : run-test ( alien -- seq )
-    100 33 <array> swap over
+    100 33 <array> tuck
     [
         pick swapd
         bug1021_test_1
-        -rot swap 2 fixnum+fast
+        spin 2 fixnum+fast
         set-slot
     ] curry curry 0 each-to100 ;
 

@@ -1,4 +1,5 @@
-! (c)2009 Joe Groff bsd license
+! Copyright (C) 2009 Joe Groff.
+! See http://factorcode.org/license.txt for BSD license.
 USING: tools.test generalizations kernel math arrays sequences
 sequences.generalizations ascii fry math.parser io io.streams.string ;
 IN: sequences.generalizations.tests
@@ -35,12 +36,10 @@ IN: sequences.generalizations.tests
     [ 4 nappend print ] 4 0 mnmap ;
 : nproduce-as-test ( n -- a b )
     [ dup zero? not ]
-    [ [ 2 - ] [ ] [ 1 - ] tri ] { } B{ } 2 nproduce-as
-    [ drop ] 2dip ;
+    [ [ 2 - ] [ ] [ 1 - ] tri ] { } B{ } 2 nproduce-as nipd ;
 : nproduce-test ( n -- a b )
     [ dup zero? not ]
-    [ [ 2 - ] [ ] [ 1 - ] tri ] 2 nproduce
-    [ drop ] 2dip ;
+    [ [ 2 - ] [ ] [ 1 - ] tri ] 2 nproduce nipd ;
 
 { "A1a!
 B2b@
