@@ -33,3 +33,4 @@ a.out
 Factor.app/Contents/_CodeSignature
 factor.image
 boot.unix-x86.64.image
+.*.icloud
