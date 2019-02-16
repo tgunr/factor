@@ -1,13 +1,11 @@
 ! Copyright (C) 2008, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors calendar concurrency.combinators
-db2.connections db2.transactions db2.types fry furnace
-furnace.actions furnace.auth furnace.auth.login
-furnace.boilerplate furnace.redirection furnace.syndication
-hashtables html.components html.forms http.server
-http.server.dispatchers http.server.static kernel locals logging
-math math.order namespaces orm.persistent orm.tuples sequences
-sorting syndication timers urls validators xml.writer ;
+USING: accessors calendar concurrency.combinators db db.tuples
+db.types fry furnace.actions furnace.auth furnace.boilerplate
+furnace.redirection furnace.syndication html.components
+html.forms http.server.dispatchers http.server.static kernel
+locals logging sequences sorting syndication timers urls
+validators ;
 IN: webapps.planet
 
 TUPLE: planet < dispatcher ;
@@ -24,20 +22,24 @@ M: blog link-title name>> ;
 
 M: blog link-href www-url>> ;
 
-PERSISTENT: { blog "BLOGS" }
-    { "id" INTEGER +db-assigned-key+ }
-    { "name" { VARCHAR 256 } +not-null+ }
-    { { "www-url" "WWWURL" } URL +not-null+ }
-    { { "feed-url" "FEEDURL" } URL +not-null+ } ;
+blog "BLOGS"
+{
+    { "id" "ID" INTEGER +db-assigned-id+ }
+    { "name" "NAME" { VARCHAR 256 } +not-null+ }
+    { "www-url" "WWWURL" URL +not-null+ }
+    { "feed-url" "FEEDURL" URL +not-null+ }
+} define-persistent
 
 TUPLE: posting < entry id ;
 
-PERSISTENT: { posting "POSTINGS" }
-    { "id" INTEGER +db-assigned-key+ }
-    { "title" { VARCHAR 256 } +not-null+ }
-    { { "url" "LINK" } URL +not-null+ }
-    { "description" TEXT +not-null+ }
-    { "date" TIMESTAMP +not-null+ } ;
+posting "POSTINGS"
+{
+    { "id" "ID" INTEGER +db-assigned-id+ }
+    { "title" "TITLE" { VARCHAR 256 } +not-null+ }
+    { "url" "LINK" URL +not-null+ }
+    { "description" "DESCRIPTION" TEXT +not-null+ }
+    { "date" "DATE" TIMESTAMP +not-null+ }
+} define-persistent
 
 : <blog> ( id -- todo )
     blog new

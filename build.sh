@@ -19,7 +19,7 @@ REQUIRE_CLANG_VERSION=3.1
 
 # return 1 on found
 test_program_installed() {
-    if ! [[ -n $(type -p $1) ]] ; then 
+    if ! [[ -n $(type -p $1) ]] ; then
         return 0;
     fi
     return 1;
@@ -173,7 +173,13 @@ set_cc() {
 }
 
 set_make() {
-    MAKE='make'
+    case $OS in
+        freebsd) MAKE=gmake ;;
+        *) MAKE=make ;;
+    esac
+    if [[ $MAKE = 'gmake' ]] ; then
+        ensure_program_installed gmake
+    fi
 }
 
 check_installed_programs() {
@@ -250,10 +256,12 @@ find_os() {
         *CYGWIN_NT*) OS=windows;;
         *CYGWIN*) OS=windows;;
         MINGW32*) OS=windows;;
+        MSYS_NT*) OS=windows;;
         *darwin*) OS=macosx;;
         *Darwin*) OS=macosx;;
         *linux*) OS=linux;;
         *Linux*) OS=linux;;
+        FreeBSD) OS=freebsd;;
     esac
 }
 
@@ -276,12 +284,13 @@ find_architecture() {
 
 find_num_cores() {
     $ECHO "Finding num cores..."
-    NUM_CORES=7ZZ
+    NUM_CORES=1
     uname_s=$(uname -s)
     check_ret uname
     case $uname_s in
         CYGWIN_NT-5.2-WOW64 | *CYGWIN_NT* | *CYGWIN* | MINGW32*) NUM_CORES=$NUMBER_OF_PROCESSORS;;
         *darwin* | *Darwin* | *linux* | *Linux*) NUM_CORES=$(getconf _NPROCESSORS_ONLN);;
+        freebsd) NUM_CORES=$(sysctl -n hw.ncpu);;
     esac
 }
 
@@ -447,15 +456,11 @@ update_script_name() {
     $ECHO "$(dirname $0)/_update.sh"
 }
 
-GIT_PULL="y"
-
 update_script() {
     local -r update_script=$(update_script_name)
     local -r bash_path=$(which bash)
     $ECHO "#!$bash_path" >"$update_script"
-    if [[ "$GIT_PULL" != "" ]] ; then
-	$ECHO "git pull \"$GIT_URL\" master" >>"$update_script"
-    fi
+    $ECHO "git pull \"$GIT_URL\" master" >>"$update_script"
     $ECHO "if [[ \$? -eq 0 ]]; then exec \"$0\" $SCRIPT_ARGS; else echo \"git pull failed\"; exit 2; fi" \
         >>"$update_script"
     $ECHO "exit 0" >>"$update_script"
@@ -694,6 +699,10 @@ install_deps_dnf() {
     check_ret sudo
 }
 
+install_deps_pkg() {
+    sudo pkg install --yes git gmake gcc rlwrap ripgrep curl gmake x11-toolkits/gtk30 x11-toolkits/gtkglext pango cairo vim
+}
+
 
 install_deps_macosx() {
     test_program_installed git
@@ -714,11 +723,11 @@ usage() {
     $ECHO "  deps-apt - install required packages for Factor on Linux using apt"
     $ECHO "  deps-pacman - install required packages for Factor on Linux using pacman"
     $ECHO "  deps-dnf - install required packages for Factor on Linux using dnf"
+    $ECHO "  deps-pkg - install required packages for Factor on FreeBSD using pkg"
     $ECHO "  deps-macosx - install git on MacOSX using port"
     $ECHO "  self-update - git pull, recompile, make local boot image, bootstrap"
     $ECHO "  quick-update - git pull, refresh-all, save"
     $ECHO "  update|latest - git pull, recompile, download a boot image, bootstrap"
-    $ECHO "  compile - recompile current branch, download a boot image, bootstrap"
     $ECHO "  bootstrap - bootstrap with existing boot image"
     $ECHO "  net-bootstrap - recompile, download a boot image, bootstrap"
     $ECHO "  make-target - find and print the os-arch-cpu string"
@@ -748,11 +757,12 @@ case "$1" in
     deps-pacman) install_deps_pacman ;;
     deps-macosx) install_deps_macosx ;;
     deps-dnf) install_deps_dnf ;;
+    deps-pkg) install_deps_pkg ;;
     self-update) update; make_boot_image; bootstrap;;
     quick-update) update; refresh_image ;;
     update) update; download_and_bootstrap ;;
     latest) update; download_and_bootstrap ;;
-    compile) GIT_PULL=''; update; download_and_bootstrap ;;
+    compile) find_build_info; make_factor ;;
     bootstrap) get_config_info; bootstrap ;;
     net-bootstrap) net_bootstrap_no_pull ;;
     make-target) FIND_MAKE_TARGET=true; ECHO=false; find_build_info; exit_script ;;
