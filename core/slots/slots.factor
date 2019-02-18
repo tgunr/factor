@@ -120,6 +120,15 @@ M: object writer-quot
         ( object value -- object ) define-inline
     ] [ 2drop ] if ;
 
+: getter-word ( name -- word )
+    "<<" prepend "accessors" create-word ;
+
+: define-getter ( name -- )
+    dup getter-word dup deferred? [ 
+        [ \ dup , swap reader-word , \ swap , ] [ ] make
+        ( object -- value object ) define-inline
+    ] [ 2drop ] if ;
+
 : changer-word ( name -- word )
     "change-" prepend "accessors" create-word ;
 
@@ -136,8 +145,8 @@ M: object writer-quot
 : define-slot-methods ( class slot-spec -- )
     [ define-reader ]
     [
-        dup read-only>> [ 2drop ] [
-            [ name>> define-setter drop ]
+        dup read-only>> [ 2drop ] [ 
+            [ dup name>> define-setter name>> define-getter drop ]
             [ name>> define-changer drop ]
             [ define-writer ]
             2tri
