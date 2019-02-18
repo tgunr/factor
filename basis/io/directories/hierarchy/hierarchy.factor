@@ -1,14 +1,13 @@
 ! Copyright (C) 2004, 2008 Slava Pestov, Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators fry io.backend io.directories
-io.files.info io.files.links io.files.types io.pathnames kernel make
-sequences splitting tools.walker ;
+USING: accessors arrays kernel sequences combinators fry
+io.directories io.pathnames io.files.info io.files.types
+io.files.links io.backend make ;
 IN: io.directories.hierarchy
 
 <PRIVATE
 
 : directory-tree-files% ( path prefix -- )
-    [ normalize-path ] bi@
     [ dup directory-entries ] dip '[
         [ name>> [ append-path ] [ _ prepend-path ] bi ]
         [ directory? ] bi over ,
