@@ -9,7 +9,13 @@ HELP: string>alien
 
 HELP: alien>string
 { $values { "c-ptr" c-ptr } { "encoding" "an encoding descriptor" } { "string/f" "a string or " { $link f } } }
-{ $description "Reads a null-terminated C string from the specified address with the given encoding." } ;
+{ $description "Reads a null-terminated C string from the specified address with the given encoding." }
+{ $heading "Encodings" }
+{ $subsections
+    "encodings-introduction"
+    "io.encodings"
+}
+    ;
 
 HELP: string>symbol
 { $values { "str/seq" { $or string sequence } } { "alien" alien } }
