@@ -93,6 +93,42 @@ ERROR: unknown-format-directive value ;
         [ [ ".0" ?tail drop ] [ drop ] if-zero ] bi
     ] [ format-decimal-simple ] if ;
 
+: escaped ( string -- 'string )
+    { } swap
+    unclip CHAR: ~ over =
+    [ swapd suffix swap ] ! First char can be a ~ so stuff it
+    [ prefix ] ! Else put it back into string
+    if 
+    [
+        dup
+        { 32
+          CHAR: (
+          CHAR: )
+          CHAR: !
+          CHAR: " 
+          CHAR: #
+          CHAR: $
+          CHAR: &
+          CHAR: '
+          CHAR: *
+          CHAR: ,
+          CHAR: ;
+          CHAR: ?
+          CHAR: [
+          CHAR: ]
+          CHAR: ^
+          CHAR: `
+          CHAR: {
+          CHAR: }
+          CHAR: |
+          CHAR: ~ 
+          } member?
+        [
+            [ CHAR: \ suffix ] dip
+        ] when suffix
+    ] each >string
+    ;
+
 EBNF: parse-printf [=[
 
 zero      = "0"                  => [[ CHAR: 0 ]]
@@ -115,6 +151,7 @@ digits    = (digits_)?           => [[ 6 or ]]
 fmt-%     = "%"                  => [[ "%" ]]
 fmt-c     = "c"                  => [[ [ 1string ] ]]
 fmt-C     = "C"                  => [[ [ 1string >upper ] ]]
+fmt-q     = "q"                  => [[ [ present escaped ] ]]
 fmt-s     = "s"                  => [[ [ present ] ]]
 fmt-S     = "S"                  => [[ [ present >upper ] ]]
 fmt-u     = "u"                  => [[ [ unparse ] ]]
@@ -128,7 +165,7 @@ fmt-x     = "x"                  => [[ [ >integer >hex ] ]]
 fmt-X     = "X"                  => [[ [ >integer >hex >upper ] ]]
 unknown   = (.)*                 => [[ "" like unknown-format-directive ]]
 
-strings_  = fmt-c|fmt-C|fmt-s|fmt-S|fmt-u
+strings_  = fmt-c|fmt-C|fmt-s|fmt-S|fmt-u|fmt-q
 strings   = pad width strings_   => [[ <reversed> compose-all ]]
 
 numbers_  = fmt-d|fmt-o|fmt-b|fmt-e|fmt-E|fmt-f|fmt-x|fmt-X
