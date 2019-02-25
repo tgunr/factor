@@ -5,7 +5,7 @@ combinators.smart fry generalizations io io.streams.string
 kernel macros math math.functions math.parser namespaces
 peg.ebnf present prettyprint quotations sequences
 sequences.generalizations strings unicode vectors
-math.functions.integer-logs splitting multiline ;
+locals math.functions.integer-logs splitting multiline ;
 FROM: math.parser.private => format-float ;
 IN: formatting
 
@@ -93,40 +93,46 @@ ERROR: unknown-format-directive value ;
         [ [ ".0" ?tail drop ] [ drop ] if-zero ] bi
     ] [ format-decimal-simple ] if ;
 
-: escaped ( string -- 'string )
-    { } swap
-    unclip CHAR: ~ over =
-    [ swapd suffix swap ] ! First char can be a ~ so stuff it
-    [ prefix ] ! Else put it back into string
-    if 
-    [
-        dup
-        { 32
-          CHAR: (
-          CHAR: )
-          CHAR: !
-          CHAR: " 
-          CHAR: #
-          CHAR: $
-          CHAR: &
-          CHAR: '
-          CHAR: *
-          CHAR: ,
-          CHAR: ;
-          CHAR: ?
-          CHAR: [
-          CHAR: ]
-          CHAR: ^
-          CHAR: `
-          CHAR: {
-          CHAR: }
-          CHAR: |
-          CHAR: ~ 
-          } member?
-        [
-            [ CHAR: \ suffix ] dip
-        ] when suffix
+:: escaped-with ( str seq -- str )
+    { } str
+    [ dup seq member?     
+      [ [ CHAR: \ suffix ] dip ] when suffix
     ] each >string
+;
+
+:: escaped ( str -- str )
+    str length 0 > 
+    [ f :> start!
+      str unclip CHAR: ~ over =
+      [ start! ] ! First char can be a ~ so stuff it
+      [ prefix ] ! Else put it back into string
+      if
+      { 32
+      CHAR: (
+      CHAR: )
+      CHAR: !
+      CHAR: " \ "
+      CHAR: # 
+      CHAR: $ 
+      CHAR: & 
+      CHAR: ' 
+      CHAR: * 
+      CHAR: , 
+      CHAR: ; 
+      CHAR: ?
+      CHAR: [ 
+      CHAR: ] 
+      CHAR: ^ 
+      CHAR: ` 
+      CHAR: { 
+      CHAR: } 
+      CHAR: | 
+      CHAR: ~       
+      } escaped-with
+      start [ start prefix ] when
+    ]
+    [ str ]
+    if
     ;
 
 EBNF: parse-printf [=[
