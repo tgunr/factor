@@ -149,7 +149,7 @@ M: word (print-input)
     [ interactor-yield ] [ interactor-finish ] bi ;
 
 M: interactor stream-readln
-    interactor-read dup [ first ] when ;
+    interactor-read ?first ;
 
 : (call-listener) ( quot command listener -- )
     input>> dup interactor-busy? [ 3drop ] [
@@ -376,7 +376,7 @@ M: interactor stream-read-quot ( stream -- quot/f )
 M: interactor handle-gesture
     {
         { [ over key-gesture? not ] [ call-next-method ] }
-        { [ dup popup>> ] [ { [ pass-to-popup ] [ call-next-method ] } 2&& ] }
+        { [ dup popup>> ] [ ?check-popup { [ pass-to-popup ] [ call-next-method ] } 2&& ] }
         {
             [ dup token-model>> value>> ]
             [ { [ interactor-operation ] [ call-next-method ] } 2&& ]

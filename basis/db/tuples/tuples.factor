@@ -48,7 +48,7 @@ GENERIC: eval-generator ( singleton -- object )
 
 : with-disposals ( object quotation -- )
     over sequence? [
-        over '[ _ dispose-each ] [ ] cleanup
+        over '[ _ dispose-each ] finally
     ] [
         with-disposal
     ] if ; inline
@@ -163,3 +163,6 @@ ERROR: no-defined-persistent object ;
 
 : update-tuples ( query/tuple quot: ( tuple -- tuple'/f ) -- )
     '[ @ [ update-tuple ] when* ] each-tuple ; inline
+
+: reject-tuples ( query/tuple quot: ( tuple -- ? ) -- )
+    '[ dup @ [ delete-tuples ] [ drop ] if ] each-tuple ; inline

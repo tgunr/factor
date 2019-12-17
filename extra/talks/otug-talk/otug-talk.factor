@@ -54,12 +54,12 @@ CONSTANT: otug-slides
         { "Suppose we want a " { $snippet "remove-comments*" } " word" }
         { $code ": remove-comments* ( lines string -- lines' )" "    [ ??? head? ] reject ;" }
         { "We use " { $link POSTPONE: '[ } " instead of " { $link POSTPONE: [ } }
-        { "Create “holes” with " { $link _ } }
+        { "Create “holes” with " { $link POSTPONE: _ } }
         "Holes filled in left to right when quotation pushed on the stack"
     }
     { $slide "Constructing quotations"
         { $code ": remove-comments* ( lines string -- lines' )" "    '[ _ head? ] reject ;" "" ": remove-comments ( lines -- lines' )" "    \"#\" remove-comments* ;" }
-        { { $link @ } " inserts a quotation" }
+        { { $link POSTPONE: @ } " inserts a quotation" }
         { $code ": replicate ( n quot -- seq )" "    '[ drop @ ] map ;" }
         { $code "10 [ 1 10 [a,b] random ] replicate ." }
     }

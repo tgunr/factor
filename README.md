@@ -34,8 +34,8 @@ To check out Factor:
 To build the latest complete Factor system from git, either use the
 build script:
 
-* Windows: `build.cmd`
 * Unix: `./build.sh update`
+* Windows: `build.cmd`
 
 or download the correct boot image for your system from
 http://downloads.factorcode.org/images/master/, put it in the factor
@@ -135,5 +135,7 @@ anything related to Factor or language design in general.
 
 * [Factor homepage](https://factorcode.org)
 * [Concatenative languages wiki](https://concatenative.org)
+* [Mailing list](factor-talk@lists.sourceforge.net)
+* Search for "factorcode" on [Gitter](https://gitter.im/)
 
 Have fun!

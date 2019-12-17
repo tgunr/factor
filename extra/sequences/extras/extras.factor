@@ -444,11 +444,17 @@ PRIVATE>
 : last? ( ... seq quot: ( ... elt -- ... ? ) -- ... ? ) [ last ] dip call ; inline
 : nth? ( ... n seq quot: ( ... elt -- ... ? ) -- ... ? ) [ nth ] dip call ; inline
 
-: loop>sequence ( quot exemplar -- seq )
+: loop>sequence ( quot: ( ..a -- ..a obj/f ) exemplar -- seq )
    [ '[ [ @ [ [ , ] when* ] keep ] loop ] ] dip make ; inline
 
-: loop>array ( quot -- seq )
+: loop>array ( quot: ( ..a -- ..a obj/f ) -- seq )
    { } loop>sequence ; inline
+
+: loop>sequence* ( quot: ( ..a -- ..a obj ? ) exemplar -- seq )
+    [ '[ [ @ [ [ , ] when* ] [ ] bi* ] loop ] ] dip make ; inline
+
+: loop>array* ( quot: ( ..a -- ..a obj ? ) -- seq )
+   { } loop>sequence* ; inline
 
 <PRIVATE
 
@@ -643,3 +649,7 @@ PRIVATE>
 
 : interleaved ( seq glue -- newseq )
     over interleaved-as ;
+
+: extract! ( ... seq quot: ( ... elt -- ... ? ) -- ... seq )
+    [ dup ] compose over [ length ] keep new-resizable
+    [ [ push-if ] 2curry reject! ] keep swap like ; inline

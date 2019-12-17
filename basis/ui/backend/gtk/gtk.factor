@@ -80,7 +80,7 @@ M: gtk-clipboard set-clipboard-contents
     source G_PRIORITY_DEFAULT_IDLE g_source_set_priority
     source f g_source_attach drop
     [ quot call( -- ) ]
-    [ source g_source_destroy ] [ ] cleanup ;
+    [ source g_source_destroy ] finally ;
 
 ! User input
 
@@ -515,7 +515,7 @@ M: gtk-ui-backend (with-ui)
 M: gtk-ui-backend stop-event-loop
     gtk_main_quit ;
 
-os linux? [
+os { linux freebsd } member? [
     gtk-ui-backend ui-backend set-global
 ] when
 

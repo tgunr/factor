@@ -1,10 +1,10 @@
 ! Copyright (C) 2005, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs classes combinators
-compiler.units continuations definitions effects io
-io.encodings.utf8 io.files kernel lexer math math.parser namespaces
-parser.notes quotations sequences sets slots source-files
-vectors vocabs vocabs.parser words words.symbol ;
+USING: accessors arrays classes combinators compiler.units
+continuations definitions effects io io.encodings.utf8 io.files
+kernel lexer math.parser namespaces parser.notes quotations
+sequences sets slots source-files vectors vocabs vocabs.parser
+words words.symbol ;
 IN: parser
 
 : location ( -- loc )
@@ -197,7 +197,7 @@ FROM: namespaces => set ;
 : filter-moved ( set1 set2 -- seq )
     swap diff members [
         {
-            { [ dup where dup [ first ] when current-source-file get path>> = not ] [ f ] }
+            { [ dup where ?first current-source-file get path>> = not ] [ f ] }
             { [ dup reader-method? ] [ f ] }
             { [ dup writer-method? ] [ f ] }
             [ t ]

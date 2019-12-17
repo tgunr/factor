@@ -107,7 +107,7 @@ M: ipv4 empty-sockaddr drop sockaddr-in <struct> ;
     sockaddr-in <struct>
         AF_INET >>family
         swap
-        port>> htons >>port ; inline
+        port>> 0 or htons >>port ; inline
 
 M: ipv4 make-sockaddr ( inet -- sockaddr )
     [ make-sockaddr-part ]
@@ -122,7 +122,7 @@ M: ipv4 make-sockaddr-outgoing ( inet -- sockaddr )
 M: ipv4 parse-sockaddr ( sockaddr-in addrspec -- newaddrspec )
     [ addr>> uint <ref> ] dip inet-ntop <ipv4> ;
 
-TUPLE: inet4 < ipv4 { port integer read-only } ;
+TUPLE: inet4 < ipv4 { port maybe{ integer } read-only } ;
 
 : <inet4> ( host port -- inet4 )
     over check-ipv4 inet4 boa ;
@@ -179,7 +179,7 @@ M: ipv6 empty-sockaddr drop sockaddr-in6 <struct> ;
     sockaddr-in6 <struct>
         AF_INET6 >>family
         swap
-        port>> htons >>port ; inline
+        port>> 0 or htons >>port ; inline
 
 M: ipv6 make-sockaddr ( inet -- sockaddr )
     [ make-sockaddr-in6-part ]
@@ -201,7 +201,7 @@ M: ipv6 present
     [ host>> ] [ scope-id>> ] bi
     [ number>string "%" glue ] unless-zero ;
 
-TUPLE: inet6 < ipv6 { port integer read-only } ;
+TUPLE: inet6 < ipv6 { port maybe{ integer } read-only } ;
 
 : <inet6> ( host port -- inet6 )
     [ dup check-ipv6 0 ] dip inet6 boa ;
@@ -218,7 +218,7 @@ M: inet6 present
 
 M: inet6 protocol drop 0 ;
 
-ERROR: addrinfo-error n string ;
+ERROR: addrinfo-error n string host ;
 
 <PRIVATE
 
@@ -398,10 +398,10 @@ M: inet present
 
 C: <inet> inet
 
-M: string resolve-host
-    f prepare-addrinfo f void* <ref> [
+M:: string resolve-host ( host -- seq )
+    host f prepare-addrinfo f void* <ref> [
         getaddrinfo [
-            dup addrinfo-error-string addrinfo-error
+            dup addrinfo-error-string host addrinfo-error
         ] unless-zero
     ] keep void* deref addrinfo memory>struct
     [ parse-addrinfo-list ] keep freeaddrinfo ;

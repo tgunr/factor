@@ -358,7 +358,7 @@ M: tuple-class rank-class drop 1 ;
 M: tuple-class instance?
     dup echelon-of layout-class-offset tuple-instance? ;
 
-M: tuple-class (flatten-class) dup ,, ;
+M: tuple-class (flatten-class) , ;
 
 M: tuple-class (classes-intersect?)
     {
@@ -376,7 +376,7 @@ M: tuple equal? over tuple? [ tuple= ] [ 2drop f ] if ;
         [ class-of hashcode ] [ tuple-size ] bi
         [ dup fixnum+fast 82520 fixnum+fast ] [ <iota> ] bi
     ] 2keep [
-        swapd array-nth hashcode* >fixnum rot fixnum-bitxor
+        swapd array-nth hashcode* integer>fixnum rot fixnum-bitxor
         pick fixnum*fast [ [ fixnum+fast ] keep ] dip swap
     ] 2curry each drop nip 97531 fixnum+fast ; inline
 

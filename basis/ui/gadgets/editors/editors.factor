@@ -7,14 +7,21 @@ math.rectangles math.vectors models models.arrow namespaces opengl
 sequences sorting splitting timers ui.baseline-alignment ui.clipboards
 ui.commands ui.gadgets ui.gadgets.borders ui.gadgets.line-support
 ui.gadgets.menus ui.gadgets.scrollers ui.gestures ui.pens.solid
-ui.render ui.text ui.theme unicode ;
+ui.render ui.text ui.theme unicode opengl.gl ;
 IN: ui.gadgets.editors
 
 TUPLE: editor < line-gadget
-    caret-color
     caret mark
     focused? blink blink-timer
-    default-text ;
+    default-text
+    preedit-start
+    preedit-end
+    preedit-selected-start
+    preedit-selected-end
+    preedit-selection-mode?
+    preedit-underlines ;
+
+M: editor preedit? preedit-start>> [ t ] [ f ] if ;
 
 <PRIVATE
 
@@ -25,7 +32,6 @@ TUPLE: editor < line-gadget
     <loc> >>mark ; inline
 
 : editor-theme ( editor -- editor )
-    COLOR: red >>caret-color
     monospace-font >>font ; inline
 
 PRIVATE>
@@ -95,6 +101,9 @@ M: editor ungraft*
 : set-caret ( loc editor -- )
     [ model>> validate-loc ] [ caret>> ] bi set-model ;
 
+: set-mark ( loc editor -- )
+    [ model>> validate-loc ] [ mark>> ] bi set-model ;
+
 : change-caret ( editor quot: ( loc document -- newloc ) -- )
     [ [ [ editor-caret ] [ model>> ] bi ] dip call ] [ drop ] 2bi
     set-caret ; inline
@@ -154,16 +163,32 @@ M: editor ungraft*
 <PRIVATE
 
 : draw-caret? ( editor -- ? )
-    { [ focused?>> ] [ blink>> ] } 1&& ;
+    { [ focused?>> ] [ blink>> ]
+      [ [ preedit? not ] [ preedit-selection-mode?>> not ] bi or ] } 1&& ;
 
 : draw-caret ( editor -- )
     dup draw-caret? [
-        [ caret-color>> gl-color ]
-        [
-            [ caret-loc ] [ caret-dim ] bi
-            over v+ gl-line
-        ] bi
+        [ editor-caret-color gl-color ] dip
+        [ caret-loc ] [ caret-dim ] bi
+        over v+ gl-line
     ] [ drop ] if ;
+
+:: draw-preedit-underlines ( editor -- )
+    editor [ preedit? ] [ preedit-underlines>> ] bi and [
+        editor [ caret-loc second ] [ caret-dim second ] bi + 2.0 - :> y
+        editor editor-caret first :> row
+        editor font>> foreground>> gl-color
+        editor preedit-underlines>> [            
+            GL_LINE_BIT [
+                dup second glLineWidth
+                first editor preedit-start>> second dup 2array v+ first2 
+                [ row swap 2array editor loc>x 1.0 + y 2array ]
+                [ row swap 2array editor loc>x 1.0 - y 2array ]
+                bi*
+                gl-line
+            ] do-attribs
+        ] each
+    ] when ;
 
 : selection-start/end ( editor -- start end )
     [ editor-mark ] [ editor-caret ] bi sort-pair ;
@@ -215,10 +240,10 @@ M: editor draw-line ( line index editor -- )
 
 M: editor draw-gadget*
     dup draw-default-text? [
-        [ draw-default-text ] [ draw-caret ] bi
+        [ draw-default-text ] [ draw-caret ] [ draw-preedit-underlines ] tri
     ] [
         dup compute-selection selected-lines [
-            [ draw-lines ] [ draw-caret ] bi
+            [ draw-lines ] [ draw-caret ] [ draw-preedit-underlines ] tri
         ] with-variable
     ] if ;
 
@@ -263,6 +288,9 @@ M: editor gadget-selection
 M: editor user-input*
     [ selection-start/end ] [ model>> ] bi set-doc-range t ;
 
+M: editor temp-im-input
+    [ selection-start/end ] [ model>> ] bi set-doc-range* t ;
+
 : editor-string ( editor -- string )
     model>> doc-string ;
 
@@ -275,6 +303,21 @@ M: editor gadget-text* editor-string % ;
     [ request-focus ]
     [ restart-blinking ]
     [ dup caret>> click-loc ] tri ;
+
+: remove-preedit-text ( editor -- )
+    { [ preedit-start>> ] [ set-caret ]
+      [ preedit-end>> ] [ set-mark ]
+      [ remove-selection ]
+    } cleave ;
+
+: remove-preedit-info ( editor -- )
+    f >>preedit-start
+    f >>preedit-end
+    f >>preedit-selected-start
+    f >>preedit-selected-end
+    f >>preedit-selection-mode?
+    f >>preedit-underlines
+    drop ;
 
 : mouse-elt ( -- element )
     hand-click# get {
