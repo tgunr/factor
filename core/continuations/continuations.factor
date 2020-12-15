@@ -1,7 +1,7 @@
 ! Copyright (C) 2003, 2011 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs combinators combinators.private kernel
-kernel.private make namespaces sequences vectors ;
+USING: accessors assocs classes combinators combinators.private
+kernel kernel.private make namespaces sequences vectors ;
 IN: continuations
 
 : with-datastack ( stack quot -- new-stack )
@@ -49,11 +49,10 @@ C: <continuation> continuation
 
 <PRIVATE
 
-ERROR: not-a-continuation object ;
-
 : >continuation< ( continuation -- data call retain name catch )
-    dup continuation? [ not-a-continuation ] unless
-    { [ data>> ] [ call>> ] [ retain>> ] [ name>> ] [ catch>> ] } cleave ; inline
+    continuation check-instance {
+        [ data>> ] [ call>> ] [ retain>> ] [ name>> ] [ catch>> ]
+    } cleave ; inline
 
 PRIVATE>
 
@@ -152,15 +151,13 @@ callback-error-hook [ [ die rethrow ] ] initialize
     [ drop ] recover ; inline
 
 : ignore-error ( quot check: ( error -- ? ) -- )
-    [ dup ] prepose [ [ drop ] [ rethrow ] if ] compose
-    recover ; inline
+    '[ dup @ [ drop ] [ rethrow ] if ] recover ; inline
 
 : ignore-error/f ( quot check: ( error -- ? ) -- )
-    [ dup ] prepose [ [ drop f ] [ rethrow ] if ] compose
-    recover ; inline
+    '[ dup @ [ drop f ] [ rethrow ] if ] recover ; inline
 
 : cleanup ( try cleanup-always cleanup-error -- )
-    [ compose [ dip rethrow ] curry recover ] [ drop ] 2bi call ; inline
+    [ '[ [ @ @ ] dip rethrow ] recover ] [ drop ] 2bi call ; inline
 
 : finally ( try cleanup-always -- )
     [ ] cleanup ; inline
@@ -172,7 +169,7 @@ ERROR: attempt-all-error ;
         attempt-all-error
     ] [
         [
-            [ [ , f ] compose [ , drop t ] recover ] curry all?
+            '[ [ @ , f ] [ , drop t ] recover ] all?
         ] { } make last swap [ rethrow ] when
     ] if ; inline
 

@@ -3,11 +3,9 @@
 
 USING: accessors alien alien.accessors alien.c-types alien.data
 alien.enums alien.strings arrays assocs combinators fry
-io.encodings.string io.encodings.utf8 kernel lexer literals math
-math.bitwise math.parser namespaces pcre.ffi sequences splitting
-strings ;
-
-QUALIFIED: regexp
+io.encodings.string io.encodings.utf8 kernel literals math
+math.bitwise math.parser pcre.ffi regexp sequences
+sequences.extras splitting strings ;
 IN: pcre
 
 ERROR: bad-option what ;
@@ -147,7 +145,7 @@ TUPLE: compiled-pcre pcre extra nametable ;
 GENERIC: findall ( subject obj -- matches )
 
 M: compiled-pcre findall
-    [ <matcher> [ findnext dup ] [ ] produce 2nip ]
+    [ <matcher> [ findnext ] loop>array nip ]
     [ nametable>> rot [ parse-match ] 2with { } map-as ] 2bi ;
 
 M: string findall
@@ -161,29 +159,3 @@ M: regexp:regexp findall
 
 : split ( subject obj -- strings )
     dupd findall [ first second ] map split-subseqs ;
-
-: take-until ( end lexer -- string )
-    dup skip-blank [
-        [ index-from ] 2keep
-        [ swapd subseq ]
-        [ 2drop 1 + ] 3bi
-    ] change-lexer-column ;
-
-: parse-noblank-token ( lexer -- str/f )
-    dup still-parsing-line? [ (parse-token) ] [ drop f ] if ;
-
-: (parse-regexp) ( end -- regexp option|f )
-    lexer get [ take-until ] [ parse-noblank-token ] bi ;
-
-: parsing-regexp ( accum end -- accum )
-    (parse-regexp) drop <compiled-pcre> suffix! ;
-
-SYNTAX: P/ CHAR: / parsing-regexp ;
-SYNTAX: P! CHAR: ! parsing-regexp ;
-SYNTAX: P# CHAR: # parsing-regexp ;
-SYNTAX: P' CHAR: ' parsing-regexp ;
-SYNTAX: P( CHAR: ) parsing-regexp ;
-SYNTAX: P@ CHAR: @ parsing-regexp ;
-SYNTAX: P` CHAR: ` parsing-regexp ;
-SYNTAX: P| CHAR: | parsing-regexp ;
-

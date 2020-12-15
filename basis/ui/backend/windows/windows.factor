@@ -191,7 +191,7 @@ CONSTANT: window-control>ex-style
         { minimize-button 0 }
         { maximize-button 0 }
         { resize-handles $ WS_EX_WINDOWEDGE }
-        { small-title-bar $[ WS_EX_TOOLWINDOW WS_EX_TOPMOST bitor ] }
+        { small-title-bar flags{ WS_EX_TOOLWINDOW WS_EX_TOPMOST } }
         { normal-title-bar $ WS_EX_APPWINDOW }
         { dialog-window 0 }
     }
@@ -533,6 +533,9 @@ SYMBOL: wm-handlers
 wm-handlers [
     H{
         ${ WM_CLOSE [ handle-wm-close 0 ] }
+        ! ${ WM_NCCREATE [ [ 3drop EnableNonClientDpiScaling drop ] [ DefWindowProc ] 4bi ] }
+        ! ${ WM_GETDPISCALEDSIZE [ DefWindowProc ] }
+        ! ${ WM_DPICHANGED [ DefWindowProc ] }
         ${ WM_PAINT [ 4dup handle-wm-paint DefWindowProc ] }
 
         ${ WM_SIZE [ handle-wm-size 0 ] }
@@ -603,6 +606,7 @@ M: windows-ui-backend do-events
     ] [ drop ] if ;
 
 : adjust-RECT ( RECT style ex-style -- )
+    ! [ 0 ] dip GetDpiForSystem AdjustWindowRectExForDpi win32-error=0/f ;
     [ 0 ] dip AdjustWindowRectEx win32-error=0/f ;
 
 : make-RECT ( world -- RECT )
@@ -630,12 +634,20 @@ M: windows-ui-backend do-events
         dup
     ] change-global ;
 
+: get-device-caps ( handle -- x y )
+    GetDC
+    [ LOGPIXELSX GetDeviceCaps ]
+    [ LOGPIXELSY GetDeviceCaps ] bi ;
+
+: get-default-device-caps ( -- x y )
+    f get-device-caps ;
+
 :: create-window ( rect style ex-style -- hwnd )
     rect style ex-style make-adjusted-RECT
     [ get-window-class f ] dip
     [
         [ ex-style ] 2dip
-        WS_CLIPSIBLINGS WS_CLIPCHILDREN bitor style bitor
+        flags{ WS_CLIPSIBLINGS WS_CLIPCHILDREN } style bitor
     ] dip get-RECT-dimensions
     f f f GetModuleHandle f CreateWindowEx dup win32-error=0/f ;
 

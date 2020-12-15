@@ -33,12 +33,12 @@ IN: sequences.extras
 : map-like ( seq exemplar -- seq' )
     '[ _ like ] map ; inline
 
-: filter-all-subseqs-range ( ... seq range quot: ( ... subseq -- ... ) -- seq )
+: filter-all-subseqs-range ( ... seq range quot: ( ... subseq -- ... ? ) -- seq )
     [
         '[ <clumps> _ filter ] with map concat
     ] keepdd map-like ; inline
 
-: filter-all-subseqs ( ... seq quot: ( ... subseq -- ... ) -- seq )
+: filter-all-subseqs ( ... seq quot: ( ... subseq -- ... ? ) -- seq )
     [ dup length [1,b] ] dip filter-all-subseqs-range ; inline
 
 :: longest-subseq ( seq1 seq2 -- subseq )
@@ -61,12 +61,11 @@ IN: sequences.extras
 : pad-longest ( seq1 seq2 elt -- seq1 seq2 )
     [ 2dup max-length ] dip [ pad-tail ] 2curry bi@ ;
 
-:: pad-center ( seq n elt -- padded )
-    n seq length [-] :> extra
-    extra 2/ :> left
-    extra left - :> right
-    left elt <repetition> seq right elt <repetition>
-    seq 3append-as ;
+: pad-center ( seq n elt -- padded )
+    swap pick length [-] [ drop ] [
+        [ 2/ ] [ over - ] bi rot '[ _ <repetition> ] bi@
+        pick surround-as
+    ] if-zero ;
 
 : change-nths ( ... indices seq quot: ( ... elt -- ... elt' ) -- ... )
     [ change-nth ] 2curry each ; inline
@@ -444,17 +443,29 @@ PRIVATE>
 : last? ( ... seq quot: ( ... elt -- ... ? ) -- ... ? ) [ last ] dip call ; inline
 : nth? ( ... n seq quot: ( ... elt -- ... ? ) -- ... ? ) [ nth ] dip call ; inline
 
-: loop>sequence ( quot: ( ..a -- ..a obj/f ) exemplar -- seq )
-   [ '[ [ @ [ [ , ] when* ] keep ] loop ] ] dip make ; inline
+: loop>sequence** ( ... quot: ( ... -- ... obj ? ) exemplar -- ... seq )
+    [ ] swap produce-as nip ; inline
 
-: loop>array ( quot: ( ..a -- ..a obj/f ) -- seq )
+: loop>array** ( ... quot: ( ... -- ... obj ? ) -- ... array )
+    { } loop>sequence** ; inline
+
+: loop>sequence* ( ... quot: ( ... -- ... obj ? ) exemplar -- ... seq )
+    [ t ] [ '[ [ _ dip ] [ f f f ] if* ] [ swap ] ] [ produce-as 2nip ] tri* ; inline
+
+: loop>array* ( ... quot: ( ... -- ... obj ? ) -- ... array )
+    { } loop>sequence* ; inline
+
+: loop>sequence ( ... quot: ( ... -- ... obj/f ) exemplar -- ... seq )
+    [ [ dup ] compose [ ] ] dip produce-as nip ; inline
+
+: loop>array ( ... quot: ( ... -- ... obj/f ) -- ... array )
    { } loop>sequence ; inline
 
-: loop>sequence* ( quot: ( ..a -- ..a obj ? ) exemplar -- seq )
-    [ '[ [ @ [ [ , ] when* ] [ ] bi* ] loop ] ] dip make ; inline
+: zero-loop>sequence ( ... quot: ( ... n -- ... obj/f ) exemplar -- ... seq )
+    [ 0 ] [ '[ _ keep 1 + swap ] ] [ loop>sequence ] tri* nip ; inline
 
-: loop>array* ( quot: ( ..a -- ..a obj ? ) -- seq )
-   { } loop>sequence* ; inline
+: zero-loop>array ( quot: ( ..a n -- ..a obj ) -- seq )
+    { } zero-loop>sequence ; inline
 
 <PRIVATE
 
@@ -480,15 +491,6 @@ PRIVATE>
 
 : set-nths-unsafe ( value indices seq -- )
     swapd '[ _ swap _ set-nth-unsafe ] each ; inline
-
-: flatten1 ( obj -- seq )
-    [
-        [
-            dup branch? [
-                [ dup branch? [ % ] [ , ] if ] each
-            ] [ , ] if
-        ]
-    ] keep dup branch? [ drop f ] unless make ;
 
 <PRIVATE
 
@@ -617,14 +619,8 @@ PRIVATE>
 : count-subseq* ( subseq seq -- n )
     start-all* length ; inline
 
-: map-zip ( quot: ( x -- y ) -- alist )
+: map-zip ( quot: ( key -- value ) -- alist )
     '[ _ keep swap ] map>alist ; inline
-
-: map-keys ( assoc quot: ( key -- key' ) -- assoc )
-    '[ _ dip ] assoc-map ; inline
-
-: map-values ( assoc quot: ( value -- value' ) -- assoc )
-    '[ swap _ dip swap ] assoc-map ; inline
 
 : take-while ( ... seq quot: ( ... elt -- ... ? ) -- head-slice )
     [ '[ @ not ] find drop ] keepd swap

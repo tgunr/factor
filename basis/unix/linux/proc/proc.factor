@@ -48,7 +48,8 @@ TUPLE: processor-info
     { address-sizes array }
     { power-management string }
     { tlb-size string }
-    { bugs string } ;
+    { bugs string }
+    { vmx-flags string } ;
 
 
 ERROR: unknown-cpuinfo-line string ;
@@ -94,6 +95,7 @@ ERROR: unknown-cpuinfo-line string ;
         { "wp" [ "yes" = >>wp? ] }
         { "TLB size" [ >>tlb-size ] }
         { "bugs" [ >>bugs ] }
+        { "vmx flags" [ >>vmx-flags ] }
         [ unknown-cpuinfo-line ]
     } case ;
 
@@ -280,12 +282,12 @@ TUPLE: proc-uptime up idle ;
 
 GENERIC#: proc-pid-path 1 ( object string -- path )
 
-M: integer proc-pid-path ( pid string -- path )
+M: integer proc-pid-path
     [ "/proc/" ] 2dip
     [ number>string "/" append ] dip
     3append ;
 
-M: string proc-pid-path ( pid-string string -- path )
+M: string proc-pid-path
     [ "/proc/" ] 2dip [ append-path ] dip append-path ;
 
 : proc-file-lines ( path -- strings ) utf8 file-lines ;

@@ -45,11 +45,7 @@ CONSTANT: registry-value-max-length 16384
     f 0 KEY_ALL_ACCESS f create-key* drop ;
 
 : close-key ( hkey -- )
-    RegCloseKey dup ERROR_SUCCESS = [
-        drop
-    ] [
-        n>win32-error-string throw
-    ] if ;
+    RegCloseKey n>win32-error-check ;
 
 :: with-open-registry-key ( key subkey mode quot -- )
     key subkey mode open-key :> hkey
@@ -82,7 +78,7 @@ PRIVATE>
             key value-name ptr1 lpType buffer
             grow-buffer reg-query-value-ex
         ] [
-            ret n>win32-error-string throw
+            ret throw-windows-error
         ] if
     ] if ;
 
@@ -204,7 +200,7 @@ TUPLE: registry-enum-key ;
 
 :: change-registry-value ( key subkey value-name quot: ( value -- value' ) -- )
     0 DWORD <ref> :> type
-    key subkey KEY_QUERY_VALUE KEY_SET_VALUE bitor [
+    key subkey flags{ KEY_QUERY_VALUE KEY_SET_VALUE } [
         dup :> hkey value-name f type MAX_PATH <byte-array>
         reg-query-value-ex
         type DWORD deref ${ REG_SZ REG_EXPAND_SZ REG_MULTI_SZ } in?

@@ -43,7 +43,7 @@ ARTICLE: "math-vectors-arithmetic" "Vector arithmetic"
 }
 "Inner product and norm:"
 { $subsections
-    v.
+    vdot
     norm
     norm-sq
     normalize
@@ -314,12 +314,12 @@ HELP: vclamp
   }
 } ;
 
-HELP: v.
-{ $values { "u" { $sequence real } } { "v" { $sequence real } } { "x" "a real number" } }
+HELP: vdot
+{ $values { "u" { $sequence real } } { "v" { $sequence real } } { "x" real } }
 { $description "Computes the dot product of two vectors." } ;
 
-HELP: h.
-{ $values { "u" { $sequence real } } { "v" { $sequence real } } { "x" "a real number" } }
+HELP: hdot
+{ $values { "u" { $sequence real } } { "v" { $sequence real } } { "x" real } }
 { $description "Computes the Hermitian inner product of two vectors." } ;
 
 HELP: vs+
@@ -588,7 +588,7 @@ HELP: vnone?
 
 { 2map v+ v- v* v/ } related-words
 
-{ 2reduce v. } related-words
+{ 2reduce vdot } related-words
 
 { vs+ vs- vs* } related-words
 

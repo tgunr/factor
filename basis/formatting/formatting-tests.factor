@@ -143,6 +143,7 @@ IN: formatting.tests
 { "[####monkey]" } [ "monkey" "[%'#10s]" sprintf ] unit-test
 { "[many monke]" } [ "many monkeys" "[%10.10s]" sprintf ] unit-test
 
+{ "{ 1, 2, 3 }" } [ BV{ 1 2 3 } "%[%d, %]" sprintf ] unit-test
 { "{ 1, 2, 3 }" } [ { 1 2 3 } "%[%s, %]" sprintf ] unit-test
 { "{ 1:2, 3:4 }" } [ H{ { 1 2 } { 3 4 } } "%[%s: %s %]" sprintf ] unit-test
 
@@ -171,3 +172,9 @@ ${ os windows? "3" "2" ? } [ 5/2 "%.0f" sprintf ] unit-test
 ${ os windows? "2.500000e+00" "2e+00" ? } [ 5/2 "%.0e" sprintf ] unit-test
 ${ os windows? "3.500000e+00" "4e+00" ? } [ 7/2 "%.0e" sprintf ] unit-test
 ${ os windows? "1.000000e+00" "1e+00" ? } [ 1.0 "%.0e" sprintf ] unit-test
+
+{ "00" } [ 2020 1 1 <date> "%U" strftime ] unit-test
+{ "00" } [ 2020 1 1 <date> "%W" strftime ] unit-test
+
+{ "44" } [ 2020 11 6 <date> "%U" strftime ] unit-test
+{ "44" } [ 2020 11 6 <date> "%W" strftime ] unit-test

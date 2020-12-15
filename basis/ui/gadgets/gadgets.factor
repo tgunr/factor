@@ -69,7 +69,7 @@ M: gadget children-on nip children>> ;
     children [
         [ point ] dip
         quot call( value -- loc ) v-
-        axis v. 0 <=>
+        axis vdot 0 <=>
     ] search drop ; inline
 
 PRIVATE>
@@ -79,10 +79,10 @@ PRIVATE>
     rect rect-bounds v+ axis children quot (fast-children-on) ?1+
     children <slice> ; inline
 
-M: gadget contains-rect? ( bounds gadget -- ? )
+M: gadget contains-rect?
     dup visible?>> [ call-next-method ] [ 2drop f ] if ;
 
-M: gadget contains-point? ( loc gadget -- ? )
+M: gadget contains-point?
     dup visible?>> [ call-next-method ] [ 2drop f ] if ;
 
 : pick-up ( point gadget -- child/f )
@@ -182,7 +182,7 @@ M: gadget dim-changed
 
 PRIVATE>
 
-M: gadget dim<< ( dim gadget -- )
+M: gadget dim<<
     2dup dim>> =
     [ 2drop ]
     [ [ nip ] [ call-next-method ] 2bi dim-changed ] if ;
@@ -384,6 +384,8 @@ PRIVATE>
 GENERIC: focusable-child* ( gadget -- child/t )
 
 M: gadget focusable-child* drop t ;
+
+M: f focusable-child* drop f ;
 
 : focusable-child ( gadget -- child )
     dup focusable-child*

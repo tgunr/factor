@@ -3,7 +3,7 @@
 USING: accessors assocs benchmark bootstrap.stage2 calendar
 command-line compiler.errors continuations debugger fry generic
 help.html help.lint io io.directories io.encodings.utf8 io.files
-io.styles kernel locals mason.common memory namespaces
+io.styles kernel locals mason.common math memory namespaces
 parser.notes sequences sets sorting source-files.errors system
 threads tools.errors tools.test tools.time vocabs
 vocabs.hierarchy.private vocabs.loader vocabs.refresh words ;
@@ -21,7 +21,7 @@ IN: mason.test
 : load-failures. ( failures -- ) [ load-error. nl ] each ;
 
 : require-all-no-restarts ( vocabs -- failures )
-    V{ } clone blacklist [
+    V{ } clone errorlist [
         V{ } clone [
             '[
                 [ require ]
@@ -34,8 +34,11 @@ IN: mason.test
     vocabs-to-load require-all-no-restarts ;
 
 : load-no-restarts ( prefix -- failures )
-    [ vocab-roots get ] dip
-    '[ _ load-from-root-no-restarts ] map concat ;
+    [ vocab-roots get dup ] dip '[
+        _ swap 1 + head vocab-roots [
+            _ load-from-root-no-restarts
+        ] with-variable
+    ] map-index concat ;
 
 : do-load ( -- )
     "" load-no-restarts
@@ -97,7 +100,7 @@ M: method word-vocabulary "method-generic" word-prop word-vocabulary ;
 
 : run-mason-rc ( -- )
     t "user-init" [
-        ".factor-mason-rc" rc-path try-user-init
+        "~/.factor-mason-rc" try-user-init
     ] with-variable ;
 
 : check-user-init-errors ( -- ? )

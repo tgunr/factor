@@ -1,12 +1,12 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.data alien.strings
-alien.syntax arrays assocs classes.struct combinators
+alien.syntax arrays ascii assocs classes.struct combinators
 combinators.short-circuit continuations destructors environment io
 io.backend io.binary io.buffers io.files io.files.private
-io.files.types io.pathnames io.ports io.streams.c io.streams.null
-io.timeouts kernel libc literals locals math math.bitwise namespaces
-sequences specialized-arrays system threads tr vectors windows
+io.files.types io.pathnames io.pathnames.private io.ports io.streams.c
+io.streams.null io.timeouts kernel libc literals locals math math.bitwise
+namespaces sequences specialized-arrays system threads tr vectors windows
 windows.errors windows.handles windows.kernel32 windows.shell32
 windows.time windows.types windows.winsock splitting ;
 SPECIALIZED-ARRAY: ushort
@@ -76,7 +76,7 @@ SYMBOL: master-completion-port
             { [ dup integer? ] [ ] }
             { [ dup array? ] [
                 first dup eof?
-                [ drop 0 ] [ n>win32-error-string throw ] if
+                [ drop 0 ] [ throw-windows-error ] if
             ] }
         } cond
     ] with-timeout ;
@@ -102,10 +102,10 @@ SYMBOL: master-completion-port
 M: win32-handle cancel-operation
     [ handle>> CancelIo win32-error=0/f ] unless-disposed ;
 
-M: windows io-multiplex ( nanos -- )
+M: windows io-multiplex
     handle-overlapped [ 0 io-multiplex ] when ;
 
-M: windows init-io ( -- )
+M: windows init-io
     <master-completion-port> master-completion-port set-global
     H{ } clone pending-overlapped set-global ;
 
@@ -117,7 +117,7 @@ M: windows init-io ( -- )
 : handle>file-size ( handle -- n/f )
     (handle>file-size) [
         GetLastError ERROR_INVALID_FUNCTION =
-        [ f ] [ throw-win32-error ] if
+        [ win32-error ] unless f
     ] unless* ;
 
 ERROR: seek-before-start n ;
@@ -125,9 +125,9 @@ ERROR: seek-before-start n ;
 : set-seek-ptr ( n handle -- )
     [ dup 0 < [ seek-before-start ] when ] dip ptr<< ;
 
-M: windows tell-handle ( handle -- n ) ptr>> ;
+M: windows tell-handle ptr>> ;
 
-M: windows seek-handle ( n seek-type handle -- )
+M: windows seek-handle
     swap {
         { seek-absolute [ set-seek-ptr ] }
         { seek-relative [ [ ptr>> + ] keep set-seek-ptr ] }
@@ -135,10 +135,10 @@ M: windows seek-handle ( n seek-type handle -- )
         [ bad-seek-type ]
     } case ;
 
-M: windows can-seek-handle? ( handle -- ? )
+M: windows can-seek-handle?
     handle>> handle>file-size >boolean ;
 
-M: windows handle-length ( handle -- n/f )
+M: windows handle-length
     handle>> handle>file-size
     dup { 0 f } member? [ drop f ] when ;
 
@@ -147,7 +147,7 @@ M: windows handle-length ( handle -- n/f )
         GetLastError {
             { [ dup expected-io-error? ] [ drop f ] }
             { [ dup eof? ] [ drop t ] }
-            [ n>win32-error-string throw ]
+            [ throw-windows-error ]
         } cond
     ] [ f ] if ;
 
@@ -182,7 +182,7 @@ M: windows handle-length ( handle -- n/f )
 : finish-write ( n port -- )
     [ update-file-ptr ] [ buffer>> buffer-consume ] 2bi ;
 
-M: object drain ( port handle -- event/f )
+M: object drain
     [ make-FileArgs dup setup-write WriteFile ]
     [ drop [ wait-for-file ] [ finish-write ] bi ] 2bi f ;
 
@@ -197,14 +197,14 @@ M: object drain ( port handle -- event/f )
 : finish-read ( n port -- )
     [ update-file-ptr ] [ buffer>> buffer+ ] 2bi ;
 
-M: object refill ( port handle -- event/f )
+M: object refill
     [ make-FileArgs dup setup-read ReadFile ]
     [ drop [ wait-for-file ] [ finish-read ] bi ] 2bi f ;
 
-M: windows (wait-to-write) ( port -- )
+M: windows (wait-to-write)
     [ dup handle>> drain ] with-destructors drop ;
 
-M: windows (wait-to-read) ( port -- )
+M: windows (wait-to-read)
     [ dup handle>> refill ] with-destructors drop ;
 
 : make-fd-set ( socket -- fd_set )
@@ -215,7 +215,7 @@ M: windows (wait-to-read) ( port -- )
 
 CONSTANT: select-timeval S{ timeval { sec 0 } { usec 1000 } }
 
-M: windows wait-for-fd ( handle event -- )
+M: windows wait-for-fd
     [ file>> handle>> 1 swap ] dip select-sets select-timeval
     select drop yield ;
 
@@ -255,13 +255,13 @@ M: windows init-stdio
     [ [ handle>> ] dip d>w/w LONG <ref> ] dip SetFilePointer
     INVALID_SET_FILE_POINTER = [ "SetFilePointer failed" throw ] when ;
 
-M: windows (file-reader) ( path -- stream )
+M: windows (file-reader)
     open-read <input-port> ;
 
-M: windows (file-writer) ( path -- stream )
+M: windows (file-writer)
     open-write <output-port> ;
 
-M: windows (file-appender) ( path -- stream )
+M: windows (file-appender)
     open-append <output-port> ;
 
 SYMBOLS: +read-only+ +hidden+ +system+
@@ -282,22 +282,21 @@ SLOT: attributes
 
 : win32-file-attributes ( n -- seq )
     {
-        { +read-only+ FILE_ATTRIBUTE_READONLY }
-        { +hidden+ FILE_ATTRIBUTE_HIDDEN }
-        { +system+ FILE_ATTRIBUTE_SYSTEM }
-        { +directory+ FILE_ATTRIBUTE_DIRECTORY }
-        { +archive+ FILE_ATTRIBUTE_ARCHIVE }
-        { +device+ FILE_ATTRIBUTE_DEVICE }
-        { +normal+ FILE_ATTRIBUTE_NORMAL }
-        { +temporary+ FILE_ATTRIBUTE_TEMPORARY }
-        { +sparse-file+ FILE_ATTRIBUTE_SPARSE_FILE }
-        { +reparse-point+ FILE_ATTRIBUTE_REPARSE_POINT }
-        { +compressed+ FILE_ATTRIBUTE_COMPRESSED }
-        { +offline+ FILE_ATTRIBUTE_OFFLINE }
-        { +not-content-indexed+ FILE_ATTRIBUTE_NOT_CONTENT_INDEXED }
-        { +encrypted+ FILE_ATTRIBUTE_ENCRYPTED }
-    }
-    [ execute( -- y ) mask? [ drop f ] unless ] with { } assoc>map sift ;
+        { +read-only+ $ FILE_ATTRIBUTE_READONLY }
+        { +hidden+ $ FILE_ATTRIBUTE_HIDDEN }
+        { +system+ $ FILE_ATTRIBUTE_SYSTEM }
+        { +directory+ $ FILE_ATTRIBUTE_DIRECTORY }
+        { +archive+ $ FILE_ATTRIBUTE_ARCHIVE }
+        { +device+ $ FILE_ATTRIBUTE_DEVICE }
+        { +normal+ $ FILE_ATTRIBUTE_NORMAL }
+        { +temporary+ $ FILE_ATTRIBUTE_TEMPORARY }
+        { +sparse-file+ $ FILE_ATTRIBUTE_SPARSE_FILE }
+        { +reparse-point+ $ FILE_ATTRIBUTE_REPARSE_POINT }
+        { +compressed+ $ FILE_ATTRIBUTE_COMPRESSED }
+        { +offline+ $ FILE_ATTRIBUTE_OFFLINE }
+        { +not-content-indexed+ $ FILE_ATTRIBUTE_NOT_CONTENT_INDEXED }
+        { +encrypted+ $ FILE_ATTRIBUTE_ENCRYPTED }
+    } [ mask? [ drop f ] unless ] with { } assoc>map sift ;
 
 : win32-file-type ( n -- symbol )
     FILE_ATTRIBUTE_DIRECTORY mask? +directory+ +regular-file+ ? ;
@@ -315,7 +314,7 @@ M: windows cd
 
 CONSTANT: unicode-prefix "\\\\?\\"
 
-M: windows root-directory? ( path -- ? )
+M: windows root-directory?
     {
         { [ dup empty? ] [ drop f ] }
         { [ dup [ path-separator? ] all? ] [ drop t ] }
@@ -346,11 +345,16 @@ PRIVATE>
 M: windows canonicalize-path
     remove-unicode-prefix canonicalize-path* ;
 
+M: windows canonicalize-drive
+    dup windows-absolute-path? [ ":" split1 [ >upper ] dip ":" glue ] when ;
+
+M: windows canonicalize-path-full canonicalize-path canonicalize-drive >windows-path ;
+
 M: windows root-path remove-unicode-prefix root-path* ;
 
 M: windows relative-path remove-unicode-prefix relative-path* ;
 
-M: windows normalize-path ( string -- string' )
+M: windows normalize-path
     dup unc-path? [
         normalize-separators
     ] [
@@ -399,8 +403,8 @@ M: windows home
     WIN32_FIND_STREAM_DATA <struct>
     0
     [ FindFirstStream ] keepd
-    over -1 <alien> = [
-        2drop throw-win32-error
+    over INVALID_HANDLE_VALUE = [
+        2drop win32-error f
     ] [
         1vector swap file-streams-rest
     ] if ;
@@ -408,5 +412,5 @@ M: windows home
 : alternate-file-streams ( path -- streams )
     file-streams [ cStreamName>> alien>native-string "::$DATA" = ] reject ;
 
-: alternate-file-streams? ( path -- streams )
+: alternate-file-streams? ( path -- ? )
     alternate-file-streams empty? not ;

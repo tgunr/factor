@@ -159,7 +159,7 @@ M: array add-using [ add-using ] each ;
 
 M: string add-using drop ;
 
-M: object add-using ( object -- )
+M: object add-using
     vocabulary>> using get [ adjoin ] [ drop ] if* ;
 
 : 4bl ( -- )
@@ -398,4 +398,4 @@ ${example-indent}}
 
 HOOK: scaffold-emacs os ( -- )
 
-M: unix scaffold-emacs ( -- ) ".emacs" scaffold-rc ;
+M: unix scaffold-emacs ".emacs" scaffold-rc ;

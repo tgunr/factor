@@ -1,20 +1,10 @@
 ! Copyright (C) 2008, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors sequences kernel assocs combinators
-validators http hashtables namespaces fry continuations locals
-io arrays math boxes splitting urls
-xml.entities
-http.server
-http.server.responses
-furnace.utilities
-furnace.redirection
-furnace.conversations
-furnace.chloe-tags
-html.forms
-html.components
-html.templates.chloe
-html.templates.chloe.syntax
-html.templates.chloe.compiler ;
+USING: accessors assocs combinators fry furnace.conversations
+furnace.utilities html.forms http http.server
+http.server.responses kernel namespaces sequences splitting urls
+validators ;
+FROM: html.templates.chloe => <chloe> ;
 IN: furnace.actions
 
 SYMBOL: rest
@@ -110,7 +100,7 @@ CONSTANT: revalidate-url-key "__u"
     begin-form
     handle-rest ;
 
-M: action call-responder* ( path action -- response )
+M: action call-responder*
     [ init-action ] keep
     request get method>> {
         { "GET"   [ handle-get ] }

@@ -131,7 +131,7 @@ M: object vshuffle2-elements
 GENERIC#: vshuffle-bytes 1 ( v perm -- w )
 
 GENERIC: vshuffle ( v perm -- w )
-M: array vshuffle ( v perm -- w )
+M: array vshuffle
     vshuffle-elements ; inline
 
 GENERIC#: vlshift 1 ( v n -- w )
@@ -217,11 +217,11 @@ M: object v?
 : vsupremum ( seq -- vmax ) [ ] [ vmax ] map-reduce ; inline
 : vinfimum ( seq -- vmin ) [ ] [ vmin ] map-reduce ; inline
 
-GENERIC: v. ( u v -- x )
-M: object v. [ * ] [ + ] 2map-reduce ; inline
+GENERIC: vdot ( u v -- x )
+M: object vdot [ * ] [ + ] 2map-reduce ; inline
 
-GENERIC: h. ( u v -- x )
-M: object h. [ conjugate * ] [ + ] 2map-reduce ; inline
+GENERIC: hdot ( u v -- x )
+M: object hdot [ conjugate * ] [ + ] 2map-reduce ; inline
 
 GENERIC: norm-sq ( v -- x )
 M: object norm-sq [ absq ] [ + ] map-reduce ; inline
@@ -279,3 +279,19 @@ PRIVATE>
 
 : vclamp ( v min max -- w )
     rot vmin vmax ; inline
+
+: cross ( vec1 vec2 -- vec3 )
+    [ [ { 1 2 0 } vshuffle ] [ { 2 0 1 } vshuffle ] bi* v* ]
+    [ [ { 2 0 1 } vshuffle ] [ { 1 2 0 } vshuffle ] bi* v* ] 2bi v- ; inline
+
+:: normal ( vec1 vec2 vec3 -- vec4 )
+    vec2 vec1 v- vec3 vec1 v- cross normalize ; inline
+
+: proj ( v u -- w )
+    [ [ vdot ] [ norm-sq ] bi / ] keep n*v ;
+
+: perp ( v u -- w )
+    dupd proj v- ;
+
+: angle-between ( v u -- a )
+    [ normalize ] bi@ hdot acos ;

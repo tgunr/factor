@@ -120,7 +120,7 @@ PRIVATE>
 : of ( assoc key -- value/f )
     swap at ; inline
 
-M: assoc assoc-clone-like ( assoc exemplar -- newassoc )
+M: assoc assoc-clone-like
     [ dup assoc-size ] dip new-assoc
     [ [ set-at ] with-assoc assoc-each ] keep ; inline
 
@@ -128,10 +128,10 @@ M: assoc keys [ drop ] { } assoc>map ;
 
 M: assoc values [ nip ] { } assoc>map ;
 
-: delete-at* ( key assoc -- old ? )
+: delete-at* ( key assoc -- value/f ? )
     [ at* ] 2keep delete-at ;
 
-: ?delete-at ( key assoc -- old ? )
+: ?delete-at ( key assoc -- value/key ? )
     [ ?at ] 2keep delete-at ;
 
 : rename-at ( newkey key assoc -- )
@@ -194,6 +194,9 @@ M: assoc values [ nip ] { } assoc>map ;
 
 : change-at ( ..a key assoc quot: ( ..a value -- ..b newvalue ) -- ..b )
     [ [ at ] dip call ] [ drop ] 3bi set-at ; inline
+
+: ?change-at ( ..a key assoc quot: ( ..a value -- ..b newvalue ) -- ..b )
+    2over [ set-at ] 2curry compose [ at* ] dip [ drop ] if ; inline
 
 : at+ ( n key assoc -- ) [ 0 or + ] change-at ; inline
 
@@ -296,7 +299,7 @@ M: enumerated set-at seq>> set-nth ; inline
 
 M: enumerated delete-at seq>> remove-nth! drop ; inline
 
-M: enumerated >alist ( enumerated -- alist ) ; inline
+M: enumerated >alist ; inline
 
 M: enumerated keys seq>> length <iota> >array ; inline
 

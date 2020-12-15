@@ -47,16 +47,16 @@ TUPLE: gadget-metrics height ascent descent cap-height ;
 : ?supremum ( seq -- n/f )
     sift [ f ] [ supremum ] if-empty ;
 
-: max-ascent ( seq -- n )
+: max-ascent ( seq -- n/f )
     [ ascent>> ] map ?supremum ;
 
-: max-cap-height ( seq -- n )
+: max-cap-height ( seq -- n/f )
     [ cap-height>> ] map ?supremum ;
 
-: max-descent ( seq -- n )
+: max-descent ( seq -- n/f )
     [ descent>> ] map ?supremum ;
 
-: max-graphics-height ( seq -- y )
+: max-graphics-height ( seq -- n )
     [ ascent>> ] reject [ height>> ] map ?supremum 0 or ;
 
 :: combine-metrics ( graphics-height ascent descent cap-height -- ascent' descent' )
@@ -99,3 +99,7 @@ PRIVATE>
 
 : measure-height ( children sizes -- height )
     (measure-metrics) [ combine-metrics + ] [ 2drop ] if* ;
+
+: measure-height-metrics ( children sizes -- height ascent descent )
+    (measure-metrics) [ dup ] 3dip
+    [ combine-metrics ] keep [ [ + nip ] 2keep ] when ;

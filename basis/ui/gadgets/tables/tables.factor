@@ -216,7 +216,7 @@ M: table draw-gadget*
         ] with-variable
     ] if ;
 
-M: table line-height* ( table -- y )
+M: table line-height*
     [ font>> ] [ renderer>> prototype-row ] bi
     [ cell-dim + nip ] with [ max ] map-reduce ;
 
@@ -326,10 +326,9 @@ M: table model-changed
 PRIVATE>
 
 : row-action ( table -- )
-    dup selected-row
-    [ swap [ dup hook>> call( table -- ) ] [ action>> call( value -- ) ] bi ]
-    [ 2drop ]
-    if ;
+    dup selected-row [
+        over action>> call( value -- )
+    ] [ drop ] if dup hook>> call( table -- ) ;
 
 : row-action? ( table -- ? )
     single-click?>> hand-click# get 2 = or ;

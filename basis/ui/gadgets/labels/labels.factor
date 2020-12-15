@@ -1,9 +1,10 @@
 ! Copyright (C) 2005, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays colors.constants combinators fonts fry
-kernel make math.functions models namespaces sequences splitting
-strings ui.baseline-alignment ui.gadgets ui.gadgets.tracks
-ui.pens.solid ui.render ui.text ui.theme.images ;
+USING: accessors arrays classes colors.constants combinators
+fonts fry kernel make math.functions models namespaces sequences
+splitting strings ui.baseline-alignment ui.gadgets
+ui.gadgets.tracks ui.pens.solid ui.render ui.text
+ui.theme.images ;
 IN: ui.gadgets.labels
 
 ! A label gadget draws a string.
@@ -11,7 +12,7 @@ TUPLE: label < aligned-gadget text font ;
 
 SLOT: string
 
-M: label string>> ( label -- string )
+M: label string>>
     text>> dup string? [ "\n" join ] unless ; inline
 
 <PRIVATE
@@ -23,15 +24,11 @@ PRIVATE>
 : ?string-lines ( string -- string/array )
     CHAR: \n over member-eq? [ string-lines ] when ;
 
-ERROR: not-a-string object ;
-
-M: label string<< ( string label -- )
+M: label string<<
     [
-        {
-            { [ dup string-array? ] [ ] }
-            { [ dup string? ] [ ?string-lines ] }
-            [ not-a-string ]
-        } cond
+        dup string-array? [
+            string check-instance ?string-lines
+        ] unless
     ] dip [ text<< ] [ relayout ] bi ; inline
 
 : label-theme ( gadget -- gadget )
@@ -49,7 +46,7 @@ M: label string<< ( string label -- )
     [ font>> ] [ text>> ] bi ; inline
 
 M: label pref-dim*
-    >label< text-dim ;
+    >label< text-dim first2 ceiling 2array ;
 
 <PRIVATE
 
@@ -59,10 +56,10 @@ M: label pref-dim*
 PRIVATE>
 
 M: label baseline*
-    label-metrics ascent>> round ;
+    label-metrics ascent>> ;
 
 M: label cap-height*
-    label-metrics cap-height>> round ;
+    label-metrics cap-height>> ;
 
 <PRIVATE
 

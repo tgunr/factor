@@ -172,7 +172,7 @@ computer-name"
         }
     }
 
-    { $slide "Speciailzied arrays are implemented using functors"
+    { $slide "Specialized arrays are implemented using functors"
         "Like C++ templates"
         "Eliminate boilerplate in ways other abstractions don't"
         "Contains a definition section and a functor body"
@@ -456,7 +456,7 @@ xyz
     \"TIME_ZONE_INFORMATION\" <c-object>
     dup GetTimeZoneInformation {
         { TIME_ZONE_ID_INVALID [
-            win32-error-string throw
+            win32-error
         ] }
         { TIME_ZONE_ID_STANDARD [
             TIME_ZONE_INFORMATION-Bias

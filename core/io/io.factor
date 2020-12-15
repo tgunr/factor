@@ -50,7 +50,7 @@ SYMBOL: error-stream
 : write ( seq -- ) output-stream get stream-write ; inline
 : flush ( -- ) output-stream get stream-flush ; inline
 
-: nl ( -- )   output-stream get stream-nl ; inline
+: nl ( -- ) output-stream get stream-nl ; inline
 
 : with-input-stream* ( stream quot -- )
     input-stream swap with-variable ; inline
@@ -103,9 +103,6 @@ SYMBOL: error-stream
 
 : bl ( -- ) output-stream get stream-bl ;
 
-: each-morsel ( ..a handler: ( ..a data -- ..b ) reader: ( ..b -- ..a data ) -- ..a )
-    [ dup ] compose swap while drop ; inline
-
 <PRIVATE
 
 : stream-exemplar ( stream -- exemplar )
@@ -118,11 +115,11 @@ SYMBOL: error-stream
     stream-exemplar new-sequence ; inline
 
 : resize-if-necessary ( wanted-n got-n seq -- seq' )
-    2over = [ [ 2drop ] dip ] [ resize nip ] if ; inline
+    2over = [ 2nip ] [ resize nip ] if ; inline
 
 : (read-into-new) ( n stream quot -- seq/f )
     [ dup ] 2dip
-    [ 2dup (new-sequence-for-stream) swap ] dip curry keep
+    [ 2dup (new-sequence-for-stream) swap ] dip keepd
     over 0 = [ 3drop f ] [ resize-if-necessary ] if ; inline
 
 : (read-into) ( buf stream quot -- buf-slice/f )
@@ -156,7 +153,7 @@ ERROR: invalid-read-buffer buf stream ;
     input-stream get stream-read-partial-into ; inline
 
 : each-stream-line ( ... stream quot: ( ... line -- ... ) -- ... )
-    swap [ stream-readln ] curry each-morsel ; inline
+    [ [ stream-readln ] curry ] dip while* ; inline
 
 : each-line ( ... quot: ( ... line -- ... ) -- ... )
     input-stream get swap each-stream-line ; inline
@@ -172,15 +169,16 @@ ERROR: invalid-read-buffer buf stream ;
 CONSTANT: each-block-size 65536
 
 : (each-stream-block-slice) ( ... stream quot: ( ... block-slice -- ... ) block-size -- ... )
-    [ [ drop ] prepose swap ] dip
-    [ swap (new-sequence-for-stream) ] curry keep
-    [ stream-read-partial-into ] 2curry each-morsel drop ; inline
+    -rot [
+        [ (new-sequence-for-stream) ] keep
+        [ stream-read-partial-into ] 2curry
+    ] dip while drop ; inline
 
 : each-stream-block-slice ( ... stream quot: ( ... block-slice -- ... ) -- ... )
     each-block-size (each-stream-block-slice) ; inline
 
 : (each-stream-block) ( ... stream quot: ( ... block -- ... ) block-size -- ... )
-    rot [ stream-read-partial ] 2curry each-morsel ; inline
+    -rot [ [ stream-read-partial ] 2curry ] dip while* ; inline
 
 : each-stream-block ( ... stream quot: ( ... block -- ... ) -- ... )
     each-block-size (each-stream-block) ; inline
@@ -194,7 +192,7 @@ CONSTANT: each-block-size 65536
 : (stream-contents-by-length) ( stream len -- seq )
     dup rot
     [ (new-sequence-for-stream) ]
-    [ [ stream-read-unsafe ] curry keep resize ] bi ; inline
+    [ [ stream-read-unsafe ] keepd resize ] bi ; inline
 
 : (stream-contents-by-block) ( stream -- seq )
     [ [ ] collector [ each-stream-block ] dip { } like ]
@@ -225,11 +223,11 @@ CONSTANT: each-block-size 65536
 <PRIVATE
 
 : read-loop ( buf stream n i -- count )
-     2dup = [ nip nip nip ] [
+     2dup = [ 3nip ] [
         pick stream-read1 [
             over [ pick set-nth-unsafe ] 2curry 3dip
             1 + read-loop
-        ] [ nip nip nip ] if*
+        ] [ 3nip ] if*
      ] if ; inline recursive
 
 : finalize-read-until ( seq sep/f -- seq/f sep/f )
@@ -251,6 +249,7 @@ M: input-stream stream-length drop f ; inline
 
 M: output-stream stream-write [ stream-write1 ] curry each ; inline
 M: output-stream stream-flush drop ; inline
+M: output-stream stream-nl CHAR: \n swap stream-write1 ; inline
 M: output-stream stream-seekable? drop f ; inline
 M: output-stream stream-length drop f ; inline
 

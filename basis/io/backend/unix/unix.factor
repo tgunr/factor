@@ -1,6 +1,6 @@
 ! Copyright (C) 2004, 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types alien.data alien.syntax
+USING: accessors alien.c-types alien.data alien.syntax classes
 classes.struct combinators destructors destructors.private fry
 io.backend io.backend.unix.multiplexers io.buffers io.files
 io.ports io.timeouts kernel kernel.private libc locals make math
@@ -37,7 +37,7 @@ M: fd dispose
 
 M: fd handle-fd check-disposed fd>> ;
 
-M: fd cancel-operation ( fd -- )
+M: fd cancel-operation
     [
         fd>>
         mx get-global
@@ -46,10 +46,10 @@ M: fd cancel-operation ( fd -- )
         2bi
     ] unless-disposed ;
 
-M: unix tell-handle ( handle -- n )
+M: unix tell-handle
     fd>> 0 SEEK_CUR [ lseek ] unix-system-call [ io-error ] [ ] bi ;
 
-M: unix seek-handle ( n seek-type handle -- )
+M: unix seek-handle
     swap {
         { io:seek-absolute [ SEEK_SET ] }
         { io:seek-relative [ SEEK_CUR ] }
@@ -58,10 +58,10 @@ M: unix seek-handle ( n seek-type handle -- )
     } case
     [ fd>> swap ] dip [ lseek ] unix-system-call drop ;
 
-M: unix can-seek-handle? ( handle -- ? )
+M: unix can-seek-handle?
     fd>> SEEK_CUR 0 lseek -1 = not ;
 
-M: unix handle-length ( handle -- n/f )
+M: unix handle-length
     fd>> \ stat <struct> [ fstat -1 = not ] keep
     swap [ st_size>> ] [ drop f ] if ;
 
@@ -69,7 +69,7 @@ ERROR: io-timeout ;
 
 M: io-timeout summary drop "I/O operation timed out" ;
 
-M: unix wait-for-fd ( handle event -- )
+M: unix wait-for-fd
     dup +retry+ eq? [ 2drop ] [
         [ [ self ] dip handle-fd mx get-global ] dip {
             { +input+ [ add-input-callback ] }
@@ -83,13 +83,8 @@ M: unix wait-for-fd ( handle event -- )
 
 ! Some general stuff
 
-ERROR: not-a-buffered-port port ;
-
-: check-buffered-port ( port -- port )
-    dup buffered-port? [ not-a-buffered-port ] unless ; inline
-
 M: fd refill
-    [ check-buffered-port buffer>> ] [ fd>> ] bi*
+    [ buffered-port check-instance buffer>> ] [ fd>> ] bi*
     over [ buffer-end ] [ buffer-capacity ] bi read
     { fixnum } declare dup 0 >= [
         swap buffer+ f
@@ -101,14 +96,14 @@ M: fd refill
         } case
     ] if ;
 
-M: unix (wait-to-read) ( port -- )
+M: unix (wait-to-read)
     dup
     dup handle>> check-disposed refill dup
     [ dupd wait-for-port (wait-to-read) ] [ 2drop ] if ;
 
 ! Writers
 M: fd drain
-    [ check-buffered-port buffer>> ] [ fd>> ] bi*
+    [ buffered-port check-instance buffer>> ] [ fd>> ] bi*
     over [ buffer@ ] [ buffer-length ] bi write
     { fixnum } declare dup 0 >= [
         over buffer-consume
@@ -121,12 +116,12 @@ M: fd drain
         } case
     ] if ;
 
-M: unix (wait-to-write) ( port -- )
+M: unix (wait-to-write)
     dup
     dup handle>> check-disposed drain
     [ wait-for-port ] [ drop ] if* ;
 
-M: unix io-multiplex ( nanos -- )
+M: unix io-multiplex
     mx get-global wait-for-events ;
 
 ! On Unix, you're not supposed to set stdin to non-blocking

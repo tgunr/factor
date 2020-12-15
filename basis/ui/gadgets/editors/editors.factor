@@ -21,7 +21,7 @@ TUPLE: editor < line-gadget
     preedit-selection-mode?
     preedit-underlines ;
 
-M: editor preedit? preedit-start>> [ t ] [ f ] if ;
+M: editor preedit? preedit-start>> ;
 
 <PRIVATE
 
@@ -178,10 +178,10 @@ M: editor ungraft*
         editor [ caret-loc second ] [ caret-dim second ] bi + 2.0 - :> y
         editor editor-caret first :> row
         editor font>> foreground>> gl-color
-        editor preedit-underlines>> [            
+        editor preedit-underlines>> [
             GL_LINE_BIT [
                 dup second glLineWidth
-                first editor preedit-start>> second dup 2array v+ first2 
+                first editor preedit-start>> second dup 2array v+ first2
                 [ row swap 2array editor loc>x 1.0 + y 2array ]
                 [ row swap 2array editor loc>x 1.0 - y 2array ]
                 bi*
@@ -234,7 +234,7 @@ TUPLE: selected-line start end first? last? ;
 
 PRIVATE>
 
-M: editor draw-line ( line index editor -- )
+M: editor draw-line
     [ selected-lines get at ] dip over
     [ draw-selected-line ] [ nip draw-unselected-line ] if ;
 
@@ -570,21 +570,28 @@ TUPLE: multiline-editor < editor ;
 
 <PRIVATE
 
-: page-elt ( editor -- editor element ) dup visible-lines 1 - <page-elt> ;
+: page-elt ( editor n -- editor element )
+    over visible-lines 1 - min 1 max <page-elt> ;
+
+: prev-page-elt ( editor -- editor element )
+    dup editor-caret first page-elt ;
+
+: next-page-elt ( editor -- editor element )
+    dup [ control-value length 1 - ] [ editor-caret first ] bi - page-elt ;
 
 PRIVATE>
 
-: previous-page ( editor -- ) page-elt editor-prev ;
+: previous-page ( editor -- ) prev-page-elt editor-prev ;
 
-: next-page ( editor -- ) page-elt editor-next ;
+: next-page ( editor -- ) next-page-elt editor-next ;
 
 : select-previous-line ( editor -- ) line-elt editor-select-prev ;
 
 : select-next-line ( editor -- ) line-elt editor-select-next ;
 
-: select-previous-page ( editor -- ) page-elt editor-select-prev ;
+: select-previous-page ( editor -- ) prev-page-elt editor-select-prev ;
 
-: select-next-page ( editor -- ) page-elt editor-select-next ;
+: select-next-page ( editor -- ) next-page-elt editor-select-next ;
 
 : insert-newline ( editor -- )
     "\n" swap user-input* drop ;

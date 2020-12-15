@@ -1,5 +1,7 @@
 # Factor
 
+[![](https://api.travis-ci.org/factor/factor.svg)](https://travis-ci.org/factor/factor)
+
 Factor is a [concatenative](https://www.concatenative.org), stack-based
 programming language with [high-level
 features](https://concatenative.org/wiki/view/Factor/Features/The%20language)
@@ -28,7 +30,7 @@ a boot image stored on factorcode.org.
 
 To check out Factor:
 
-* `git clone git://factorcode.org/git/factor.git`
+* `git clone git://github.com/factor/factor.git`
 * `cd factor`
 
 To build the latest complete Factor system from git, either use the
@@ -38,7 +40,7 @@ build script:
 * Windows: `build.cmd`
 
 or download the correct boot image for your system from
-http://downloads.factorcode.org/images/master/, put it in the factor
+http://downloads.factorcode.org/images/master/, put it in the `factor`
 directory and run:
 
 * Unix: `make` and then `./factor -i=boot.unix-x86.64.image`
@@ -126,6 +128,25 @@ The Factor source tree is organized as follows:
 * `extra/` - more libraries and applications
 * `misc/` - editor modes, icons, etc
 * `unmaintained/` - now at [factor-unmaintained](https://github.com/factor/factor-unmaintained)
+
+## Source History
+
+During Factor's lifetime, sourcecode has lived in many repositories. Unfortunately, the first import in Git did not keep history. History has been partially recreated from what could be salvaged. Due to the nature of Git, it's only possible to add history without disturbing upstream work, by using replace objects. These need to be manually fetched, or need to be explicitly added to your git remote configuration.
+
+Use:
+`git fetch origin 'refs/replace/*:refs/replace/*'`
+
+or add the following line to your configuration file
+
+```
+[remote "origin"]
+    url = ...
+    fetch = +refs/heads/*:refs/remotes/origin/*
+    ...
+    fetch = +refs/replace/*:refs/replace/*
+```
+
+Then subsequent fetches will automatically update any replace objects.
 
 ## Community
 

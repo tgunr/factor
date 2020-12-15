@@ -18,7 +18,7 @@ PERSISTENT: server-state
 
 : expire-state ( class -- )
     new
-        -1/0. gmt timestamp>micros [a,b] >>expires
+        -1/0. now timestamp>micros [a,b] >>expires
     delete-tuples ;
 
 TUPLE: server-state-manager < filter-responder timeout ;

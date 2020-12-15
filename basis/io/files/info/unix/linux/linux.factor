@@ -13,10 +13,10 @@ namelen ;
 
 M: linux new-file-system-info linux-file-system-info new ;
 
-M: linux file-system-statfs ( path -- statfs )
+M: linux file-system-statfs
     \ statfs64 <struct> [ statfs64 io-error ] keep ;
 
-M: linux statfs>file-system-info ( file-system-info statfs -- file-system-info' )
+M: linux statfs>file-system-info
     {
         [ f_type>> >>type ]
         [ f_bsize>> >>block-size ]
@@ -31,10 +31,10 @@ M: linux statfs>file-system-info ( file-system-info statfs -- file-system-info' 
         ! [ statfs64-f_spare >>spare ]
     } cleave ;
 
-M: linux file-system-statvfs ( path -- statvfs )
+M: linux file-system-statvfs
     \ statvfs64 <struct> [ statvfs64 io-error ] keep ;
 
-M: linux statvfs>file-system-info ( file-system-info statfs -- file-system-info' )
+M: linux statvfs>file-system-info
     {
         [ f_flag>> >>flags ]
         [ f_namemax>> >>name-max ]
@@ -68,9 +68,15 @@ frequency pass-number ;
     CHAR: \s [ "/etc/mtab" utf8 file>csv ] with-delimiter
     [ mtab-csv>mtab-entry ] map ;
 
+: (file-system-info) ( path -- file-system-info )
+    [ new-file-system-info ] dip
+    [ file-system-statfs statfs>file-system-info ]
+    [ file-system-statvfs statvfs>file-system-info ] bi
+    file-system-calculations ; inline
+
 : mtab-entry>file-system-info ( mtab-entry -- file-system-info/f )
     '[
-        _ [ mount-point>> file-system-info ] keep
+        _ [ mount-point>> (file-system-info) ] [ ] bi
         {
             [ file-system-name>> >>device-name ]
             [ mount-point>> >>mount-point ]
@@ -78,28 +84,14 @@ frequency pass-number ;
         } cleave
     ] [ { [ libc-error? ] [ errno>> EACCES = ] } 1&& ] ignore-error/f ;
 
+M: linux mount-points
+    parse-mtab [ [ mount-point>> ] keep ] H{ } map>assoc ;
+
 M: linux file-systems
     parse-mtab [ mtab-entry>file-system-info ] map sift ;
 
-: (find-mount-point) ( path mtab-paths -- mtab-entry )
-    2dup at* [
-        2nip
-    ] [
-        drop [ parent-directory ] dip (find-mount-point)
-    ] if ;
-
-: find-mount-point ( path -- mtab-entry )
-    resolve-symlinks
-    parse-mtab [ [ mount-point>> ] keep ] H{ } map>assoc (find-mount-point) ;
-
-M: linux file-system-info ( path -- file-system-info )
-    normalize-path
-    [
-        [ new-file-system-info ] dip
-        [ file-system-statfs statfs>file-system-info ]
-        [ file-system-statvfs statvfs>file-system-info ] bi
-        file-system-calculations
-    ] keep
+M: linux file-system-info
+    normalize-path [ (file-system-info) ] [ ] bi
     find-mount-point
     {
         [ file-system-name>> >>device-name drop ]

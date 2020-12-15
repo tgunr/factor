@@ -306,19 +306,19 @@ SYMBOL: delayed
 : compile ( parser -- word )
     [
         H{ } clone delayed [
-            compile-parser-quot ( -- result ) define-temp fixup-delayed
+            compile-parser fixup-delayed
         ] with-variable
     ] with-compilation-unit ;
 
 : compiled-parse ( state word -- result )
     swap [
-        execute( -- result )
+        execute-parser
         [ error-stack get ?first [ throw ]
         [ pos get input get f <parse-error> throw ] if* ] unless*
     ] with-packrat ;
 
 : (parse) ( input parser -- result )
-    dup word? [ compile ] unless compiled-parse ;
+    compile compiled-parse ;
 
 : parse ( input parser -- ast )
     (parse) ast>> ;
@@ -345,7 +345,7 @@ TUPLE: token-parser symbol ;
         [ seq>> pos get swap ] dip "'" "'" surround 1vector add-error f
     ] if ;
 
-M: token-parser (compile) ( peg -- quot )
+M: token-parser (compile)
     symbol>> '[ input-slice _ parse-token ] ;
 
 TUPLE: satisfy-parser quot ;
@@ -401,7 +401,7 @@ M: choice-parser (compile)
 
 TUPLE: repeat0-parser parser ;
 
-: (repeat) ( quot: ( -- result ) result -- result )
+: (repeat) ( quot: ( -- result/f ) result -- result )
     over call [
         [ remaining>> >>remaining ] [ ast>> ] bi
         over ast>> push (repeat)
@@ -514,7 +514,7 @@ PRIVATE>
 : 4seq ( parser1 parser2 parser3 parser4 -- parser )
     4array seq ;
 
-: seq* ( quot -- paser )
+: seq* ( quot -- parser )
     { } make seq ; inline
 
 : choice ( seq -- parser )
@@ -529,7 +529,7 @@ PRIVATE>
 : 4choice ( parser1 parser2 parser3 parser4 -- parser )
     4array choice ;
 
-: choice* ( quot -- paser )
+: choice* ( quot -- parser )
     { } make choice ; inline
 
 : repeat0 ( parser -- parser )

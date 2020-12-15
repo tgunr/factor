@@ -26,9 +26,10 @@
 /factor
 /logs
 /work
+Factor.app/Contents/MacOS/factor
+Factor.app/Contents/_CodeSignature
 a.out
 checksums.txt
 factor.com
 factor.image.fresh
-Factor.png
-.*.icloud
+xcuserdata

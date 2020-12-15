@@ -28,14 +28,14 @@ IN: calendar.windows
         [ [ wSecond>> ] [ wMilliseconds>> 1000 / ] bi + ]
     } cleave instant <timestamp> ;
 
-M: windows gmt-offset ( -- hours minutes seconds )
+M: windows gmt-offset
     TIME_ZONE_INFORMATION <struct>
     dup GetTimeZoneInformation {
-        { TIME_ZONE_ID_INVALID [ win32-error-string throw ] }
+        { TIME_ZONE_ID_INVALID [ win32-error ] }
         { TIME_ZONE_ID_UNKNOWN [ Bias>> ] }
         { TIME_ZONE_ID_STANDARD [ Bias>> ] }
         { TIME_ZONE_ID_DAYLIGHT [ [ Bias>> ] [ DaylightBias>> ] bi + ] }
     } case neg 60 /mod 0 ;
 
-M: windows gmt
+M: windows now-gmt
     SYSTEMTIME <struct> [ GetSystemTime ] keep SYSTEMTIME>timestamp ;

@@ -1,11 +1,8 @@
 ! Copyright (C) 2004, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: arrays assocs continuations debugger destructors generic
-hash-sets hashtables init io io.files kernel kernel.private
-make math memory namespaces parser parser.notes prettyprint
-sequences splitting system vectors vocabs vocabs.loader words ;
-QUALIFIED: bootstrap.image.private
-IN: bootstrap.stage1
+USING: assocs bootstrap.image.private hash-sets hashtables init
+io io.files kernel kernel.private make memory namespaces parser
+parser.notes sequences system vocabs.hierarchy vocabs.loader ;
 
 "Bootstrap stage 1..." print flush
 
@@ -25,17 +22,9 @@ load-help? off
         boot
     ] %
 
-    "math.integers" require
-    "math.ratios" require
-    "math.floats" require
-    "memory" require
+    load-all
 
-    "io.streams.c" require
-    "io.streams.byte-array" require ! for utf16 on Windows
-    "vocabs.loader" require
-
-    "syntax" require
-    "bootstrap.layouts" require
+    "vocab:bootstrap/layouts.factor" parse-file %
 
     [
         f parser-quiet? set-global

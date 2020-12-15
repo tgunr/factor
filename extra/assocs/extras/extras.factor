@@ -1,7 +1,7 @@
 ! Copyright (C) 2012 John Benediktsson, Doug Coleman
 ! See http://factorcode.org/license.txt for BSD license
 USING: arrays assocs assocs.private fry generalizations kernel
-math math.statistics sequences sequences.extras ;
+math math.statistics sequences sequences.extras sets ;
 IN: assocs.extras
 
 : deep-at ( assoc seq -- value/f )
@@ -22,6 +22,30 @@ IN: assocs.extras
 : sum-keys ( assoc -- n ) 0 [ + ] reduce-keys ; inline
 
 : sum-values ( assoc -- n ) 0 [ + ] reduce-values ; inline
+
+: map-keys ( assoc quot: ( key -- key' ) -- assoc )
+    '[ _ dip ] assoc-map ; inline
+
+: map-values ( assoc quot: ( value -- value' ) -- assoc )
+    '[ swap _ dip swap ] assoc-map ; inline
+
+: filter-keys ( assoc quot: ( key -- key' ) -- assoc' )
+    '[ drop @ ] assoc-filter ; inline
+
+: filter-values ( assoc quot: ( value -- value' ) -- assoc' )
+    '[ nip @ ] assoc-filter ; inline
+
+: reject-keys ( assoc quot: ( key -- key' ) -- assoc' )
+    '[ drop @ ] assoc-reject ; inline
+
+: reject-values ( assoc quot: ( value -- value' ) -- assoc' )
+    '[ nip @ ] assoc-reject ; inline
+
+: rekey-new-assoc ( assoc keys -- newassoc )
+    [ tuck of ] with H{ } map>assoc ; inline
+
+: rekey-assoc ( assoc keys -- assoc )
+    [ dup keys ] dip diff over [ delete-at ] curry each ; inline
 
 : if-assoc-empty ( ..a assoc quot1: ( ..a -- ..b ) quot2: ( ..a assoc -- ..b ) -- ..b )
     [ dup assoc-empty? ] [ [ drop ] prepose ] [ ] tri* if ; inline

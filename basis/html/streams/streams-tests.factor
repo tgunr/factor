@@ -49,7 +49,7 @@ M: funky url-of "http://www.funky-town.com/" swap town>> append ;
     ] make-html-string
 ] unit-test
 
-{ "<div style=\"background-color: #ff00ff; white-space: pre; font-family: monospace; display: inline-block; \">cdr</div>" }
+{ "<div style=\"background-color: #ff00ff; display: inline-block; \">cdr</div>" }
 [
     [
         H{ { page-color T{ rgba f 1 0 1 1 } } }
@@ -57,16 +57,8 @@ M: funky url-of "http://www.funky-town.com/" swap town>> append ;
     ] make-html-string
 ] unit-test
 
-{ "<div style=\"white-space: pre; font-family: monospace; display: inline-block; \"></div><br/>" } [
+{ "<div style=\"display: inline-block; \"></div><br/>" } [
     [ H{ } [ ] with-nesting nl ] make-html-string
 ] unit-test
 
 { } [ [ { 1 2 3 } describe ] with-html-writer drop ] unit-test
-
-{ "<img src=\"/icons/class-word.tiff\"/>" } [
-    [
-        "text"
-        { { image-style "vocab:definitions/icons/class-word.tiff" } }
-        format
-    ] make-html-string
-] unit-test

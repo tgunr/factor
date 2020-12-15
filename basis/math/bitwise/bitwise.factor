@@ -58,22 +58,26 @@ ERROR: bit-range-error x high low ;
 
 GENERIC: (bitfield-quot) ( spec -- quot )
 
-M: integer (bitfield-quot) ( spec -- quot )
+M: integer (bitfield-quot)
     '[ _ shift ] ;
 
-M: pair (bitfield-quot) ( spec -- quot )
+M: pair (bitfield-quot)
     first2-unsafe over word? [
         '[ _ execute _ shift ]
     ] [
         '[ _ _ shift ]
     ] if ;
 
-PRIVATE>
-
-MACRO: bitfield ( bitspec -- quot )
+: (bitfield) ( bitspec -- quot )
     [ [ 0 ] ] [
         [ (bitfield-quot) ] [ '[ @ _ dip bitor ] ] map-reduce
     ] if-empty ;
+
+PRIVATE>
+
+MACRO: bitfield ( bitspec -- quot ) (bitfield) ;
+
+MACRO: bitfield* ( bitspec -- quot ) reverse (bitfield) ;
 
 ! bit-count
 <PRIVATE

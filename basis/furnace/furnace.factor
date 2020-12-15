@@ -17,6 +17,7 @@ USE: vocabs
 "furnace.auth.providers.db" require
 "furnace.auth.providers.null" require
 "furnace.boilerplate" require
+"furnace.chloe-tags" require
 "furnace.conversations" require
 "furnace.db" require
 "furnace.json" require
@@ -25,4 +26,4 @@ USE: vocabs
 "furnace.scopes" require
 "furnace.sessions" require
 "furnace.syndication" require
-"webapps.user-admin" require
+! "webapps.user-admin" require

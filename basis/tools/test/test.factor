@@ -1,14 +1,14 @@
 ! Copyright (C) 2003, 2010 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators command-line
-compiler.units continuations debugger effects fry
-generalizations io io.files.temp io.files.unique kernel lexer
-locals macros math.functions math.vectors namespaces parser
-prettyprint quotations sequences sequences.generalizations
-source-files source-files.errors source-files.errors.debugger
-splitting stack-checker summary system tools.errors unicode
-vocabs vocabs.files vocabs.metadata vocabs.parser words ;
-FROM: vocabs.hierarchy => load ;
+compiler.units continuations debugger effects generalizations io
+io.files.temp io.files.unique kernel lexer math math.functions
+math.vectors namespaces parser prettyprint quotations sequences
+sequences.generalizations source-files source-files.errors
+source-files.errors.debugger splitting stack-checker summary
+system tools.errors tools.time unicode vocabs vocabs.files
+vocabs.hierarchy vocabs.hierarchy.private vocabs.loader
+vocabs.metadata vocabs.parser words ;
 IN: tools.test
 
 TUPLE: test-failure < source-file-error continuation ;
@@ -25,7 +25,7 @@ T{ error-type-holder
    { type +test-failure+ }
    { word ":test-failures" }
    { plural "unit test failures" }
-   { icon "vocab:ui/tools/error-list/icons/unit-test-error.tiff" }
+   { icon "vocab:ui/tools/error-list/icons/unit-test-error.png" }
    { quot [ test-failures get ] }
 } define-error-type
 
@@ -45,6 +45,9 @@ t restartable-tests? set-global
         swap >>asset
         swap >>error
         error-continuation get >>continuation ;
+
+SYMBOL: long-unit-tests-threshold
+long-unit-tests-threshold [ 10,000,000,000 ] initialize
 
 SYMBOL: long-unit-tests-enabled?
 long-unit-tests-enabled? [ t ] initialize
@@ -167,17 +170,29 @@ SYMBOL: forget-tests?
     forget-tests? get
     [ [ [ forget-source ] each ] with-compilation-unit ] [ drop ] if ;
 
-: test-vocab ( vocab -- )
-    lookup-vocab dup [
-        dup source-loaded?>> [
-            vocab-tests
-            [ [ run-test-file ] each ]
-            [ forget-tests ]
-            bi
-        ] [ drop ] if
-    ] [ drop ] if ;
+: possible-long-unit-tests ( vocab nanos -- )
+    long-unit-tests-threshold get [
+        dupd > long-unit-tests-enabled? get not and [
+            swap
+            "Warning: possible long unit test for " write
+            vocab-name write " - " write
+            1,000,000,000 /f pprint " seconds" print
+        ] [ 2drop ] if
+    ] [ 2drop ] if* ;
 
-: test-vocabs ( vocabs -- ) [ test-vocab ] each ;
+: test-vocab ( vocab -- )
+    lookup-vocab [
+        dup source-loaded?>> [
+            dup vocab-tests [
+                [ [ run-test-file ] each ]
+                [ forget-tests ]
+                bi
+            ] benchmark possible-long-unit-tests
+        ] [ drop ] if
+    ] when* ;
+
+: test-vocabs ( vocabs -- )
+    [ don't-test? ] reject [ test-vocab ] each ;
 
 PRIVATE>
 
@@ -207,14 +222,18 @@ M: test-failure error. ( error -- )
 
 : :test-failures ( -- ) test-failures get errors. ;
 
-: test ( prefix -- )
-    loaded-child-vocab-names test-vocabs ;
+: test ( prefix -- ) loaded-child-vocab-names test-vocabs ;
 
-: test-all ( -- )
-    loaded-vocab-names [ don't-test? ] reject test-vocabs ;
+: test-all ( -- ) "" test ;
 
 : test-main ( -- )
-    command-line get [ [ load ] [ test ] bi ] each
+    command-line get [
+        dup vocab-roots get member? [
+            "" vocabs-to-load [ require-all ] keep
+        ] [
+            [ load ] [ loaded-child-vocab-names ] bi
+        ] if test-vocabs
+    ] each
     test-failures get empty?
     [ [ "==== FAILING TESTS" print flush :test-failures ] unless ]
     [ 0 1 ? exit ] bi ;

@@ -94,8 +94,6 @@ void vm_parameters::init_from_args(int argc, vm_char** argv) {
       fep = true;
     else if (STRCMP(arg, STRING_LITERAL("-no-signals")) == 0)
       signals = false;
-    else if (STRCMP(arg, STRING_LITERAL("-console")) == 0)
-      console = true;
   }
 }
 
@@ -232,9 +230,9 @@ void factor_vm::load_image(vm_parameters* p) {
 
   FILE* file = OPEN_READ(p->image_path);
   if (file == NULL) {
-    std::cout << "Cannot open image file: " << p->image_path << std::endl;
+    std::cout << "Cannot open image file: " << AS_UTF8(p->image_path) << std::endl;
     char *msg = threadsafe_strerror(errno);
-    std::cout << "strerror:2: " << msg << std::endl;
+    std::cout << "strerror: " << msg << std::endl;
     free(msg);
     exit(1);
   }

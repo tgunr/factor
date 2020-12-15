@@ -138,13 +138,10 @@ M: sequence clear-set
     [ [ [ ?members ] map concat ] [ first ] bi set-like ]
     if-empty ;
 
-: intersection ( sets -- set/f )
-    [ f ] [ [ ] [ intersect ] map-reduce ] if-empty ;
-
 : refine ( sets -- set/f )
     [ f ] [ [ ] [ intersect ] map-reduce ] if-empty ;
 
-: gather ( ... seq quot: ( ... elt -- ... elt' ) -- ... newseq )
+: gather ( ... seq quot: ( ... elt -- ... elts ) -- ... newseq )
     map concat members ; inline
 
 : adjoin-at ( value key assoc -- )
@@ -163,9 +160,9 @@ M: sequence clear-set
     ?members over adjoin-all ;
 
 : diff! ( set1 set2 -- set1 )
-    dupd sequence/tester [ dup ] prepose pick
-    [ delete ] curry [ [ drop ] if ] curry compose each ;
+    dupd sequence/tester pick
+    '[ dup @ [ _ delete ] [ drop ] if ] each ;
 
 : intersect! ( set1 set2 -- set1 )
-    dupd sequence/tester [ dup ] prepose [ not ] compose pick
-    [ delete ] curry [ [ drop ] if ] curry compose each ;
+    dupd sequence/tester pick
+    '[ dup @ [ drop ] [ _ delete ] if ] each ;
