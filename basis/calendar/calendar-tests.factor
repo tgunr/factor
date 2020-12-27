@@ -207,8 +207,8 @@ IN: calendar
     2008 2 29 <date> =
 ] unit-test
 
-{ t } [
-    2020 <year-gmt> dup 10000 >>second [ >gmt ] bi@ eq?
+{ { 1 1 1 2 2 2 3 3 3 4 4 4 } } [
+    12 [1,b] [ 2020 swap 1 <date> quarter ] map
 ] unit-test
 
 { 0 }

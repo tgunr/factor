@@ -9,21 +9,31 @@ IN: help.syntax
 <PRIVATE
 
 :: parse-help-token ( end -- str/obj/f )
-    ?scan-token dup search {
+    ?scan-token dup {
+        [ "syntax" lookup-word ]
+        [ "help.markup" lookup-word ]
+        [ dup ?last ":{[(/\"" member-eq? [ search ] [ drop f ] if ]
+    } 1|| {
         { [ dup not ] [ drop ] }
         { [ dup end eq? ] [ 2drop f ] }
         { [ dup parsing-word? ] [
             nip V{ } clone swap execute-parsing first
             dup wrapper? [ wrapped>> \ $link swap 2array ] when ] }
-        { [ dup vocabulary>> "help.markup" = ] [ nip ] }
-        [ drop ]
+        { [ dup ] [ nip ] }
     } cond ;
 
 : push-help-text ( accum sbuf obj -- accum sbuf' )
     [ dup empty? [ >string suffix! SBUF" " clone ] unless ]
     [ [ suffix! ] curry dip ] bi* ;
 
-DEFER: help-block?
+: help-block? ( word -- ? )
+    {
+        $description $heading $subheading $syntax
+        $class-description $error-description $var-description
+        $contract $notes $curious $deprecated $errors
+        $side-effects $content $warning $subsections $nl
+        $list $table $example $unchecked-example $code
+    } member-eq? ;
 
 : push-help-space ( accum sbuf -- accum sbuf )
     dup empty? [
@@ -71,17 +81,15 @@ DEFER: help-block?
 : code-lines ( str -- seq )
     string-lines [ [ blank? ] trim ] map harvest ;
 
-: make-example ( seq -- seq )
-    dup string? [
-        code-lines
-        dup { [ array? ] [ length 1 > ] } 1&& [
-            dup length 1 - over [ unescape-string ] change-nth
-            \ $example prefix
-        ] when
+: make-example ( str -- seq )
+    code-lines dup { [ array? ] [ length 1 > ] } 1&& [
+        dup length 1 - over [ unescape-string ] change-nth
+        \ $example prefix
     ] when ;
 
 : parse-help-examples ( -- seq )
-    \ } parse-until [ make-example ] { } map-as ;
+    \ } parse-until dup [ string? ] all?
+    [ [ make-example ] { } map-as ] [ >array ] if ;
 
 : parse-help-code ( -- seq )
     \ } parse-until dup { [ length 1 = ] [ first string? ] } 1&&
@@ -98,14 +106,6 @@ DEFER: help-block?
 
 : help-code? ( word -- ? )
     { $example $unchecked-example $code } member-eq? ;
-
-: help-block? ( word -- ? )
-    {
-        $description $heading $subheading $syntax
-        $class-description $error-description $var-description
-        $contract $notes $curious $deprecated $errors
-        $side-effects $content $warning $subsections $nl
-    } member-eq? ;
 
 : help-values? ( word -- ? )
     { $values $inputs $outputs } member-eq? ;
