@@ -25,13 +25,13 @@ image-path parent-directory set-current-directory
 
 ! Modifying the macOS bundle and removing unused files
 os macosx = [
-  "factor" delete-file
-  "libfactor-ffi-test.dylib" delete-file
-  "libfactor.dylib" delete-file
-  "Factor.app" "Skov.app" copy-file
-  "Skov.app/Contents/MacOS/factor" "Skov.app/Contents/MacOS/skov" move-file
-  "misc/icons/Skov.icns" "Skov.app/Contents/Resources/Skov.icns" move-file
-  "misc/fonts" "Skov.app/Contents/Resources/Fonts" move-file
+  ! "factor" delete-file
+  ! "libfactor-ffi-test.dylib" delete-file
+  ! "libfactor.dylib" delete-file
+  "Factor.app" "Skov.app" copy-tree
+  "Skov.app/Contents/MacOS/factor" "Skov.app/Contents/MacOS/skov" copy-file
+  "misc/icons/Skov.icns" "Skov.app/Contents/Resources/Skov.icns" copy-file
+  "misc/fonts" "Skov.app/Contents/Resources/Fonts" copy-tree
   "Skov.app/Contents/Resources/Factor.icns" delete-file
 
   "Skov.app/Contents/Info.plist" utf8 [
@@ -57,35 +57,20 @@ os windows = [
 ! Loading the changes made to Factor
 "changes" directory-tree-files
 [ first CHAR: . = ] reject
-[ file-extension "factor" = ] filter
+[ file-extension "factor" = ] filter B
 [ "changes" swap append-path run-file ] each
 
 ! Running the help.stylesheet vocabulary to update the fonts
 "vocab:help/stylesheet/stylesheet.factor" run-file
 
-! Deleting all Factor code files and other stuff
-{ "basis"
-  "core"
-  "extra"
-  "misc"
-  "changes"
-  "vm"
-} [ [ delete-tree ] try ] each
-{ "work/README.txt"
-  "README.md"
-  "git-id"
-  "make-skov.factor"
-  "boot.unix-x86.64.image"
-  "build.cmd"
-  "build.sh"
-  "factor.image.fresh"
-  "GNUmakefile"
-  "Nmakefile"
-  ".gitignore"
-  ".gitattributes"
-  ".travis.yml"
-  ".dir-locals.el"
-} [ ?delete-file ] each
+! ! Deleting all Factor code files and other stuff
+! { "basis"
+!   "core"
+!   "extra"
+!   "misc"
+!   "changes"
+!   "vm"
+! } [ [ delete-tree ] try ] each
 
 ! Choosing dark mode
 dark-mode
