@@ -5,6 +5,9 @@ io.directories.hierarchy io.pathnames kernel memory namespaces sequences ui.them
 ui.images splitting system io.files io.encodings.utf8 math effects math.order
 code.import-export parser help help.markup words debugger ;
 
+! This script was used to create SKOV from https://github.com/tgunr/factor
+! branch: skov_baseline
+
 ! Setting Skov version in YYYY-MM format
 now-gmt timestamp>ymd 7 head skov-version set-global
 
@@ -23,22 +26,20 @@ image-path parent-directory set-current-directory
 !   [ dupd append-path <image-name> cached-image drop ] each drop
 ! ] each
 
-! Modifying the macOS bundle and removing unused files
+! Save current application and image, modify the macOS bundle and removing unused files
 os macosx = [
-  ! "factor" delete-file
-  ! "libfactor-ffi-test.dylib" delete-file
-  ! "libfactor.dylib" delete-file
-  "Factor.app" "Skov.app" copy-tree
-  "Skov.app/Contents/MacOS/factor" "Skov.app/Contents/MacOS/skov" copy-file
-  "misc/icons/Skov.icns" "Skov.app/Contents/Resources/Skov.icns" copy-file
-  "misc/fonts" "Skov.app/Contents/Resources/Fonts" copy-tree
-  "Skov.app/Contents/Resources/Factor.icns" delete-file
-
-  "Skov.app/Contents/Info.plist" utf8 [
-    ">factor<" ">skov<" replace
-    ">Factor<" ">Skov<" replace 
-    ">0.99<" now-gmt timestamp>ymd 7 head ">" "<" surround replace
-    "Factor developers<" "Factor and Skov developers<" replace
+    "Factor.app" "Skov.app" copy-tree
+    "factor.image" "preskov.image" copy-file
+    "Skov.app/Contents/MacOS/factor" "Skov.app/Contents/MacOS/skov" move-file
+    "misc/icons/Skov.icns" "Skov.app/Contents/Resources/Skov.icns" copy-file
+    "misc/fonts" "Skov.app/Contents/Resources/Fonts" copy-tree
+    "Skov.app/Contents/Resources/Factor.icns" delete-file
+    
+    "Skov.app/Contents/Info.plist" utf8 [
+        ">factor<" ">skov<" replace
+        ">Factor<" ">Skov<" replace 
+        ">0.99<" now-gmt timestamp>ymd 7 head ">" "<" surround replace
+        "Factor developers<" "Factor and Skov developers<" replace
     "Factor.icns" "Skov.icns</string>
     <key>ATSApplicationFontsPath</key>
     <string>Fonts" replace
@@ -57,23 +58,11 @@ os windows = [
 ! Loading the changes made to Factor
 "changes" directory-tree-files
 [ first CHAR: . = ] reject
-[ file-extension "factor" = ] filter B
+[ file-extension "factor" = ] filter
 [ "changes" swap append-path run-file ] each
 
 ! Running the help.stylesheet vocabulary to update the fonts
 "vocab:help/stylesheet/stylesheet.factor" run-file
-
-! ! Deleting all Factor code files and other stuff
-! { "basis"
-!   "core"
-!   "extra"
-!   "misc"
-!   "changes"
-!   "vm"
-! } [ [ delete-tree ] try ] each
-
-! Choosing dark mode
-dark-mode
 
 ! Changing stack-effects
 \ + { "num" "num" } { "num" } <effect> "declared-effect" set-word-prop
@@ -116,7 +105,8 @@ all-words [ [
   ] try
 ] each
 
-! Saving and renaming the image
+! Saving and rename the image, restore Factor image
 save
 "factor.image" "skov.image" move-file
+"preskov.image" "factor.image" move-file
 0 exit
