@@ -6,29 +6,29 @@ ui.images splitting system io.files io.encodings.utf8 math effects math.order
 code.import-export parser help help.markup words debugger ;
 
 ! Setting Skov version in YYYY-MM format
-gmt timestamp>ymd 7 head skov-version set-global
+now-gmt timestamp>ymd 7 head skov-version set-global
 
 ! Setting the Factor directory as working directory
 image-path parent-directory set-current-directory
 
 ! Loading all bitmaps into the image
-{ 
-  "vocab:definitions/icons/"
-  "vocab:ui/theme/images"
-  "vocab:ui/tools/error-list/icons"
-} [ 
-  dup directory-files
-  [ first CHAR: . = ] reject
-  [ file-extension [ "png" = ] [ "tiff" = ] bi or ] filter
-  [ dupd append-path <image-name> cached-image drop ] each drop
-] each
+! { 
+!   "vocab:definitions/icons/"
+!   "vocab:ui/theme/images"
+!   "vocab:ui/tools/error-list/icons"
+! } [ 
+!   dup directory-files
+!   [ first CHAR: . = ] reject
+!   [ file-extension [ "png" = ] [ "tiff" = ] bi or ] filter
+!   [ dupd append-path <image-name> cached-image drop ] each drop
+! ] each
 
 ! Modifying the macOS bundle and removing unused files
 os macosx = [
   "factor" delete-file
   "libfactor-ffi-test.dylib" delete-file
   "libfactor.dylib" delete-file
-  "Factor.app" "Skov.app" move-file
+  "Factor.app" "Skov.app" copy-file
   "Skov.app/Contents/MacOS/factor" "Skov.app/Contents/MacOS/skov" move-file
   "misc/icons/Skov.icns" "Skov.app/Contents/Resources/Skov.icns" move-file
   "misc/fonts" "Skov.app/Contents/Resources/Fonts" move-file
@@ -37,7 +37,7 @@ os macosx = [
   "Skov.app/Contents/Info.plist" utf8 [
     ">factor<" ">skov<" replace
     ">Factor<" ">Skov<" replace 
-    ">0.98<" gmt timestamp>ymd 7 head ">" "<" surround replace
+    ">0.99<" now-gmt timestamp>ymd 7 head ">" "<" surround replace
     "Factor developers<" "Factor and Skov developers<" replace
     "Factor.icns" "Skov.icns</string>
     <key>ATSApplicationFontsPath</key>
