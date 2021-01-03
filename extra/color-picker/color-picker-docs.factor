@@ -7,9 +7,8 @@ ABOUT: "color-picker"
 
 ARTICLE: "color-picker" "GUI Window to select a color"
 "The color-picker permits the user to select a color and display the values in RGB, HEX, and HSL."
-" Conversion to other formats is easily done"
-$references { "colors" }
-    ;
+" Conversion to other formats is easily done using "
+ { $vocab-link "colors" }  "."  ;
 
 HELP: <color-model>
 { $values
@@ -84,8 +83,3 @@ HELP: pickw
 }
 { $description "" } ;
 
-ARTICLE: "color-picker" "color-picker"
-{ $vocab-link "color-picker" }
-;
-
-ABOUT: "color-picker"
