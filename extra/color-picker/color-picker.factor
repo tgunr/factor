@@ -5,7 +5,7 @@ math.functions math.vectors models models.arrow models.product
 models.range sequences splitting ui ui.gadgets
 ui.gadgets.borders ui.gadgets.editors ui.gadgets.labeled
 ui.gadgets.labels ui.gadgets.packs ui.gadgets.sliders
-ui.gadgets.tracks ui.pens.solid ;
+ui.gadgets.tracks ui.pens.solid namespaces ;
 IN: color-picker
 
 ! Simple example demonstrating the use of models.
@@ -55,21 +55,8 @@ M: color-preview model-changed
         ] bi
     ] bi* ;
 
+
 : <color-pick> ( -- gadget )
-    vertical <track> { 5 5 } >>gap
-    <color-sliders> [ f track-add ] dip
-    [ <color-model> <color-preview> 1 track-add ] keep
-    [let
-     [ color>str ] <arrow> <label-control> :> vlabel
-     vlabel f track-add :> t
-     t <color-value> :> elabel
-     elabel vlabel model>> add-connection
-     t elabel f track-add
-    ]
-    ;
-
-
-: pick ( -- gadget )
     <pile>
     { 200 200 } >>dim 
     { 4 4 } >>gap 
@@ -99,8 +86,10 @@ M: color-preview model-changed
     { 10 10 }  <border>
     ;
 
-: pickw ( -- gadget )
-    pick dup
+SYMBOL: picker
+
+: pickw ( --  )
+    <color-pick> dup picker set
     "Picker" open-window ;
 
 
