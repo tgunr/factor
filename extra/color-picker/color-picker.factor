@@ -1,11 +1,11 @@
 ! Copyright (C) 2006, 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors colors colors.constants formatting kernel math
-math.functions math.vectors models models.arrow models.product
-models.range sequences splitting ui ui.gadgets
-ui.gadgets.borders ui.gadgets.editors ui.gadgets.labeled
-ui.gadgets.labels ui.gadgets.packs ui.gadgets.sliders
-ui.gadgets.tracks ui.pens.solid namespaces ;
+math.vectors models models.arrow models.product models.range
+namespaces sequences splitting ui ui.gadgets ui.gadgets.borders
+ui.gadgets.editors ui.gadgets.labeled ui.gadgets.labels
+ui.gadgets.packs ui.gadgets.panes ui.gadgets.sliders ui.gadgets.tracks
+ui.pens.solid ;
 IN: color-picker
 
 ! Simple example demonstrating the use of models.
@@ -90,8 +90,11 @@ SYMBOL: picker
 
 : pickw ( --  )
     <color-pick> dup picker set
-    "Picker" open-window ;
+    gadget. ;
+    ! "Picker" open-window ;
 
+pickw
+    
 
 MAIN-WINDOW: color-picker-window { { title "Color Picker" } }
     <color-picker> >>gadgets ;
