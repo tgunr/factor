@@ -469,6 +469,8 @@ listener-gadget "scrolling"
 } define-command-map
 
 listener-gadget "multi-touch" f {
+    { left-action recall-previous }
+    { right-action recall-next }
     { up-action refresh-all }
 } define-command-map
 
@@ -476,6 +478,7 @@ listener-gadget "touchbar" f {
     { f refresh-all }
     { f com-auto-use }
     { f com-help }
+    { f show-error-list }
 } define-command-map
 
 listener-gadget "file-drop" "Files can be drag-and-dropped onto the listener."
