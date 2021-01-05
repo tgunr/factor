@@ -55,7 +55,6 @@ M: color-preview model-changed
         ] bi
     ] bi* ;
 
-
 : <color-pick> ( -- gadget )
     <pile>
     { 200 200 } >>dim 
@@ -93,8 +92,47 @@ SYMBOL: picker
     gadget. ;
     ! "Picker" open-window ;
 
-pickw
-    
+: <test> ( -- gadget )
+    <pile>
+    { 400 400 } >>pref-dim 
+    { 4 4 } >>gap 
+
+    <shelf>
+    { 400 20 } >>pref-dim
+    COLOR: red <solid> >>boundary
+
+    "  left" <label>
+    { 200 20 } >>pref-dim
+    COLOR: green <solid> >>boundary
+    add-gadget
+
+    <color-picker>
+    add-gadget
+
+    "  right" <label>
+    { 200 20 } >>pref-dim
+    COLOR: blue <solid> >>boundary
+    add-gadget
+
+    add-gadget
+    COLOR: blue <solid> >>boundary
+
+    ! { 20 20 }  <border>
+    ! COLOR: orange <solid> >>boundary
+    COLOR: gray90 <solid> >>interior
+    ;
+ 
+SYMBOL: test
+
+: test ( --  )
+    <test> dup test set
+    gadget. ;
+    ! world-attributes new
+    ! { 400 400 } >>pref-dim 
+    ! "Spacer Test" >>title
+    ! open-window ;
+
+test
 
 MAIN-WINDOW: color-picker-window { { title "Color Picker" } }
     <color-picker> >>gadgets ;

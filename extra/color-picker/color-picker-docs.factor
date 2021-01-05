@@ -77,9 +77,3 @@ HELP: pick
 }
 { $description "" } ;
 
-HELP: pickw
-{ $values
-    { "gadget" null }
-}
-{ $description "" } ;
-
