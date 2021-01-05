@@ -31,14 +31,24 @@ M: color-preview model-changed
     swap value>> >>interior relayout-1 ;
 
 : <color-model> ( model -- model )
-    [ first3 [ 256 /f ] tri@ 1 <rgba> <solid> ] <arrow> ;
+    [ B first3 [ 256 /f ] tri@ 1 <rgba> <solid> ] <arrow> ;
 
-: <color-slider> ( model -- gadget )
-    horizontal <slider> 1 >>line ;
+: <color-slider> ( label-name model -- gadget )
+    <shelf>
+    rot <label>
+    ! { 100 400 } >>dim
+    { 40 20 } >>pref-dim
+    add-gadget    
+    swap horizontal <slider> 1 >>line
+    { 200 20 } >>pref-dim
+    add-gadget
+    { 2 2 } <border> { 20 20 } >>fill
+;
 
 : <color-sliders> ( -- gadget model )
-    3 [ 0 0 0 255 1 <range> ] replicate
-    [ <filled-pile> { 5 5 } >>gap [ <color-slider> add-gadget ] reduce ]
+    { "red" "green" "blue" }
+    3 [ 128 0 0 255 1 <range> ] replicate
+    [ <filled-pile> { 5 5 } >>gap [ <color-slider> add-gadget ] 2reduce ]
     [ [ range-model ] map <product> ]
     bi ;
 
@@ -51,7 +61,9 @@ M: color-preview model-changed
     [ f track-add ]
     [
         [ <color-model> <color-preview> 1 track-add ]
-        [ [ color>str ] <arrow> <label-control> f track-add 
+        [ [ color>str ] <arrow> <label-control>
+          { 240 20 } >>pref-dim
+          f track-add 
         ] bi
     ] bi* ;
 
@@ -61,78 +73,56 @@ M: color-preview model-changed
     { 4 4 } >>gap 
 
     <shelf>
-    "  red" <label>
-    COLOR: red <solid> >>interior
-    { 800 400 } >>dim add-gadget
-    128 0 0 255 1 <range> horizontal <slider> 1 >>line add-gadget
+    "red" <label>
+    ! { 100 400 } >>dim
+    { 40 20 } >>pref-dim
+    COLOR: red <solid> >>boundary
+    add-gadget
+    128 0 0 255 1 <range> horizontal <slider> 1 >>line
+    { 200 20 } >>pref-dim
+    add-gadget
     { 2 2 } <border> { 20 20 } >>fill
     add-gadget
     
 
     <shelf>
-    128 0 0 255 1 <range> horizontal <slider> 1 >>line "green" <labeled-gadget>
-    horizontal >>orientation add-gadget
+    "green" <label>
+    { 40 20 } >>pref-dim
+    COLOR: green <solid> >>boundary
+    add-gadget
+    128 0 0 255 1 <range> horizontal <slider> 1 >>line
+    { 200 20 } >>pref-dim
+    add-gadget
+    { 2 2 } <border> { 20 20 } >>fill
     add-gadget
     
 
     <shelf>
-    " blue" <label>
-    COLOR: blue <solid> >>interior
-    { 400 400 } >>dim add-gadget
-     128 0 0 255 1 <range> horizontal <slider> 1 >>line add-gadget
+    "blue" <label>
+    { 40 20 } >>pref-dim
+    COLOR: blue <solid> >>boundary
+    add-gadget
+    128 0 0 255 1 <range> horizontal <slider> 1 >>line
+    { 200 20 } >>pref-dim
+    COLOR: blue <solid> >>boundary
+    add-gadget
+    { 2 2 } <border> { 20 20 } >>fill
     add-gadget
     
     { 10 10 }  <border>
     ;
-
-SYMBOL: picker
-
-: pickw ( --  )
-    <color-pick> dup picker set
-    gadget. ;
-    ! "Picker" open-window ;
-
-: <test> ( -- gadget )
-    <pile>
-    { 400 400 } >>pref-dim 
-    { 4 4 } >>gap 
-
-    <shelf>
-    { 400 20 } >>pref-dim
-    COLOR: red <solid> >>boundary
-
-    "  left" <label>
-    { 200 20 } >>pref-dim
-    COLOR: green <solid> >>boundary
-    add-gadget
-
-    <color-picker>
-    add-gadget
-
-    "  right" <label>
-    { 200 20 } >>pref-dim
-    COLOR: blue <solid> >>boundary
-    add-gadget
-
-    add-gadget
-    COLOR: blue <solid> >>boundary
-
-    ! { 20 20 }  <border>
-    ! COLOR: orange <solid> >>boundary
-    COLOR: gray90 <solid> >>interior
-    ;
  
-SYMBOL: test
+SYMBOL: testg
 
 : test ( --  )
-    <test> dup test set
+    <color-picker> dup testg set
     gadget. ;
     ! world-attributes new
     ! { 400 400 } >>pref-dim 
     ! "Spacer Test" >>title
     ! open-window ;
 
-test
-
 MAIN-WINDOW: color-picker-window { { title "Color Picker" } }
     <color-picker> >>gadgets ;
+
+test
