@@ -16,12 +16,6 @@ HELP: <color-model>
 }
 { $description "" } ;
 
-HELP: <color-pick>
-{ $values
-    { "gadget" null }
-}
-{ $description "" } ;
-
 HELP: <color-picker>
 { $values
     { "gadget" null }
@@ -71,9 +65,4 @@ HELP: color>str
 }
 { $description "" } ;
 
-HELP: pick
-{ $values
-    { "gadget" null }
-}
-{ $description "" } ;
 

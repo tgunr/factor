@@ -15,8 +15,8 @@ TUPLE: color-value < editor ;
 
 : <color-preview> ( model -- gadget )
     color-preview new
-        swap >>model
-        { 200 200 } >>dim ;
+    swap >>model
+    { 200 200 } >>dim ;
 
 : <color-value> ( model -- gadget )
     color-value new
@@ -31,7 +31,7 @@ M: color-preview model-changed
     swap value>> >>interior relayout-1 ;
 
 : <color-model> ( model -- model )
-    [ B first3 [ 256 /f ] tri@ 1 <rgba> <solid> ] <arrow> ;
+    [ first3 [ 256 /f ] tri@ 1 <rgba> <solid> ] <arrow> ;
 
 : (label) ( name -- gadget )
     "    " <label>
@@ -45,7 +45,7 @@ M: color-preview model-changed
     swap horizontal <slider> 1 >>line add-gadget ;
 
 : <color-sliders> ( -- gadget model )
-    3 [ 0 0 0 255 1 <range> ] replicate
+    3 [ 128 0 0 255 1 <range> ] replicate
     [
         { "red" "green" "blue" }
         <filled-pile> { 5 5 } >>gap
