@@ -33,22 +33,23 @@ M: color-preview model-changed
 : <color-model> ( model -- model )
     [ B first3 [ 256 /f ] tri@ 1 <rgba> <solid> ] <arrow> ;
 
-: <color-slider> ( label-name model -- gadget )
+: (label) ( name -- gadget )
+    "    " <label>
+    swap named-color <solid> >>interior
+    { 800 400 } >>dim
+    ;
+
+: <color-slider> ( model color -- gadget )
     <shelf>
-    rot <label>
-    ! { 100 400 } >>dim
-    { 40 20 } >>pref-dim
-    add-gadget    
-    swap horizontal <slider> 1 >>line
-    { 200 20 } >>pref-dim
-    add-gadget
-    { 2 2 } <border> { 20 20 } >>fill
-;
+    swap (label) add-gadget
+    swap horizontal <slider> 1 >>line add-gadget ;
 
 : <color-sliders> ( -- gadget model )
-    { "red" "green" "blue" }
-    3 [ 128 0 0 255 1 <range> ] replicate
-    [ <filled-pile> { 5 5 } >>gap [ <color-slider> add-gadget ] 2reduce ]
+    3 [ 0 0 0 255 1 <range> ] replicate
+    [
+        { "red" "green" "blue" }
+        <filled-pile> { 5 5 } >>gap
+        [ <color-slider> add-gadget ] 2reduce ]
     [ [ range-model ] map <product> ]
     bi ;
 
@@ -67,50 +68,6 @@ M: color-preview model-changed
         ] bi
     ] bi* ;
 
-: <color-pick> ( -- gadget )
-    <pile>
-    { 200 200 } >>dim 
-    { 4 4 } >>gap 
-
-    <shelf>
-    "red" <label>
-    ! { 100 400 } >>dim
-    { 40 20 } >>pref-dim
-    COLOR: red <solid> >>boundary
-    add-gadget
-    128 0 0 255 1 <range> horizontal <slider> 1 >>line
-    { 200 20 } >>pref-dim
-    add-gadget
-    { 2 2 } <border> { 20 20 } >>fill
-    add-gadget
-    
-
-    <shelf>
-    "green" <label>
-    { 40 20 } >>pref-dim
-    COLOR: green <solid> >>boundary
-    add-gadget
-    128 0 0 255 1 <range> horizontal <slider> 1 >>line
-    { 200 20 } >>pref-dim
-    add-gadget
-    { 2 2 } <border> { 20 20 } >>fill
-    add-gadget
-    
-
-    <shelf>
-    "blue" <label>
-    { 40 20 } >>pref-dim
-    COLOR: blue <solid> >>boundary
-    add-gadget
-    128 0 0 255 1 <range> horizontal <slider> 1 >>line
-    { 200 20 } >>pref-dim
-    COLOR: blue <solid> >>boundary
-    add-gadget
-    { 2 2 } <border> { 20 20 } >>fill
-    add-gadget
-    
-    { 10 10 }  <border>
-    ;
  
 SYMBOL: testg
 
