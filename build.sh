@@ -724,6 +724,12 @@ refresh_image() {
     check_ret factor
 }
 
+refresh() {
+    get_config_info
+    backup_factor
+    make_clean_factor
+}
+
 make_boot_image() {
     ./$FACTOR_BINARY -run="bootstrap.image" "$MAKE_IMAGE_TARGET"
     check_ret factor
@@ -772,6 +778,7 @@ usage() {
     $ECHO "  deps-macosx - install git on MacOSX using port"
     $ECHO "  self-update - git pull, recompile, make local boot image, bootstrap"
     $ECHO "  quick-update - git pull, refresh-all, save"
+    $ECHO "  refresh - refresh, save"
     $ECHO "  update|latest - git pull, recompile, download a boot image, bootstrap"
     $ECHO "  compile - compile the binary"
     $ECHO "  recompile - recompile the binary"
@@ -815,6 +822,7 @@ case "$1" in
     self-bootstrap) get_config_info; make_boot_image; bootstrap;;
     self-update) update; make_boot_image; bootstrap;;
     quick-update) update; refresh_image ;;
+    refresh) refresh; refresh_image ;;
     update|latest) update; download_and_bootstrap ;;
     compile) find_build_info; make_factor ;;
     recompile) find_build_info; make_clean; make_factor ;;
