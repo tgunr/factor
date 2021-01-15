@@ -23,8 +23,8 @@ IN: prographer.tuple
 VAR: fValue
 
 : (detuple) ( name -- string )
-    "| <f"  fValue number>string append
-    "> " append swap  append
+    "|<f"  fValue number>string append
+    ">" append swap  append
     fValue 1+ set: fValue
     ;
 
@@ -60,6 +60,7 @@ TUPLE: tuple-node < node tuple slots next# ;
 : <tuple-node> ( tuple -- tuple-node )
     tuple-node new
     over >>tuple
+    <node-attributes> >>attributes
     swap name>> present >>id
     { } >>slots
 ;
@@ -138,12 +139,11 @@ TUPLE: tuple-node < node tuple slots next# ;
 ;
 
 : tuples>nodes ( seq -- nodes )
-  V{ }
-  swap [ tuple>nodes suffix ] each
+  [ tuple>nodes ] map
 ;
 
 : slot-nodes ( node -- nodes )
-    B node>labels keys
+    node>labels keys
     [ search ] filter
     [ search ] map
     ;
@@ -175,7 +175,7 @@ VAR: prevNode
 
 : tuple-tree ( tuple -- graph|f )
     [ <tuple-graph>
-      B tchain tuples>nodes
+      tchain [ tuple>nodes ] map
       [ add ] each
     ]
     [ f ]
