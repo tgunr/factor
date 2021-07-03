@@ -335,7 +335,7 @@ IN: calendar
         T{ timestamp { year 2020 } { month 3 } { day 29 } }
     }
 } [
-    2020 march gmt 5 <iota> [ [ clone ] dip sunday-of-month ] with map
+    2020 march gmt 5 <iota> [ sunday-of-month ] with map
 ] unit-test
 
 
@@ -348,7 +348,7 @@ IN: calendar
         T{ timestamp { year 2020 } { month 2 } { day 29 } }
     }
 } [
-    2020 february gmt 5 <iota> [ [ clone ] dip saturday-of-month ] with map
+    2020 february gmt 5 <iota> [ saturday-of-month ] with map
 ] unit-test
 
 
@@ -362,5 +362,78 @@ IN: calendar
         T{ timestamp { year 2021 } { month 1 } { day 4 } }
     }
 } [
-    2020 december gmt 5 <iota> [ [ clone ] dip monday-of-month ] with map
+    2020 december gmt 5 <iota> [ monday-of-month ] with map
+] unit-test
+
+{ t } [
+    now [ start-of-year ] [ end-of-year ] bi same-year?
+] unit-test
+
+{ t } [
+    now [ start-of-month ] [ end-of-month ] bi same-month?
+] unit-test
+
+{ t } [
+    now [ first-day-of-month ] [ last-day-of-month ] bi same-month?
+] unit-test
+
+! XXX: Different algorithm for start/end of week and week number
+! { t } [
+!     now [ start-of-week ] [ end-of-week ] bi same-week?
+! ] unit-test
+
+{ t } [
+    now [ start-of-day ] [ end-of-day ] bi same-day?
+] unit-test
+
+{ t } [
+    now [ start-of-hour ] [ end-of-hour ] bi same-hour?
+] unit-test
+
+{ t } [
+    now [ start-of-minute ] [ end-of-minute ] bi same-minute?
+] unit-test
+
+{ t } [
+    now [ start-of-second ] [ end-of-second ] bi same-second?
+] unit-test
+
+! Clone things by default
+{ f }
+[
+    now [ start-of-year ] [ end-of-year ] bi
+    [ month>> ] bi@ =
+] unit-test
+
+{ f } [
+    now [ first-day-of-month ] [ last-day-of-month ] bi
+    [ day>> ] bi@ =
+] unit-test
+
+
+{ f } [
+    now [ first-day-of-decade ] [ last-day-of-decade ] bi
+    [ year>> ] bi@ =
+] unit-test
+
+
+{ f } [
+    now [ start-of-millennium ] [ end-of-millennium ] bi
+    [ year>> ] bi@ =
+] unit-test
+
+{ f } [
+    now [ start-of-year ] [ end-of-year ] bi same-day?
+] unit-test
+
+{ f } [
+    now [ start-of-year ] [ end-of-year ] bi same-day-of-year?
+] unit-test
+
+
+{ t } [ 1999 1 1 <date> 2000 1 1 <date> same-day-of-year? ] unit-test
+{ f } [ 1999 1 1 <date> 2000 1 1 <date> same-day? ] unit-test
+{ t } [
+    2000 1 1 <date> 4 >>hour
+    2000 1 1 <date> same-day?
 ] unit-test

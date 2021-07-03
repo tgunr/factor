@@ -131,9 +131,6 @@ PRIVATE>
         [ seq <slice> ] keep len or swap
     ] produce nip ; inline
 
-: cut-slice* ( seq n -- before after )
-    [ head-slice* ] [ tail-slice* ] 2bi ;
-
 : ?<slice> ( from/f to/f sequence -- slice )
     [ [ 0 ] unless* ] 2dip
     over [ nip [ length ] [ ] bi ] unless
@@ -602,27 +599,24 @@ PRIVATE>
 : map-find-last-index ( ... seq quot: ( ... elt index -- ... result/f ) -- ... result i elt )
     [ find-last-index ] (map-find-index) ; inline
 
-:: (start-all) ( subseq seq increment -- indices )
+:: (start-all) ( seq subseq increment -- indices )
     0
     [ [ subseq seq ] dip subseq-start-from dup ]
     [ [ increment + ] keep ] produce nip ;
 
-: start-all ( subseq seq -- indices )
-    over length (start-all) ; inline
+: start-all ( seq subseq -- indices )
+    dup length (start-all) ; inline
 
-: start-all* ( subseq seq -- indices )
+: start-all* ( seq subseq -- indices )
     1 (start-all) ; inline
 
-: count-subseq ( subseq seq -- n )
+: count-subseq ( seq subseq -- n )
     start-all length ; inline
 
-: count-subseq* ( subseq seq -- n )
+: count-subseq* ( seq subseq -- n )
     start-all* length ; inline
 
-: map-zip ( quot: ( key -- value ) -- alist )
-    '[ _ keep swap ] map>alist ; inline
-
-: assoc-map-zip ( quot: ( key value -- calc ) -- alist )
+: assoc-zip-with ( quot: ( key value -- calc ) -- alist )
     '[ _ 2keep 2array swap ] assoc-map ; inline
 
 : take-while ( ... seq quot: ( ... elt -- ... ? ) -- head-slice )
@@ -634,10 +628,10 @@ PRIVATE>
     [ dup length ] unless* tail-slice ; inline
 
 : count-head ( seq quot -- n )
-    [ not ] compose [ find drop ] 2keep drop length or ; inline
+    [ not ] compose [ find drop ] keepd length or ; inline
 
 : count-tail ( seq quot -- n )
-    [ not ] compose [ find-last drop ] 2keep drop
+    [ not ] compose [ find-last drop ] keepd
     length swap [ - 1 - ] when* ; inline
 
 :: interleaved-as ( seq glue exemplar -- newseq )

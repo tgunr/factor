@@ -27,15 +27,11 @@ PRIVATE>
 
 <PRIVATE
 
+: subseq-range ( seq subseq -- from/f to/f )
+    [ swap subseq-start ] keep [ dupd length + ] curry [ f f ] if* ; inline
+
 : (split1) ( seq subseq snip-quot -- before after )
-    [
-        swap [
-            [ drop length ] [ subseq-start dup ] 2bi
-            [ [ nip ] [ + ] 2bi t ]
-            [ 2drop f f f ]
-            if
-        ] keep swap
-    ] dip [ 2nip f ] if ; inline
+    [ [ subseq-range ] keepd over ] dip [ 2nip f ] if ; inline
 
 PRIVATE>
 
@@ -82,10 +78,10 @@ PRIVATE>
     [ 0 ] 3dip pick [
         swap curry [ keep 1 + swap ] curry [
             [ find-from drop dup ] 2curry [ keep -rot ] curry
-        ] dip produce nip
+        ] dip V{ } produce-as nip
     ] 2keep swap [
         [ length swapd ] keep
-    ] dip 2curry call suffix ; inline
+    ] dip 2curry call suffix! { } like ; inline
 
 PRIVATE>
 

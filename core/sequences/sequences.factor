@@ -522,6 +522,9 @@ PRIVATE>
 : 2all? ( ... seq1 seq2 quot: ( ... elt1 elt2 -- ... ? ) -- ... ? )
     (2each) all-integers? ; inline
 
+: 2any? ( ... seq1 seq2 quot: ( ... elt1 elt2 -- ... ? ) -- ... ? )
+    [ not ] compose 2all? not ; inline
+
 : 3each ( ... seq1 seq2 seq3 quot: ( ... elt1 elt2 elt3 -- ... ) -- ... )
     (3each) each-integer ; inline
 
@@ -953,6 +956,9 @@ PRIVATE>
 : cut-slice ( seq n -- before-slice after-slice )
     [ head-slice ] [ tail-slice ] 2bi ; inline
 
+: cut-slice* ( seq n -- before-slice after-slice )
+    [ head-slice* ] [ tail-slice* ] 2bi ;
+
 : insert-nth ( elt n seq -- seq' )
     swap cut-slice [ swap suffix ] dip append ;
 
@@ -1137,24 +1143,15 @@ PRIVATE>
 <PRIVATE
 
 : generic-flip ( matrix -- newmatrix )
-    [
-        [ first-unsafe length 1 ] keep
-        [ length min ] (each) (each-integer) <iota>
-    ] keep
-    [ [ nth-unsafe ] with { } map-as ] curry { } map-as ; inline
+    [ [ length ] [ min ] map-reduce ] keep
+    '[ _ [ nth-unsafe ] with { } map-as ] { } map-integers ; inline
 
 USE: arrays
 
-: array-length ( array -- len )
-    { array } declare length>> ; inline
-
 : array-flip ( matrix -- newmatrix )
     { array } declare
-    [
-        [ first-unsafe array-length 1 ] keep
-        [ array-length min ] (each) (each-integer) <iota>
-    ] keep
-    [ [ { array } declare array-nth ] with { } map-as ] curry { } map-as ;
+    [ [ { array } declare length>> ] [ min ] map-reduce ] keep
+    '[ _ [ { array } declare array-nth ] with { } map-as ] { } map-integers ;
 
 PRIVATE>
 

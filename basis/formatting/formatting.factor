@@ -1,11 +1,11 @@
 ! Copyright (C) 2008 John Benediktsson
 ! See http://factorcode.org/license.txt for BSD license
-USING: accessors arrays assocs calendar calendar.english combinators
-combinators.smart fry generalizations io io.streams.string
-kernel macros math math.functions math.parser namespaces
+USING: accessors arrays assocs calendar calendar.english
+combinators combinators.smart generalizations io
+io.streams.string kernel math math.functions
+math.functions.integer-logs math.parser multiline namespaces
 peg.ebnf present prettyprint quotations sequences
-sequences.generalizations strings unicode vectors
-math.functions.integer-logs splitting multiline ;
+sequences.generalizations splitting strings unicode ;
 FROM: math.parser.private => format-float ;
 IN: formatting
 
@@ -254,10 +254,8 @@ PRIVATE>
 MACRO: strftime ( format-string -- quot )
     parse-strftime [
         dup string? [
-            '[ _ swap push-all ]
+            '[ _ append! ]
         ] [
-            '[ over @ swap push-all ]
+            '[ over @ append! ]
         ] if
-    ] map '[
-        SBUF" " clone [ _ cleave drop ] keep "" like
-    ] ;
+    ] map concat '[ SBUF" " clone @ nip "" like ] ;

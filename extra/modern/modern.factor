@@ -450,7 +450,7 @@ ERROR: compound-syntax-disallowed n seq obj ;
     dup length 1 > [ compound-syntax-disallowed ] when ;
 
 : check-compound-loop ( n/f string -- n/f string ? )
-    [ ] [ peek-from ] [ previous-from ] 2tri
+    [ ] [ peek1-from ] [ previous-from ] 2tri
     [ blank? ] bi@ or not ! no blanks between tokens
     pick and ; ! and a valid index
 
@@ -480,10 +480,10 @@ ERROR: compound-syntax-disallowed n seq obj ;
     utf8 file-contents string>literals ;
 
 : lex-paths ( vocabs -- assoc )
-    [ [ path>literals ] [ nip ] recover ] map-zip ;
+    [ [ path>literals ] [ nip ] recover ] zip-with ;
 
 : lex-vocabs ( vocabs -- assoc )
-    [ [ vocab>literals ] [ nip ] recover ] map-zip ;
+    [ [ vocab>literals ] [ nip ] recover ] zip-with ;
 
 : failed-lexing ( assoc -- assoc' ) [ nip array? ] assoc-reject ;
 

@@ -491,11 +491,22 @@ HELP: 3map-as
 
 HELP: 2all?
 { $values { "seq1" sequence } { "seq2" sequence } { "quot" { $quotation ( ... elt1 elt2 -- ... ? ) } } { "?" boolean } }
-{ $description "Tests the predicate pairwise against elements of " { $snippet "seq1" } " and " { $snippet "seq2" } ". If the sequences have different lengths, then only the smallest sequences items are compared with the other." }
+{ $description "Tests if all pairwise elements of " { $snippet "seq1" } " and " { $snippet "seq2" } " fulfill the predicate. If the sequences have different lengths, then only the smallest sequences items are compared with the other." }
 { $examples
   { $example
     "USING: math prettyprint sequences ;"
     "{ 1 2 3 4 } { 2 4 6 8 } [ <= ] 2all? ."
+    "t"
+  }
+} ;
+
+HELP: 2any?
+{ $values { "seq1" sequence } { "seq2" sequence } { "quot" { $quotation ( ... elt1 elt2 -- ... ? ) } } { "?" boolean } }
+{ $description "Tests if any pairwise elements of " { $snippet "seq1" } " and " { $snippet "seq2" } " fulfill the predicate. If the sequences have different lengths, then only the smallest sequences items are compared with the other." }
+{ $examples
+  { $example
+    "USING: math prettyprint sequences ;"
+    "{ 2 4 5 8 } { 2 4 6 8 } [ < ] 2any? ."
     "t"
   }
 } ;
@@ -1135,7 +1146,7 @@ HELP: tail*
 
 { tail tail* tail-slice tail-slice* } related-words
 { head head* head-slice head-slice* } related-words
-{ cut cut* cut-slice } related-words
+{ cut cut* cut-slice cut-slice* } related-words
 { unclip unclip-slice unclip-last unclip-last-slice } related-words
 { first last but-last but-last-slice rest rest-slice } related-words
 
@@ -1161,9 +1172,14 @@ HELP: tail?
 { remove remove-nth remove-eq remove-eq! remove! remove-nth! } related-words
 
 HELP: cut-slice
-{ $values { "seq" sequence } { "n" "a non-negative integer" } { "before-slice" sequence } { "after-slice" "a slice" } }
-{ $description "Outputs a pair of sequences, where " { $snippet "before" } " consists of the first " { $snippet "n" } " elements of " { $snippet "seq" } " and has the same type, while " { $snippet "after" } " is a slice of the remaining elements." }
-{ $notes "Unlike " { $link cut } ", the run time of this word is proportional to the length of " { $snippet "before" } ", not " { $snippet "after" } ", so it is suitable for use in an iterative algorithm which cuts successive pieces off a sequence." } ;
+{ $values { "seq" sequence } { "n" "a non-negative integer" } { "before-slice" "a slice" } { "after-slice" "a slice" } }
+{ $description "Outputs a pair of sequences, where " { $snippet "before-slice" } " is a slice of the first " { $snippet "n" } " elements of " { $snippet "seq" } ", while " { $snippet "after-slice" } " is a slice of the remaining elements." }
+{ $notes "Unlike " { $link cut } ", this is suitable for use in an iterative algorithm which cuts successive pieces off a sequence." } ;
+
+HELP: cut-slice*
+{ $values { "seq" sequence } { "n" "a non-negative integer" } { "before-slice" "a slice" } { "after-slice" "a slice" } }
+{ $description "Outputs a pair of sequences, where " { $snippet "after" } " consists of the last " { $snippet "n" } " elements of " { $snippet "seq" } ", while " { $snippet "before-slice" } " is a slice of the remaining elements." }
+{ $notes "Unlike " { $link cut* } ", this is suitable for use in an iterative algorithm which cuts successive pieces off a sequence." } ;
 
 HELP: cut
 { $values { "seq" sequence } { "n" "a non-negative integer" } { "before" sequence } { "after" sequence } }

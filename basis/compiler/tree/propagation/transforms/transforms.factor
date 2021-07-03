@@ -57,7 +57,7 @@ IN: compiler.tree.propagation.transforms
     [ interval>> ] [ literal>> ] bi* {
         [ nip integer? ]
         [ nip all-ones? ]
-        [ 0 swap [a,b] interval-subset? ]
+        [ [0,b] interval-subset? ]
     } 2&& ;
 
 : zero-bitand? ( value1 value2 -- ? )
@@ -77,19 +77,19 @@ IN: compiler.tree.propagation.transforms
         in-d>> first2 [ value-info ] bi@ {
             {
                 [ 2dup zero-bitand? ]
-                [ 2drop [ 2drop 0 ] ]
+                [ nip class>> bignum = 0 >bignum 0 ? '[ 2drop _ ] ]
             }
             {
                 [ 2dup swap zero-bitand? ]
-                [ 2drop [ 2drop 0 ] ]
+                [ drop class>> bignum = 0 >bignum 0 ? '[ 2drop _ ] ]
             }
             {
                 [ 2dup redundant-bitand? ]
-                [ 2drop [ drop ] ]
+                [ nip class>> bignum = [ drop >bignum ] [ drop ] ? ]
             }
             {
                 [ 2dup swap redundant-bitand? ]
-                [ 2drop [ nip ] ]
+                [ drop class>> bignum = [ nip >bignum ] [ nip ] ? ]
             }
             {
                 [ 2dup simplify-bitand? ]

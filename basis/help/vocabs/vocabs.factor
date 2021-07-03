@@ -82,6 +82,14 @@ C: <vocab-author> vocab-author
         ] ($block)
     ] unless-empty ;
 
+: describe-metadata-files ( vocab -- )
+    vocab-metadata-files [ <pathname> ] map [
+        "Metadata files" $heading
+        [
+            files.
+        ] ($block)
+    ] unless-empty ;
+
 : describe-tuple-classes ( classes -- )
     [
         "Tuple classes" $subheading
@@ -246,7 +254,7 @@ C: <vocab-author> vocab-author
         [ vocab-platforms [ "Platforms:" swap \ $links prefix 2array , ] unless-empty ]
         tri
     ] { } make
-    [ "Meta-data" $heading $table ] unless-empty ;
+    [ "Metadata" $heading $table ] unless-empty ;
 
 : $vocab ( element -- )
     first {
@@ -254,6 +262,7 @@ C: <vocab-author> vocab-author
         [ describe-metadata ]
         [ describe-words ]
         [ describe-files ]
+        [ describe-metadata-files ]
         [ describe-children ]
     } cleave ;
 
