@@ -4,29 +4,24 @@
 ! Copyright (C) 2021 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
 
-USING: accessors assocs classes classes.tuple graphviz graphviz.dot
-graphviz.notation graphviz.render grouping io.encodings.utf8 kernel
-math math.parser sequences sequences.deep slots splitting ui.gadgets.tracks
-sequences.private variables vocabs.parser words present arrays ;
+USING: accessors arrays assocs classes classes.tuple graphviz
+graphviz.attributes graphviz.dot graphviz.notation
+graphviz.render grouping io.encodings.utf8 kernel math
+math.parser namespaces present sequences sequences.deep
+sequences.private sets slots splitting ui.gadgets.tracks
+variables vocabs vocabs.parser words ;
 
-IN: sequences
+IN: vocabs.parser
 
-: each-integer-initially ( ... n quot: ( ... i -- ... ) -- ... )
-  [ ] curry 2dip  (each-integer) ; inline
-
-: each-index-initially
-  ( ... number seq quot: ( ... elt index -- ... ) -- ... )
-  (each-index) rot each-integer-initially ; inline
+! use-vocab spews if already using, this word just sets quitely
+: (use-vocab) ( vocab -- )
+  manifest get
+  [ [ ?load-vocab ] dip search-vocabs>> push ]
+  [ [ vocab-name ] dip search-vocab-names>> adjoin ]
+  2bi
+;
 
 IN: prographer.tuple
-
-VAR: fValue
-
-: (detuple) ( name -- string )
-    "|<f"  fValue number>string append
-    ">" append swap  append
-    fValue 1+ set: fValue
-    ;
 
 : slots@ ( word -- seq )
   "slots" word-prop ;
@@ -52,7 +47,8 @@ VAR: fValue
     rest ;
 
 : node>labels ( node -- labels )
-    attributes>> label>>  >labels ;
+  dup tuple>>  vocabulary>> (use-vocab)
+  attributes>> label>>  >labels ;
 
 FROM: graphviz => node ;
 TUPLE: tuple-node < node tuple slots next# ;
@@ -65,30 +61,9 @@ TUPLE: tuple-node < node tuple slots next# ;
     { } >>slots
 ;
 
-:: tuple>node ( tuple -- node )
-    tuple props>> :> pl
-    tuple super@ :> sc
-    "slots" pl at :> sl
-    tuple <tuple-node>
-    "record" =shape
-    "<f0>" tuple name>> append
-    sc
-    [
-        "|<f1>" sc name>> append  append
-        2 set: fValue
-    ]
-    [  1 set: fValue ]
-    if
-
-    sl [
-         [ name>> (detuple) append ] each
-    ] unless-empty
-    =label
-    ;
-
 : superlabel ( <tuple-node> -- <tuple-node> )
    dup tuple>> super@
-   [  name>> "|<f1>" prepend
+   [  name>> " | <f1> " prepend
       over attributes>> label>> prepend  =label
       2 >>next# ]
    [  1 >>next# ]
@@ -96,7 +71,7 @@ TUPLE: tuple-node < node tuple slots next# ;
 ;
 
 : index>label ( label# index -- label )
-  + number>string  "|<f" prepend  ">" append ;
+  + number>string  " | <f" prepend  "> " append ;
 
 : slot>label ( label# slot index -- label# label )
   [ dup ] 2dip
@@ -128,7 +103,7 @@ TUPLE: tuple-node < node tuple slots next# ;
   <tuple-node>
   ! tuple-node
   "record" =shape
-  dup id>> "<f0>" prepend  =label
+  dup id>> "<f0> " prepend  =label
   ! tuple-node
   superlabel
   ! tuple-node
@@ -138,44 +113,31 @@ TUPLE: tuple-node < node tuple slots next# ;
   swap =label
 ;
 
-: tuples>nodes ( seq -- nodes )
-  [ tuple>nodes ] map
-;
-
 : slot-nodes ( node -- nodes )
     node>labels keys
     [ search ] filter
     [ search ] map
     ;
 
-VAR: prevNode
-:: tuple-connections ( nodes -- edges )
-    f :> prevNode! V{ } clone :> edgeNodes!
-    nodes
-    [ prevNode
-      [ prevNode  over id>> <edge>
-        ! "f0" =headport "f1" =tailport
-        edgeNodes swap suffix! edgeNodes!
-        dup B slot-nodes
-        [ edgeNodes swap tuple>node suffix! edgeNodes! ] each
-        id>> prevNode!
-      ]
-      [ id>> prevNode! ]
-      if
-    ] each
-    edgeNodes
-    ;
+: slot>nodes ( seq seq -- seq )
+  [ slot-nodes append ] each
+  ;
+
+: tuples>nodes ( seq -- nodes )
+  [ tuple>nodes ] map
+  V{ } swap slot>nodes
+;
 
 : <tuple-graph> ( tuple -- graph tuple )
     <digraph> over name>> >>id
-    [graph "LR" =rankdir "8,8" =size ];
+    [graph "TB" =rankdir "8,8" =size ];
     [node 8 =fontsize "record" =shape ];
     swap
     ;
 
 : tuple-tree ( tuple -- graph|f )
     [ <tuple-graph>
-      tchain [ tuple>nodes ] map
+      tchain tuples>nodes
       [ add ] each
     ]
     [ f ]
