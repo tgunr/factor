@@ -141,7 +141,7 @@ ifdef CONFIG
 		vm/tagged.hpp \
 		vm/tenured_space.hpp \
 		vm/to_tenured_collector.hpp \
-		vm/utilities.hpp
+		vm/utilities.hpp	\
 		vm/vm.hpp \
 		vm/write_barrier.hpp \
 
