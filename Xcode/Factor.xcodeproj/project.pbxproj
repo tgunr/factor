@@ -106,7 +106,6 @@
 		7595E1B728A1C18C0031EB24 /* sampling_profiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404ECE28A049E400B1812F /* sampling_profiler.cpp */; };
 		7595E1B828A1C18C0031EB24 /* sampling_profiler.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404F5228A04BD300B1812F /* sampling_profiler.hpp */; };
 		7595E1B928A1C18C0031EB24 /* segments.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404F5B28A04BD300B1812F /* segments.hpp */; };
-		7595E1BA28A1C1F80031EB24 /* factor.image in CopyFiles */ = {isa = PBXBuildFile; fileRef = 75404FC828A069E400B1812F /* factor.image */; };
 		7595E1C028A1C78E0031EB24 /* cpu-arm.64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7595E1BE28A1C78E0031EB24 /* cpu-arm.64.cpp */; };
 		7595E1C228A1C7FC0031EB24 /* os-macosx-arm64.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 7595E1C128A1C7AF0031EB24 /* os-macosx-arm64.hpp */; };
 		7595E1C328A1C8160031EB24 /* cpu-arm.64.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 7595E1BF28A1C78E0031EB24 /* cpu-arm.64.hpp */; };
@@ -119,17 +118,16 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				7595E1BA28A1C1F80031EB24 /* factor.image in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		752EA4E9289ED88F00A1D8BC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		752EA4EA289ED88F00A1D8BC /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
-		752EA4EB289ED88F00A1D8BC /* GNUmakefile */ = {isa = PBXFileReference; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
-		752EA4EC289ED88F00A1D8BC /* shell.nix */ = {isa = PBXFileReference; lastKnownFileType = text; path = shell.nix; sourceTree = "<group>"; };
+		752EA4E9289ED88F00A1D8BC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		752EA4EA289ED88F00A1D8BC /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = build.sh; path = ../build.sh; sourceTree = "<group>"; };
+		752EA4EB289ED88F00A1D8BC /* GNUmakefile */ = {isa = PBXFileReference; lastKnownFileType = text; name = GNUmakefile; path = ../GNUmakefile; sourceTree = "<group>"; };
+		752EA4EC289ED88F00A1D8BC /* shell.nix */ = {isa = PBXFileReference; lastKnownFileType = text; name = shell.nix; path = ../shell.nix; sourceTree = "<group>"; };
 		75404EC228A0498E00B1812F /* primitives.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = primitives.hpp; sourceTree = "<group>"; };
 		75404EC828A049E400B1812F /* objects.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = objects.cpp; sourceTree = "<group>"; };
 		75404ECC28A049E400B1812F /* errors.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = errors.cpp; sourceTree = "<group>"; };
@@ -221,9 +219,9 @@
 		75404FA128A04E6F00B1812F /* tuples.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tuples.cpp; sourceTree = "<group>"; };
 		75404FA328A04E8200B1812F /* words.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = words.cpp; sourceTree = "<group>"; };
 		75404FA728A050F500B1812F /* os-macosx-x86.64.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = "os-macosx-x86.64.hpp"; sourceTree = "<group>"; };
-		75404FA928A0518A00B1812F /* Config.macosx */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.macosx; path = vm/Config.macosx; sourceTree = "<group>"; };
-		75404FAA28A0519800B1812F /* Config.x86.64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.x86.64; path = vm/Config.x86.64; sourceTree = "<group>"; };
-		75404FAB28A051C200B1812F /* Config.unix */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.unix; path = vm/Config.unix; sourceTree = "<group>"; };
+		75404FA928A0518A00B1812F /* Config.macosx */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.macosx; path = ../vm/Config.macosx; sourceTree = "<group>"; };
+		75404FAA28A0519800B1812F /* Config.x86.64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.x86.64; path = ../vm/Config.x86.64; sourceTree = "<group>"; };
+		75404FAB28A051C200B1812F /* Config.unix */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.unix; path = ../vm/Config.unix; sourceTree = "<group>"; };
 		75404FAC28A0520800B1812F /* os-macosx.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "os-macosx.hpp"; sourceTree = "<group>"; };
 		75404FAD28A0520800B1812F /* os-macosx.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "os-macosx.mm"; sourceTree = "<group>"; };
 		75404FAF28A0522700B1812F /* mach_signal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mach_signal.cpp; sourceTree = "<group>"; };
@@ -236,17 +234,16 @@
 		75404FBA28A052D600B1812F /* atomic.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = atomic.hpp; sourceTree = "<group>"; };
 		75404FBB28A0530800B1812F /* cpu-x86.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "cpu-x86.hpp"; sourceTree = "<group>"; };
 		75404FBC28A0530800B1812F /* cpu-x86.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "cpu-x86.cpp"; sourceTree = "<group>"; };
-		75404FC828A069E400B1812F /* factor.image */ = {isa = PBXFileReference; lastKnownFileType = file; path = factor.image; sourceTree = "<group>"; };
 		7595E0DD28A19F0E0031EB24 /* factor-arm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "factor-arm"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7595E0E528A1BAC10031EB24 /* factor-x86_64-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "factor-x86_64-Info.plist"; sourceTree = "<group>"; };
-		7595E15128A1BD3A0031EB24 /* factor-arm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-arm-Info.plist"; path = "/Users/davec/Dropbox/Sources/factor/factor-arm-Info.plist"; sourceTree = "<absolute>"; };
+		7595E15128A1BD3A0031EB24 /* factor-arm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-arm-Info.plist"; path = "/Users/davec/Dropbox/Sources/factor/Xcode/factor-arm-Info.plist"; sourceTree = "<absolute>"; };
 		7595E15228A1BFBB0031EB24 /* factor-arm.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "factor-arm.entitlements"; sourceTree = "<group>"; };
-		7595E1BB28A1C7380031EB24 /* Config.macosx.arm64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.macosx.arm64; path = vm/Config.macosx.arm64; sourceTree = "<group>"; };
-		7595E1BC28A1C7550031EB24 /* Config.arm */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.arm; path = vm/Config.arm; sourceTree = "<group>"; };
-		7595E1BD28A1C7690031EB24 /* Config.arm.64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.arm.64; path = vm/Config.arm.64; sourceTree = "<group>"; };
+		7595E1BB28A1C7380031EB24 /* Config.macosx.arm64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.macosx.arm64; path = ../vm/Config.macosx.arm64; sourceTree = "<group>"; };
+		7595E1BC28A1C7550031EB24 /* Config.arm */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.arm; path = ../vm/Config.arm; sourceTree = "<group>"; };
+		7595E1BD28A1C7690031EB24 /* Config.arm.64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.arm.64; path = ../vm/Config.arm.64; sourceTree = "<group>"; };
 		7595E1BE28A1C78E0031EB24 /* cpu-arm.64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "cpu-arm.64.cpp"; sourceTree = "<group>"; };
 		7595E1BF28A1C78E0031EB24 /* cpu-arm.64.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "cpu-arm.64.hpp"; sourceTree = "<group>"; };
-		7595E1C128A1C7AF0031EB24 /* os-macosx-arm64.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = "os-macosx-arm64.hpp"; path = "vm/os-macosx-arm64.hpp"; sourceTree = "<group>"; };
+		7595E1C128A1C7AF0031EB24 /* os-macosx-arm64.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = "os-macosx-arm64.hpp"; path = "../vm/os-macosx-arm64.hpp"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -287,7 +284,6 @@
 				7595E15128A1BD3A0031EB24 /* factor-arm-Info.plist */,
 				7595E0DE28A19F0E0031EB24 /* factor-arm */,
 				5AF0DA4C1C41197649AD8EF2 /* Products */,
-				75404FC728A069E400B1812F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -400,15 +396,8 @@
 				75404F5228A04BD300B1812F /* sampling_profiler.hpp */,
 				75404F5B28A04BD300B1812F /* segments.hpp */,
 			);
-			path = vm;
-			sourceTree = "<group>";
-		};
-		75404FC728A069E400B1812F /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				75404FC828A069E400B1812F /* factor.image */,
-			);
-			name = Frameworks;
+			name = vm;
+			path = ../vm;
 			sourceTree = "<group>";
 		};
 		7595E0DE28A19F0E0031EB24 /* factor-arm */ = {
@@ -700,7 +689,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_ENTITLEMENTS = "factor-arm/factor-arm.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = factor.image;
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = BG856GB4D8;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/factor-arm-Info.plist";
@@ -716,7 +705,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_ENTITLEMENTS = "factor-arm/factor-arm.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = factor.image;
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = BG856GB4D8;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/factor-arm-Info.plist";
