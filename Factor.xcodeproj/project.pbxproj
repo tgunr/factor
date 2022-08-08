@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7595E15328A1C1000031EB24 /* os-macosx-x86.64.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FA728A050F500B1812F /* os-macosx-x86.64.hpp */; };
-		7595E15428A1C1000031EB24 /* os-macosx.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FAC28A0520800B1812F /* os-macosx.hpp */; };
 		7595E15528A1C1000031EB24 /* os-macosx.mm in Sources */ = {isa = PBXBuildFile; fileRef = 75404FAD28A0520800B1812F /* os-macosx.mm */; };
 		7595E15628A1C1000031EB24 /* mach_signal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FAF28A0522700B1812F /* mach_signal.cpp */; };
 		7595E15728A1C1000031EB24 /* mach_signal.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FB028A0522700B1812F /* mach_signal.hpp */; };
@@ -18,8 +16,6 @@
 		7595E15B28A1C1000031EB24 /* main-unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FB728A052A200B1812F /* main-unix.cpp */; };
 		7595E15C28A1C1000031EB24 /* atomic-gcc.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FB928A052D600B1812F /* atomic-gcc.hpp */; };
 		7595E15D28A1C1000031EB24 /* atomic.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FBA28A052D600B1812F /* atomic.hpp */; };
-		7595E15E28A1C1000031EB24 /* cpu-x86.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FBC28A0530800B1812F /* cpu-x86.cpp */; };
-		7595E15F28A1C1000031EB24 /* cpu-x86.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404FBB28A0530800B1812F /* cpu-x86.hpp */; };
 		7595E16028A1C1660031EB24 /* slot_visitor.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404F6328A04BD300B1812F /* slot_visitor.hpp */; };
 		7595E16128A1C1660031EB24 /* tagged.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404F5C28A04BD300B1812F /* tagged.hpp */; };
 		7595E16228A1C1660031EB24 /* tenured_space.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404F5428A04BD300B1812F /* tenured_space.hpp */; };
@@ -111,6 +107,9 @@
 		7595E1B828A1C18C0031EB24 /* sampling_profiler.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404F5228A04BD300B1812F /* sampling_profiler.hpp */; };
 		7595E1B928A1C18C0031EB24 /* segments.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 75404F5B28A04BD300B1812F /* segments.hpp */; };
 		7595E1BA28A1C1F80031EB24 /* factor.image in CopyFiles */ = {isa = PBXBuildFile; fileRef = 75404FC828A069E400B1812F /* factor.image */; };
+		7595E1C028A1C78E0031EB24 /* cpu-arm.64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7595E1BE28A1C78E0031EB24 /* cpu-arm.64.cpp */; };
+		7595E1C228A1C7FC0031EB24 /* os-macosx-arm64.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 7595E1C128A1C7AF0031EB24 /* os-macosx-arm64.hpp */; };
+		7595E1C328A1C8160031EB24 /* cpu-arm.64.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 7595E1BF28A1C78E0031EB24 /* cpu-arm.64.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -242,6 +241,12 @@
 		7595E0E528A1BAC10031EB24 /* factor-x86_64-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "factor-x86_64-Info.plist"; sourceTree = "<group>"; };
 		7595E15128A1BD3A0031EB24 /* factor-arm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-arm-Info.plist"; path = "/Users/davec/Dropbox/Sources/factor/factor-arm-Info.plist"; sourceTree = "<absolute>"; };
 		7595E15228A1BFBB0031EB24 /* factor-arm.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "factor-arm.entitlements"; sourceTree = "<group>"; };
+		7595E1BB28A1C7380031EB24 /* Config.macosx.arm64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.macosx.arm64; path = vm/Config.macosx.arm64; sourceTree = "<group>"; };
+		7595E1BC28A1C7550031EB24 /* Config.arm */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.arm; path = vm/Config.arm; sourceTree = "<group>"; };
+		7595E1BD28A1C7690031EB24 /* Config.arm.64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.arm.64; path = vm/Config.arm.64; sourceTree = "<group>"; };
+		7595E1BE28A1C78E0031EB24 /* cpu-arm.64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "cpu-arm.64.cpp"; sourceTree = "<group>"; };
+		7595E1BF28A1C78E0031EB24 /* cpu-arm.64.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "cpu-arm.64.hpp"; sourceTree = "<group>"; };
+		7595E1C128A1C7AF0031EB24 /* os-macosx-arm64.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = "os-macosx-arm64.hpp"; path = "vm/os-macosx-arm64.hpp"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -269,6 +274,10 @@
 				75404FAB28A051C200B1812F /* Config.unix */,
 				75404FA928A0518A00B1812F /* Config.macosx */,
 				75404FAA28A0519800B1812F /* Config.x86.64 */,
+				7595E1BB28A1C7380031EB24 /* Config.macosx.arm64 */,
+				7595E1BC28A1C7550031EB24 /* Config.arm */,
+				7595E1BD28A1C7690031EB24 /* Config.arm.64 */,
+				7595E1C128A1C7AF0031EB24 /* os-macosx-arm64.hpp */,
 				75404FA628A04FCB00B1812F /* vm */,
 				752EA4EA289ED88F00A1D8BC /* build.sh */,
 				752EA4EB289ED88F00A1D8BC /* GNUmakefile */,
@@ -285,6 +294,8 @@
 		75404FA628A04FCB00B1812F /* vm */ = {
 			isa = PBXGroup;
 			children = (
+				7595E1BE28A1C78E0031EB24 /* cpu-arm.64.cpp */,
+				7595E1BF28A1C78E0031EB24 /* cpu-arm.64.hpp */,
 				75404FA728A050F500B1812F /* os-macosx-x86.64.hpp */,
 				75404FAC28A0520800B1812F /* os-macosx.hpp */,
 				75404FAD28A0520800B1812F /* os-macosx.mm */,
@@ -464,6 +475,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7595E1C328A1C8160031EB24 /* cpu-arm.64.hpp in Sources */,
+				7595E1C028A1C78E0031EB24 /* cpu-arm.64.cpp in Sources */,
+				7595E1C228A1C7FC0031EB24 /* os-macosx-arm64.hpp in Sources */,
 				7595E16628A1C18C0031EB24 /* utilities.hpp in Sources */,
 				7595E16728A1C18C0031EB24 /* vm.cpp in Sources */,
 				7595E16828A1C18C0031EB24 /* errors.hpp in Sources */,
@@ -554,8 +568,6 @@
 				7595E16328A1C1660031EB24 /* to_tenured_collector.cpp in Sources */,
 				7595E16428A1C1660031EB24 /* to_tenured_collector.hpp in Sources */,
 				7595E16528A1C1660031EB24 /* utilities.cpp in Sources */,
-				7595E15328A1C1000031EB24 /* os-macosx-x86.64.hpp in Sources */,
-				7595E15428A1C1000031EB24 /* os-macosx.hpp in Sources */,
 				7595E15528A1C1000031EB24 /* os-macosx.mm in Sources */,
 				7595E15628A1C1000031EB24 /* mach_signal.cpp in Sources */,
 				7595E15728A1C1000031EB24 /* mach_signal.hpp in Sources */,
@@ -565,8 +577,6 @@
 				7595E15B28A1C1000031EB24 /* main-unix.cpp in Sources */,
 				7595E15C28A1C1000031EB24 /* atomic-gcc.hpp in Sources */,
 				7595E15D28A1C1000031EB24 /* atomic.hpp in Sources */,
-				7595E15E28A1C1000031EB24 /* cpu-x86.cpp in Sources */,
-				7595E15F28A1C1000031EB24 /* cpu-x86.hpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
