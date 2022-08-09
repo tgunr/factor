@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7595E0E728A1BD3A0031EB24"
+               BlueprintIdentifier = "7595E43828A1E09B0031EB24"
                BuildableName = "factor-x86_64"
                BlueprintName = "factor-x86_64"
-               ReferencedContainer = "container:Factor.xcodeproj">
+               ReferencedContainer = "container:factor.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -44,12 +44,22 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7595E0E728A1BD3A0031EB24"
+            BlueprintIdentifier = "7595E43828A1E09B0031EB24"
             BuildableName = "factor-x86_64"
             BlueprintName = "factor-x86_64"
-            ReferencedContainer = "container:Factor.xcodeproj">
+            ReferencedContainer = "container:factor.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-i=/Users/davec/Dropbox/Sources/factor/factor.image"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-i=/Users/davec/Dropbox/Sources/factor/boot.unix-x86.64.image"
+            isEnabled = "NO">
+         </CommandLineArgument>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -61,10 +71,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7595E0E728A1BD3A0031EB24"
+            BlueprintIdentifier = "7595E43828A1E09B0031EB24"
             BuildableName = "factor-x86_64"
             BlueprintName = "factor-x86_64"
-            ReferencedContainer = "container:Factor.xcodeproj">
+            ReferencedContainer = "container:factor.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
