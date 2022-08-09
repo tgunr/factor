@@ -7,6 +7,8 @@ namespace factor {
 
 #define __ARM_NR_cacheflush 0x0f0002
 
+static const unsigned SIGNAL_HANDLER_STACK_FRAME_SIZE = 192;
+
 inline static void flush_icache(cell start, cell len) {
   int result;
   cell end = start + len;
