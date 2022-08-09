@@ -45,7 +45,7 @@ or download the correct boot image for your system from
 https://downloads.factorcode.org/images/master/, put it in the `factor`
 directory and run:
 
-* Unix: `make` and then `./factor -i=boot.unix-x86.64.image`
+* Unix/macOS: `make` and then `./factor -i=boot.unix-x86.64.image`
 * Windows: `nmake /f Nmakefile x86-64` and then `factor.com -i=boot.windows-x86.64.image`
 
 Now you should have a complete Factor system ready to run.
