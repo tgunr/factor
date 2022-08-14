@@ -27,20 +27,20 @@ CONSTANT: logLevelDebug1    8
 CONSTANT: logLevelDebug2    9
 CONSTANT: logLevelTest      99
 
-: LOG-Level-String ( level -- string )
+: level>string ( level -- string )
     {
-        { logLevelNone      [ "None"     ] }
-        { logLevelEmergency [ "Emerg"    ] }
-        { logLevelAlert     [ "Alert"    ] }
-        { logLevelCritical  [ "Critical" ] }
-        { logLevelError     [ "Error"    ] }
-        { logLevelWarning   [ "Warning"  ] }
-        { logLevelNotice    [ "Notice"   ] }
-        { logLevelInfo      [ "Info"     ] }
-        { logLevelDebug     [ "Debug"    ] }
-        { logLevelDebug1    [ "Debug1"   ] }
-        { logLevelDebug2    [ "Debug2"   ] }
-        { logLevelTest      [ "Test"     ] }
+        { logLevelNone      [ "LOG_None    " ] }
+        { logLevelEmergency [ "LOG_Emerg   " ] }
+        { logLevelAlert     [ "LOG_Alert   " ] }
+        { logLevelCritical  [ "LOG_Critical" ] }
+        { logLevelError     [ "LOG_Error   " ] }
+        { logLevelWarning   [ "LOG_Warning " ] }
+        { logLevelNotice    [ "LOG_Notice  " ] }
+        { logLevelInfo      [ "LOG_Info    " ] }
+        { logLevelDebug     [ "LOG_Debug   " ] }
+        { logLevelDebug1    [ "LOG_Debug1  " ] }
+        { logLevelDebug2    [ "LOG_Debug2  " ] }
+        { logLevelTest      [ "LOG_Test    " ] }
     } case ;
    
 SYMBOL: logLevel 
@@ -49,7 +49,7 @@ SYMBOL: logStack
 
 INITIALIZE: logLevel logLevelDebug ;
 INITIALIZE: logLevelIndex 0 ;
-INITIALIZE: logStack [ 256 0 <array> ] ; 
+INITIALIZE: logStack 256 0 <array> ; 
 
 : LOGsetlevel ( level -- ) logLevel set ;
 
@@ -79,30 +79,36 @@ INITIALIZE: logStack [ 256 0 <array> ] ;
     [ drop "Listener " ]
     if ;
 
-: (logloc) ( level name loc -- )
+: (loghere) ( level name loc -- )
     [ dup level? ] 2dip rot
-    [ (location) prepend +space  syslog ]
+    [ [ "IN: " prepend ] dip 
+        (location) prepend +space
+        over level>string +colon-space prepend
+        syslog ]
     [ 2drop drop ] if
     ;
 
 : (logmsg) ( level name loc msg -- )
     [ dup level? ] 3dip 4 nrot
-    [ [ (location) prepend +colon-space ] dip ! name+loc level msg
-      append  syslog ]
+    [ [ (location) prepend +colon-space ] dip
+      [ dup level>string +colon-space ] 2dip 
+      append append syslog ]
     [ 2drop 2drop ] if
     ;
 
 : (logstring) ( msg level name loc -- )
     (location) 
     [ dup level? ] 2dip rot
-    [ prepend  +colon-space  rot append  syslog ]
+    [ prepend  +colon-space
+      [ dup level>string +colon-space ] dip
+      append rot append  syslog ]
     [ 2drop 2drop ] if
     ;
 
-: (embed-location) ( word -- word )
+: (embed-here) ( word -- word )
     last-word name>> suffix!
     last-word props>> "loc" swap at suffix!
-    \ (logloc) suffix! ;
+    \ (loghere) suffix! ;
 
 : (embed-inline) ( word -- word )
     last-word name>> suffix!
@@ -118,13 +124,13 @@ INITIALIZE: logStack [ 256 0 <array> ] ;
 
 SYNTAX: LOG \ logLevelTest suffix! (embed-string) ;
 SYNTAX: LOG" \ logLevelTest suffix! (embed-inline) ; ! "for the editors sake
-SYNTAX: LOGHERE \ logLevelTest suffix! (embed-location) ;
+SYNTAX: LOGHERE \ logLevelTest suffix! (embed-here) ;
 
 SYNTAX: LOGDEBUG2 \ logLevelDebug2 suffix! (embed-string) ;
-SYNTAX: LOGDEBUG2\" \ logLevelDebug2 suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOGDEBUG2" \ logLevelDebug2 suffix! (embed-inline) ; ! "for the editors sake
 
 SYNTAX: LOGDEBUG1 \ logLevelDebug1 suffix! (embed-string) ;
-SYNTAX: LOGDEBUG1\" \ logLevelDebug1 suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOGDEBUG1" \ logLevelDebug1 suffix! (embed-inline) ; ! "for the editors sake
 
 SYNTAX: LOGDEBUG \ logLevelDebug suffix! (embed-string) ;
 SYNTAX: LOGDEBUG" \ logLevelDebug suffix! (embed-inline) ; ! "for the editors sake
@@ -149,38 +155,3 @@ SYNTAX: LOGALERT" \ logLevelAlert suffix! (embed-inline) ; ! "for the editors sa
 
 SYNTAX: LOGEMERGENCY \ logLevelEmergency suffix! (embed-string) ;
 SYNTAX: LOGEMERGENCY" \ logLevelEmergency suffix! (embed-inline) ; ! "for the editors sake
-
-:: PMLOG ( msg file word level -- )
-    level level?
-    [ level
-      file " " append
-      word append
-      " " append
-      level LOG-Level-String append
-      " " append
-      msg append
-      syslog
-    ]
-    when
-;
-
-: LOGwith ( msg level -- )
-    "loc" word props>> at dup 
-    [ [ "LOG " [ first ] dip  prepend  ":" append ] keep 
-      second number>string append ]
-      [ drop "Listener: " ] if
-    word name>>  rot
-    PMLOG ;
-
-: LOGERR ( msg error -- )
-    0 over =
-    [ 2drop ]
-    [ number>string  " " append
-      "Error: " prepend 
-      prepend logLevelTest LOGwith ] if ;
-
-: LOGVALUE ( msg value -- )
-    number>string " " append
-    "Value: " prepend prepend 
-    logLevelTest LOGwith ;
-

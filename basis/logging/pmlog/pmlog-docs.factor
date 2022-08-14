@@ -57,18 +57,18 @@ $nl
 
 "Log Levels"
 { $subsections
-  LogLevelNone      
-  LogLevelEmergency     
-  LogLevelAlert     
-  LogLevelCritical  
-  LogLevelError     
-  LogLevelWarning   
-  LogLevelNotice    
-  LogLevelInfo      
-  LogLevelDebug     
-  LogLevelDebug1    
-  LogLevelDebug2    
-  LogLevelTest      
+  logLevelNone      
+  logLevelEmergency     
+  logLevelAlert     
+  logLevelCritical  
+  logLevelError     
+  logLevelWarning   
+  logLevelNotice    
+  logLevelInfo      
+  logLevelDebug     
+  logLevelDebug1    
+  logLevelDebug2    
+  logLevelTest      
 }
 
 "Test Words"
@@ -247,67 +247,67 @@ HELP: LOGVALUE
 }
   { $description "Test message along with a value to syslogd regardless of log level." } ;
 
-HELP: LogLevelNone
+HELP: logLevelNone
 { $values
         { "value" integer }
 }
 { $description "Value for no log level" } ;
 
-HELP: LogLevelEmergency
+HELP: logLevelEmergency
 { $values
         { "value" integer }
 }
 { $description "Value for the EMERGENCY log level" } ;
 
-HELP: LogLevelAlert
+HELP: logLevelAlert
 { $values
         { "value" integer }
 }
 { $description "Value for the ALERT log level" } ;
 
-HELP: LogLevelCritical
+HELP: logLevelCritical
 { $values
         { "value" integer }
 }
 { $description "Value for the CRITICAL log level" } ;
 
-HELP: LogLevelError
+HELP: logLevelError
 { $values
         { "value" integer }
 }
 { $description "Value for the ERROR log level" } ;
 
-HELP: LogLevelWarning
+HELP: logLevelWarning
 { $values
         { "value" integer }
 }
 { $description "Value for the WARNING log level" } ;
 
-HELP: LogLevelInfo
+HELP: logLevelInfo
 { $values
         { "value" integer }
 }
 { $description "Value for the INFO log level" } ;
 
-HELP: LogLevelNotice
+HELP: logLevelNotice
 { $values
         { "value" integer }
 }
 { $description "Value for the NOTICE log level" } ;
 
-HELP: LogLevelDebug
+HELP: logLevelDebug
 { $values
         { "value" integer }
 }
 { $description "Value for the DEBUG log level" } ;
 
-HELP: LogLevelTest
+HELP: logLevelTest
 { $values
         { "value" integer }
 }
 { $description "Value for the testing log level, log level is ignored." } ;
 
-HELP: LOG-Level-String
+HELP: level>string
 { $values
     { "level" integer }
     { "string" string }
