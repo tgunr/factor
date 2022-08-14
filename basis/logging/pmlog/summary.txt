@@ -1,1 +1,4 @@
-Level controlled syslog messages
+Level controlled syslog messages.
+Uses syntax words to embed the file, line number, and word which
+conatins the LOGxxx word. 
+
