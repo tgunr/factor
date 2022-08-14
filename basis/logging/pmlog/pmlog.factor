@@ -1,9 +1,8 @@
 ! Copyright (C) 2012 PolyMicro Systems.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types alien.syntax arrays assocs
-combinators formatting generalizations kernel lexer libc locals
-math math.parser namespaces prettyprint sequences strings
-strings.parser words ;
+USING: accessors alien.c-types alien.syntax arrays assocs combinators
+generalizations kernel lexer math math.parser namespaces prettyprint
+sequences strings strings.parser words ;
 
 IN: libc
 LIBRARY: libc
@@ -15,99 +14,64 @@ FUNCTION: void syslog ( int priority, c-string message )
 FUNCTION: void vsyslog ( int priority, c-string message, c-string args ) 
 
 IN: pmlog
-CONSTANT: PMLogLevelNone      -1
-CONSTANT: PMLogLevelEmergency 0
-CONSTANT: PMLogLevelAlert     1
-CONSTANT: PMLogLevelCritical  2
-CONSTANT: PMLogLevelError     3
-CONSTANT: PMLogLevelWarning   4
-CONSTANT: PMLogLevelNotice    5
-CONSTANT: PMLogLevelInfo      6
-CONSTANT: PMLogLevelDebug     7
-CONSTANT: PMLogLevelDebug1    8
-CONSTANT: PMLogLevelDebug2    9
-CONSTANT: PMLogLevelTest      99
+CONSTANT: logLevelNone      -1
+CONSTANT: logLevelEmergency 0
+CONSTANT: logLevelAlert     1
+CONSTANT: logLevelCritical  2
+CONSTANT: logLevelError     3
+CONSTANT: logLevelWarning   4
+CONSTANT: logLevelNotice    5
+CONSTANT: logLevelInfo      6
+CONSTANT: logLevelDebug     7
+CONSTANT: logLevelDebug1    8
+CONSTANT: logLevelDebug2    9
+CONSTANT: logLevelTest      99
 
-: PMLOG-Level-String ( level -- string )
+: LOG-Level-String ( level -- string )
     {
-        { PMLogLevelNone      [ "None"     ] }
-        { PMLogLevelEmergency [ "Emerg"    ] }
-        { PMLogLevelAlert     [ "Alert"    ] }
-        { PMLogLevelCritical  [ "Critical" ] }
-        { PMLogLevelError     [ "Error"    ] }
-        { PMLogLevelWarning   [ "Warning"  ] }
-        { PMLogLevelNotice    [ "Notice"   ] }
-        { PMLogLevelInfo      [ "Info"     ] }
-        { PMLogLevelDebug     [ "Debug"    ] }
-        { PMLogLevelDebug1    [ "Debug1"   ] }
-        { PMLogLevelDebug2    [ "Debug2"   ] }
-        { PMLogLevelTest      [ "Test"     ] }
+        { logLevelNone      [ "None"     ] }
+        { logLevelEmergency [ "Emerg"    ] }
+        { logLevelAlert     [ "Alert"    ] }
+        { logLevelCritical  [ "Critical" ] }
+        { logLevelError     [ "Error"    ] }
+        { logLevelWarning   [ "Warning"  ] }
+        { logLevelNotice    [ "Notice"   ] }
+        { logLevelInfo      [ "Info"     ] }
+        { logLevelDebug     [ "Debug"    ] }
+        { logLevelDebug1    [ "Debug1"   ] }
+        { logLevelDebug2    [ "Debug2"   ] }
+        { logLevelTest      [ "Test"     ] }
     } case ;
    
-SYMBOL: pmLogLevel
-pmLogLevel [ PMLogLevelDebug ] initialize
+SYMBOL: logLevel 
+SYMBOL: logLevelIndex 
+SYMBOL: logStack 
 
-SYMBOL: pmLogLevelIndex
-pmLogLevelIndex [ 0 ] initialize
+INITIALIZE: logLevel logLevelDebug ;
+INITIALIZE: logLevelIndex 0 ;
+INITIALIZE: logStack [ 256 0 <array> ] ; 
 
-SYMBOL: pmLogStack
-pmLogStack [ 256 0 <array> ] initialize
+: LOGsetlevel ( level -- ) logLevel set ;
 
-: PMLOGsetlevel ( level -- ) pmLogLevel set ;
+: LOGpushlevel ( level -- )
+    logLevel get  logLevelIndex get  logStack get  set-nth
+    logLevelIndex get  1 +  dup  logLevelIndex set
+    255 > [ 255 logLevelIndex set ] when
+    logLevel set ;
 
-: PMLOGpushlevel ( level -- )
-    pmLogLevel get  pmLogLevelIndex get  pmLogStack get  set-nth
-    pmLogLevelIndex get  1 +  dup  pmLogLevelIndex set
-    255 > [ 255 pmLogLevelIndex set ] when
-    pmLogLevel set ;
-
-: PMLOGpoplevel ( -- )
-    pmLogLevelIndex get  1 -  dup  pmLogLevelIndex set
-    0 < [ 0 pmLogLevelIndex set ] when
-    pmLogLevelIndex get  pmLogStack get  nth
-    pmLogLevel set
+: LOGpoplevel ( -- )
+    logLevelIndex get  1 -  dup  logLevelIndex set
+    0 < [ 0 logLevelIndex set ] when
+    logLevelIndex get  logStack get  nth
+    logLevel set
     ;
 
 : level? ( level -- t|f )
-    [  pmLogLevel get <= ] keep
-    PMLogLevelTest = or ;
-
-:: PMLOG ( msg file word level -- )
-    level level?
-    [ level
-      file " " append
-      word append
-      " " append
-      level PMLOG-Level-String append
-      " " append
-      msg append
-      syslog
-    ]
-    when
-;
-
-: PMLOGwith ( msg level -- )
-    "loc" word props>> at dup 
-    [ [ "PMLOG " [ first ] dip  prepend  ":" append ] keep 
-      second number>string append ]
-      [ drop "Listener: " ] if
-    word name>>  rot
-    PMLOG ;
-
-: LOGERR ( msg error -- )
-    0 over =
-    [ 2drop ]
-    [ number>string  " " append
-      "Error: " prepend 
-      prepend PMLogLevelTest PMLOGwith ] if ;
-
-: LOGVALUE ( msg value -- )
-    number>string " " append
-    "Value: " prepend prepend 
-    PMLogLevelTest PMLOGwith ;
+    [  logLevel get <= ] keep
+    logLevelTest = or ;
 
 : (log) ( level name -- )  +colon-space syslog ;
-: (log.) ( name -- )  +colon-space PMLogLevelTest swap syslog ;
+: (log.) ( name -- )  +colon-space logLevelTest swap syslog ;
 
 : (location) ( loc -- string )
     dup
@@ -152,47 +116,71 @@ pmLogStack [ 256 0 <array> ] initialize
     \ (logstring) suffix! ; 
 
 
-SYNTAX: LOG \ PMLogLevelTest suffix! (embed-string) ;
-SYNTAX: LOG" \ PMLogLevelTest suffix! (embed-inline) ; ! "for the editors sake
-SYNTAX: LOGHERE \ PMLogLevelTest suffix! (embed-location) ;
+SYNTAX: LOG \ logLevelTest suffix! (embed-string) ;
+SYNTAX: LOG" \ logLevelTest suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOGHERE \ logLevelTest suffix! (embed-location) ;
 
-SYNTAX: LOGDEBUG2 \ PMLogLevelDebug2 suffix! (embed-string) ;
-SYNTAX: LOGDEBUG2\" \ PMLogLevelDebug2 suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGDEBUG2 \ PMLogLevelDebug2 suffix! (embed-string) ; 
+SYNTAX: LOGDEBUG2 \ logLevelDebug2 suffix! (embed-string) ;
+SYNTAX: LOGDEBUG2\" \ logLevelDebug2 suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGDEBUG1 \ PMLogLevelDebug1 suffix! (embed-string) ;
-SYNTAX: LOGDEBUG1\" \ PMLogLevelDebug1 suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGDEBUG1 \ PMLogLevelDebug1 suffix! (embed-string) ; 
+SYNTAX: LOGDEBUG1 \ logLevelDebug1 suffix! (embed-string) ;
+SYNTAX: LOGDEBUG1\" \ logLevelDebug1 suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGDEBUG \ PMLogLevelDebug suffix! (embed-string) ;
-SYNTAX: LOGDEBUG" \ PMLogLevelDebug suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGDEBUG \ PMLogLevelDebug suffix! (embed-string) ; 
+SYNTAX: LOGDEBUG \ logLevelDebug suffix! (embed-string) ;
+SYNTAX: LOGDEBUG" \ logLevelDebug suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGINFO \ PMLogLevelInfo suffix! (embed-string) ;
-SYNTAX: LOGINFO" \ PMLogLevelInfo suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGINFO \ PMLogLevelInfo suffix! (embed-string) ; 
+SYNTAX: LOGINFO \ logLevelInfo suffix! (embed-string) ;
+SYNTAX: LOGINFO" \ logLevelInfo suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGNOTICE \ PMLogLevelNotice suffix! (embed-string) ;
-SYNTAX: LOGNOTICE" \ PMLogLevelNotice suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGNOTICE \ PMLogLevelNotice suffix! (embed-string) ; 
+SYNTAX: LOGNOTICE \ logLevelNotice suffix! (embed-string) ;
+SYNTAX: LOGNOTICE" \ logLevelNotice suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGWARNING \ PMLogLevelWarning suffix! (embed-string) ;
-SYNTAX: LOGWARNING" \ PMLogLevelWarning suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGWARNING \ PMLogLevelWarning suffix! (embed-string) ; 
+SYNTAX: LOGWARNING \ logLevelWarning suffix! (embed-string) ;
+SYNTAX: LOGWARNING" \ logLevelWarning suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGERROR \ PMLogLevelError suffix! (embed-string) ;
-SYNTAX: LOGERROR" \ PMLogLevelError suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGERROR \ PMLogLevelError suffix! (embed-string) ; 
+SYNTAX: LOGERROR \ logLevelError suffix! (embed-string) ;
+SYNTAX: LOGERROR" \ logLevelError suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGCRITICAL \ PMLogLevelCritical suffix! (embed-string) ;
-SYNTAX: LOGCRITICAL" \ PMLogLevelCritical suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGCRITICAL \ PMLogLevelCritical suffix! (embed-string) ; 
+SYNTAX: LOGCRITICAL \ logLevelCritical suffix! (embed-string) ;
+SYNTAX: LOGCRITICAL" \ logLevelCritical suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGALERT \ PMLogLevelAlert suffix! (embed-string) ;
-SYNTAX: LOGALERT" \ PMLogLevelAlert suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGALERT \ PMLogLevelAlert suffix! (embed-string) ; 
+SYNTAX: LOGALERT \ logLevelAlert suffix! (embed-string) ;
+SYNTAX: LOGALERT" \ logLevelAlert suffix! (embed-inline) ; ! "for the editors sake
 
-SYNTAX: LOGEMERGENCY \ PMLogLevelEmergency suffix! (embed-string) ;
-SYNTAX: LOGEMERGENCY" \ PMLogLevelEmergency suffix! (embed-inline) ; ! "for the editors sake
-! SYNTAX: >LOGEMERGENCY \ PMLogLevelEmergency suffix! (embed-string) ; 
+SYNTAX: LOGEMERGENCY \ logLevelEmergency suffix! (embed-string) ;
+SYNTAX: LOGEMERGENCY" \ logLevelEmergency suffix! (embed-inline) ; ! "for the editors sake
+
+:: PMLOG ( msg file word level -- )
+    level level?
+    [ level
+      file " " append
+      word append
+      " " append
+      level LOG-Level-String append
+      " " append
+      msg append
+      syslog
+    ]
+    when
+;
+
+: LOGwith ( msg level -- )
+    "loc" word props>> at dup 
+    [ [ "LOG " [ first ] dip  prepend  ":" append ] keep 
+      second number>string append ]
+      [ drop "Listener: " ] if
+    word name>>  rot
+    PMLOG ;
+
+: LOGERR ( msg error -- )
+    0 over =
+    [ 2drop ]
+    [ number>string  " " append
+      "Error: " prepend 
+      prepend logLevelTest LOGwith ] if ;
+
+: LOGVALUE ( msg value -- )
+    number>string " " append
+    "Value: " prepend prepend 
+    logLevelTest LOGwith ;
 
