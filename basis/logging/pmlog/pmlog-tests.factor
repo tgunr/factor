@@ -1,10 +1,7 @@
 ! Copyright (C) 2022 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: formatting kernel pmlog sequences tools.test ;
+USING: formatting kernel math.parser pmlog sequences ;
 IN: pmlog.tests
-
-: LOGTEST ( msg -- )
-    logLevelTest LOGwith ;
 
 : LOGLEVEL-TEST ( -- )
     "Emergency" LOGEMERGENCY
@@ -20,7 +17,7 @@ IN: pmlog.tests
     "plain LOG always sends" LOG
 ;
 
-: TEST ( -- )
+: TESTLOGGING ( -- )
     LOGHERE
     "Starting test" LOG
     10 <iota> 
@@ -30,7 +27,6 @@ IN: pmlog.tests
       LOGLEVEL-TEST
       LOGpoplevel
     ] each
-    "This is a problem" 32 LOGERR
+    "This is a problem - " 32 number>string append LOG
     "Test note" LOG
-    "This is a value" -1 LOGVALUE
     ;
