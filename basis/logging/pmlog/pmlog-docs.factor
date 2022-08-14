@@ -11,7 +11,7 @@ IN: help.markup
 IN: pmlog
 ABOUT: "pmlog"
 
-ARTICLE: "pmlog" "PMLOG: A vocabulary for creating syslog entries"
+ARTICLE: "pmlog" "LOG: A vocabulary for creating syslog entries"
 "This vocabulary defines words to create syslog entries."
 "The vocabulary behaves basically as you would expect."
 "If the priority level of the message to send to syslogd is less"
@@ -49,31 +49,31 @@ $nl
 $nl
 "Global Control"
 { $subsections
-  pmLogLevel
-  PMLOGsetlevel
-  PMLOGpushlevel
-  PMLOGpoplevel
+  logLevel
+  LOGsetlevel
+  LOGpushlevel
+  LOGpoplevel
 }
 
 "Log Levels"
 { $subsections
-  PMLogLevelNone      
-  PMLogLevelEmergency     
-  PMLogLevelAlert     
-  PMLogLevelCritical  
-  PMLogLevelError     
-  PMLogLevelWarning   
-  PMLogLevelNotice    
-  PMLogLevelInfo      
-  PMLogLevelDebug     
-  PMLogLevelDebug1    
-  PMLogLevelDebug2    
-  PMLogLevelTest      
+  LogLevelNone      
+  LogLevelEmergency     
+  LogLevelAlert     
+  LogLevelCritical  
+  LogLevelError     
+  LogLevelWarning   
+  LogLevelNotice    
+  LogLevelInfo      
+  LogLevelDebug     
+  LogLevelDebug1    
+  LogLevelDebug2    
+  LogLevelTest      
 }
 
 "Test Words"
 { $subsections
-  PMLOGwith
+  LOGwith
   LOGERR
   LOGVALUE
 }
@@ -107,7 +107,7 @@ $nl
 ! HELP: LOG\" { $syntax "LOG\" \"" } ;
 
 
-HELP: PMLOGwith
+HELP: LOGwith
 { $values 
   { "msg" "string to send to syslog" }
   { "level" "log level" }    
@@ -217,7 +217,7 @@ HELP: LOG
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends note message to syslogd regardless of log level." } ;
 
-! HELP: PMLOGERR
+! HELP: LOGERR
 !   { $values
 !     { "msg" "string to send to syslog" }
 !     { "error" integer }
@@ -228,27 +228,17 @@ HELP: LOG
 ! { $values { "msg" "string to send to syslog" } }
 ! { $description "Sends message to syslogd using the ERROR log level." } ;
 
-HELP: PMLOGsetlevel
+HELP: LOGsetlevel
 { $values { "level" integer } }
-{ $description "Sets the debugging level. PMLOG words with priority less than the level will not send messages to the syslog" } ;
+{ $description "Sets the debugging level. LOG words with priority less than the level will not send messages to the syslog" } ;
 
-HELP: PMLOGpoplevel
+HELP: LOGpoplevel
 { $description "Returns log level to previous level" } ;
 
-HELP: PMLOGpushlevel
+HELP: LOGpushlevel
 { $values { "level" integer } }
 { $description "Saves the current log level and establishes a new log level. Use this to control log level in loops where you may not wish to view reams of information" }
 ;
-
-HELP: PMLOG
-{ $values
-  { "msg" "string to send to syslog" }
-  { "file" "string with path to file and line number" }
-  { "word" "word being logged" }
-  { "level" "log level" }    
-}
-{ $description "Sends message along with the file, line number and word to syslogd using the log level." } ;
-
 
 HELP: LOGVALUE
 { $values
@@ -257,67 +247,67 @@ HELP: LOGVALUE
 }
   { $description "Test message along with a value to syslogd regardless of log level." } ;
 
-HELP: PMLogLevelNone
+HELP: LogLevelNone
 { $values
         { "value" integer }
 }
 { $description "Value for no log level" } ;
 
-HELP: PMLogLevelEmergency
+HELP: LogLevelEmergency
 { $values
         { "value" integer }
 }
 { $description "Value for the EMERGENCY log level" } ;
 
-HELP: PMLogLevelAlert
+HELP: LogLevelAlert
 { $values
         { "value" integer }
 }
 { $description "Value for the ALERT log level" } ;
 
-HELP: PMLogLevelCritical
+HELP: LogLevelCritical
 { $values
         { "value" integer }
 }
 { $description "Value for the CRITICAL log level" } ;
 
-HELP: PMLogLevelError
+HELP: LogLevelError
 { $values
         { "value" integer }
 }
 { $description "Value for the ERROR log level" } ;
 
-HELP: PMLogLevelWarning
+HELP: LogLevelWarning
 { $values
         { "value" integer }
 }
 { $description "Value for the WARNING log level" } ;
 
-HELP: PMLogLevelInfo
+HELP: LogLevelInfo
 { $values
         { "value" integer }
 }
 { $description "Value for the INFO log level" } ;
 
-HELP: PMLogLevelNotice
+HELP: LogLevelNotice
 { $values
         { "value" integer }
 }
 { $description "Value for the NOTICE log level" } ;
 
-HELP: PMLogLevelDebug
+HELP: LogLevelDebug
 { $values
         { "value" integer }
 }
 { $description "Value for the DEBUG log level" } ;
 
-HELP: PMLogLevelTest
+HELP: LogLevelTest
 { $values
         { "value" integer }
 }
 { $description "Value for the testing log level, log level is ignored." } ;
 
-HELP: PMLOG-Level-String
+HELP: LOG-Level-String
 { $values
     { "level" integer }
     { "string" string }
@@ -325,40 +315,40 @@ HELP: PMLOG-Level-String
 { $description "Returns the string used for the log level" } ;
 
 
-HELP: pmLogLevel
+HELP: logLevel
 { $var-description "Current logging level" }
 { $see-also
-  pmLogLevel
-  pmLogStack
-  pmLogLevelIndex
-  PMLOGsetlevel
-  PMLOGpushlevel
-  PMLOGpoplevel
+  logLevel
+  logStack
+  logLevelIndex
+  LOGsetlevel
+  LOGpushlevel
+  LOGpoplevel
 }
 
 ;
 
-HELP: pmLogLevelIndex
+HELP: logLevelIndex
 { $var-description "Holds the current index value into the log level stack" }
 { $see-also
-  pmLogLevel
-  pmLogStack
-  pmLogLevelIndex
-  PMLOGsetlevel
-  PMLOGpushlevel
-  PMLOGpoplevel
+  logLevel
+  logStack
+  logLevelIndex
+  LOGsetlevel
+  LOGpushlevel
+  LOGpoplevel
 }
 ;
 
-HELP: pmLogStack
+HELP: logStack
 { $var-description "Holds an array of log levels." }
 { $see-also
-  pmLogLevel
-  pmLogStack
-  pmLogLevelIndex
-  PMLOGsetlevel
-  PMLOGpushlevel
-  PMLOGpoplevel
+  logLevel
+  logStack
+  logLevelIndex
+  LOGsetlevel
+  LOGpushlevel
+  LOGpoplevel
 }
 ;
 

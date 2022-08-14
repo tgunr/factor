@@ -3,10 +3,10 @@
 USING: formatting kernel pmlog sequences tools.test ;
 IN: pmlog.tests
 
-: PMLOGTEST ( msg -- )
-    PMLogLevelTest PMLOGwith ;
+: LOGTEST ( msg -- )
+    logLevelTest LOGwith ;
 
-: PMLOGLEVEL-TEST ( -- )
+: LOGLEVEL-TEST ( -- )
     "Emergency" LOGEMERGENCY
     "Alert" LOGALERT
     "Critical" LOGCRITICAL
@@ -20,15 +20,15 @@ IN: pmlog.tests
     "plain LOG always sends" LOG
 ;
 
-: PMTEST ( -- )
+: TEST ( -- )
     LOGHERE
     "Starting test" LOG
     10 <iota> 
     [ dup
-      PMLOGpushlevel
+      LOGpushlevel
       "Log Level: %d\n" sprintf LOG
-      PMLOGLEVEL-TEST
-      PMLOGpoplevel
+      LOGLEVEL-TEST
+      LOGpoplevel
     ] each
     "This is a problem" 32 LOGERR
     "Test note" LOG
