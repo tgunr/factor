@@ -18,19 +18,22 @@ IN: pmlog.tests
     "plain LOG always sends" LOG
 ;
 
-: TESTLOGGING ( -- )
+: LOGGING-TEST ( -- )
+    LOG-open
     LOG-HERE
     "Starting test" LOG
     10 <iota> 
     [ [ "Testing level: %d\n" printf ] keep
       [ LOG-pushlevel ] keep
+      ! dup "TEST LEVEL: %u\n" printf
       "Log Level: %d\n" sprintf LOG
       LOG-LEVEL-TEST
       LOG-poplevel
     ] each
-    "This is a problem - " 32 number>string append LOG
-    "Test note" LOG
+    "This is a problem: " 32 number>string append LOG
+    LOG"Test inline log note" 
     ;
+
 ! check LOG_TEST getting reset
 { f } [ LOG-settest  LOG_DEBUG LOG-setlevel LOG_TEST get ] unit-test
 ! now set default values
@@ -51,3 +54,5 @@ IN: pmlog.tests
 { f } [ LOG-disable LOG_DEBUG LOG-setlevel  LOG_DEBUG log? ] unit-test
 ! LOG_TEST should have been set to f by previous LOG-setlevel
 { f } [ LOG_TEST get ] unit-test
+! Reset to defaults
+{ } [ LOG-enable  LOG_INFO LOG-setlevel  LOG_SYSLOG LOG-setfacility ] unit-test

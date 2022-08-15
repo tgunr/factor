@@ -1,9 +1,9 @@
 ! Copyright (C) 2012 Dave Carlton
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.syntax arrays assocs
-combinators generalizations kernel lexer math math.order
-math.parser namespaces prettyprint sequences strings
-strings.parser words ;
+combinators formatting generalizations io kernel lexer math
+math.order math.parser multiline namespaces prettyprint
+sequences strings strings.parser words ;
 
 IN: libc
 LIBRARY: libc
@@ -53,6 +53,7 @@ SYMBOL: LOG_LAUNCHD
 SYMBOL: LOG_NFACILITIES
 SYMBOL: LOG_FACMASK
 SYMBOL: LOG_TEST
+SYMBOL: LOG_OPEN
 
 INITIALIZE: LOG_KERN         0  3 shift ; ! kernel messages
 INITIALIZE: LOG_USER         1  3 shift ; ! random user-level messages
@@ -81,21 +82,7 @@ INITIALIZE: LOG_LOCAL7      23  3 shift ; ! reserved for local use
 INITIALIZE: LOG_LAUNCHD     24  3 shift ; ! launchd - general bootstrap daemon
 INITIALIZE: LOG_NFACILITIES 25          ; ! current number of facilities
 INITIALIZE: LOG_FACMASK     "03F8" hex> ; ! facilities bit mask
-
-: log-levels1 ( --  assoc )
-    { }
-    { LOG_NONE     
-      LOG_EMERG    
-      LOG_ALERT    
-      LOG_CRIT     
-      LOG_ERR      
-      LOG_WARNING  
-      LOG_NOTICE   
-      LOG_INFO     
-      LOG_DEBUG    
-      }
-    [ [ dup  swap 2array ] curry call suffix ] each
-    ;
+INITIALIZE: LOG_OPEN { "PMLOG" 0 LOG_USER } ;
 
 : log-levels ( --  assoc )
     H{ 
@@ -107,8 +94,10 @@ INITIALIZE: LOG_FACMASK     "03F8" hex> ; ! facilities bit mask
         { LOG_NOTICE  5 } 
         { LOG_INFO    6 } 
         { LOG_DEBUG   7 } 
+        { LOG_TEST    8 } 
     } ;
 
+ERROR: undefined-log-level ;
         
 : level>string ( level -- string )
     {
@@ -120,6 +109,7 @@ INITIALIZE: LOG_FACMASK     "03F8" hex> ; ! facilities bit mask
         { LOG_NOTICE  [ "LOG_NOTICE  " ] }
         { LOG_INFO    [ "LOG_INFO    " ] }
         { LOG_DEBUG   [ "LOG_DEBUG   " ] }
+        { LOG_TEST    [ "LOG_TEST    " ] }
     } case ;
 
 SYMBOL: logLevel
@@ -134,6 +124,7 @@ INITIALIZE: logFacility LOG_SYSLOG ;
 INITIALIZE: logLevelIndex 0 ; 
 INITIALIZE: logStack 256 0 <array> ;
 
+: LOG-open ( -- )   LOG_OPEN get  [ first ] keep  [ second ] keep third get  openlog ;
 : LOG-enable ( -- )   f LOG_NONE set ;
 : LOG-disable ( -- )   t LOG_NONE set  f LOG_TEST set ; 
 : LOG-settest ( -- ) t LOG_TEST set ;
@@ -141,37 +132,54 @@ INITIALIZE: logStack 256 0 <array> ;
 : LOG-setfacility ( facility -- )   logFacility set ;
 : LOG-setfacilities ( seq -- )   [ get logFacility get  bitor  logFacility set ] each ;
 
+: log-level@ ( log-level -- value )  log-levels at ;
+
+: log-level<= ( new-log-level current-log-level -- ? )
+    [ log-level@ ] dip  log-level@  <= ;
+
+: @log-level ( value -- log-level )
+    log-levels [ nip over = ] assoc-find
+    [ drop nip ]
+    [ drop 2drop LOG_DEBUG ]
+    if ;
+
+: log? ( log-level -- ? )
+    ! dup "log?: level: %u\n" printf
+    LOG_NONE get
+    ! dup "log?: LOG_NONE: %u\n" printf
+    [ drop f ] 
+    [ logLevel get log-level<= ]
+    if
+    ! dup "log?: result %u\n" printf
+    LOG_TEST get
+    ! dup "log?: LOG_TEST: %u\n" printf
+    [ drop t ] when
+;
+
 : LOG-pushlevel ( level -- )
-    logLevel get  logLevelIndex get  logStack get  set-nth
-    logLevelIndex get  1 +  dup  logLevelIndex set
-    255 > [ 255 logLevelIndex set ] when
+    logLevel get
+    ! dup "OLD LEVEL: %u\n" printf
+    logLevelIndex get  logStack get  set-nth
+    logLevelIndex get  1 +  255 max  logLevelIndex set
+    @log-level
+    ! dup "NEW LEVEL: %u\n" printf
     logLevel set ;
 
 : LOG-poplevel ( -- )
     logLevelIndex get  1 -  dup  logLevelIndex set
     0 < [ 0 logLevelIndex set ] when
-    logLevelIndex get  logStack get  nth
+    logLevelIndex get  logStack get  nth  @log-level
+    ! dup "POP LEVEL: %u\n" printf
     logLevel set
     ;
 
-ERROR: undefined-log-level ;
-
-: log-level@ ( log-level -- value )  log-levels at ;
-
-: log-level<= ( new-log-level current-log-level -- ? )
-    [ log-level@ ] dip  log-level@  <= ;
-        
-: log? ( log-level -- ? )
-    LOG_NONE get
-    [ drop f ] 
-    [ logLevel get log-level<= ]
-    if
-    LOG_TEST get
-    [ drop t ] when ;
-
 : (syslog) ( level msg -- )
-    [ log-level@ logFacility get get bitor ] dip syslog ;
-
+    ! over "(syslog): LEVEL: %u\n" printf 
+    [ log-level@ logFacility get get bitor ] dip
+    ! [ log-level@  ] dip
+    syslog
+    f LOG_TEST set ;
+    
 : (location) ( loc -- string )
     dup
     [ unparse +space ]
@@ -197,6 +205,7 @@ ERROR: undefined-log-level ;
     ;
 
 : (logstring) ( msg level name loc -- )
+    ! [ dup "(logstring): level: %u\n" printf ] 3dip 
     (location)
     [ dup log? ] 2dip rot
     [ prepend  +colon-space
