@@ -110,9 +110,8 @@ INITIALIZE: LOG_FACMASK     "03F8" hex> ; ! facilities bit mask
     } ;
 
         
-: level>string1 ( level -- string )
+: level>string ( level -- string )
     {
-        { LOG_NONE    [ "LOG_NONE    " ] }
         { LOG_EMERG   [ "LOG_EMERG   " ] }
         { LOG_ALERT   [ "LOG_ALERT   " ] }
         { LOG_CRIT    [ "LOG_CRIT    " ] }
@@ -121,12 +120,7 @@ INITIALIZE: LOG_FACMASK     "03F8" hex> ; ! facilities bit mask
         { LOG_NOTICE  [ "LOG_NOTICE  " ] }
         { LOG_INFO    [ "LOG_INFO    " ] }
         { LOG_DEBUG   [ "LOG_DEBUG   " ] }
-        { LOG_TEST    [ "LOG_TEST    " ] }
     } case ;
-
-: level>string ( level -- string )
-    log-levels at drop "string"
-    ;
 
 SYMBOL: logLevel
 SYMBOL: logFacility
