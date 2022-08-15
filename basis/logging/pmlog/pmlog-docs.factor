@@ -1,4 +1,4 @@
-! Copyright (C) 2012 PolyMicro Systems.
+! Copyright (C) 2012 Dave Carlton
 ! See http://factorcode.org/license.txt for BSD license.
 USING: assocs help.markup help.syntax kernel math sequences
 strings ;
@@ -32,52 +32,41 @@ $nl
 
 { $logwords
   { }
-  \ LOGEMERGENCY
-  \ LOGALERT
-  \ LOGCRITICAL
-  \ LOGERROR
-  \ LOGWARNING
-  \ LOGNOTICE
-  \ LOGINFO
-  \ LOGDEBUG
-  \ LOGDEBUG1
-  \ LOGDEBUG2
+  \ LOG-EMERGENCY
+  \ LOG-ALERT
+  \ LOG-CRITICAL
+  \ LOG-ERROR
+  \ LOG-WARNING
+  \ LOG-NOTICE
+  \ LOG-INFO
+  \ LOG-DEBUG
   \ LOG
-  \ LOGHERE
+  \ LOG-HERE
 } 
 
 $nl
 "Global Control"
 { $subsections
   logLevel
-  LOGsetlevel
-  LOGpushlevel
-  LOGpoplevel
+  LOG-setlevel
+  LOG-setfacility
+  LOG-pushlevel
+  LOG-poplevel
 }
 
 "Log Levels"
 { $subsections
-  logLevelNone      
-  logLevelEmergency     
-  logLevelAlert     
-  logLevelCritical  
-  logLevelError     
-  logLevelWarning   
-  logLevelNotice    
-  logLevelInfo      
-  logLevelDebug     
-  logLevelDebug1    
-  logLevelDebug2    
-  logLevelTest      
+  LOG_NONE      
+  LOG_EMERG     
+  LOG_ALERT     
+  LOG_CRIT  
+  LOG_ERR  
+  LOG_WARNING   
+  LOG_NOTICE    
+  LOG_INFO      
+  LOG_DEBUG     
+  LOG_TEST    
 }
-
-"Test Words"
-{ $subsections
-  LOGwith
-  LOGERR
-  LOGVALUE
-}
-
 
 { $vocab-link "pmlog" }
 ;
@@ -95,213 +84,156 @@ $nl
 "LOG - Sends just the basic information."
   { $example 
     ": main ( -- ) "
-    "    [ main-code ] [ ] [ LOGINFO ] cleanup ;"
+    "    [ main-code ] [ ] [ LOG-INFO ] cleanup ;"
   } 
 $nl
 "LOG\" - Sends the following string terminated by a \""
 $nl
-">LOG - Sends the string on top of the stack."
-$nl
     ;
 
-! HELP: LOG\" { $syntax "LOG\" \"" } ;
-
-
-HELP: LOGwith
-{ $values 
-  { "msg" "string to send to syslog" }
-  { "level" "log level" }    
-}
-{ $description "Sends message to syslogd using the specified log level." } ;
-
-HELP: LOGEMERGENCY
-{ $syntax "LOGEMERGENCY" }
+HELP: LOG-EMERGENCY
+{ $syntax "LOG-EMERGENCY" }
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the EMERGENCY log level." } 
 { $examples
   { $example "USING: logging.pmlog"
     ": main ( -- ) "
-    "    [ main-code ] [ ] [ LOGEMERGENCY ] cleanup ;"
+    "    [ main-code ] [ ] [ LOG-EMERGENCY ] cleanup ;"
     " "
   }
 }
 { $see-also
-  \ LOGEMERGENCY"   ! "
+  \ LOG-EMERGENCY"   ! "
 } ;
 
 
-HELP: LOGEMERGENCY"
-{ $syntax "LOGEMERGENCY\" message\"" }
+HELP: LOG-EMERGENCY"
+{ $syntax "LOG-EMERGENCY\" message\"" }
 { $values { "message" "a message string to syslog" } }
 { $description "Reads from the input string until the next occurrence of \" and creates a new message string and sends it to the syslog." }
 { $examples
-  { $example "USING: logging.pmlog;" "LOGEMERENCY\" an emergency message\"" "" }
+  { $example "USING: logging.pmlog;" "LOG-EMERENCY\" an emergency message\"" "" }
   { $example ": main ( -- ) "
     "    [ main-code ]"
-    "    [ ] [ LOGEMERGENCY\" Emergency happened\" ]"
+    "    [ ] [ LOG-EMERGENCY\" Emergency happened\" ]"
     "  cleanup ;"
     " "
   } 
 } 
 { $see-also
-  \ LOGEMERGENCY
+  \ LOG-EMERGENCY
 } ;
 
 
-! HELP: >LOGEMERGENCY
-! { $syntax "string >LOGEMERGENCY" }
-! { $values { "msg" string } }
-! { $description "Sends message to syslogd using the EMERGENCY log level." } 
-! { $examples
-!   { $example ": main ( -- )"
-!     "   [ main-code ]"
-!     "   [ ]"
-!     "   [ error value number>string"
-!     "      \"Value: \" prepend >LOGEmergency "
-!     "   ] cleanup ;"
-!     ""
-!   }
-! }  
-! { $see-also
-!   \ LOGEMERGENCY
-!   \ LOGEMERGENCY" ! "
-! } ;
-
-
-
-HELP: LOGALERT
+HELP: LOG-ALERT
 { $values { "msg" "string to send to syslog" } }
   { $description "Sends message to syslogd using the ALERT log level." } ;
 
-HELP: LOGCRITICAL
+HELP: LOG-CRITICAL
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the CRITICAL log level." } ;
 
-HELP: LOGWARNING
+HELP: LOG-WARNING
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the WARNING log level." } ;
 
-HELP: LOGNOTICE
+HELP: LOG-NOTICE
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the NOTICE log level." } ;
 
-HELP: LOGINFO
+HELP: LOG-INFO
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the INFO log level." } ;
 
-HELP: LOGDEBUG
+HELP: LOG-DEBUG
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends message to syslogd using the DEBUG log level." } ;
 
-! HELP: LOGDEBUG"
-! { $values { "msg" "string to send to syslog" } }
-! { $description "Sends following string to syslogd using the DEBUG log level." } ;
-
-HELP: LOGDEBUG1
+HELP: LOG-DEBUG"
 { $values { "msg" "string to send to syslog" } }
-{ $description "Sends message to syslogd using the DEBUG1 log level." } ;
+{ $description "Sends following string to syslogd using the DEBUG log level." } ;
 
-HELP: LOGDEBUG2
-{ $values { "msg" "string to send to syslog" } }
-{ $description "Sends message to syslogd using the DEBUG2 log level." } ;
-
-HELP: LOGHERE
+HELP: LOG-HERE
 { $description "Sends test message to syslogd regardless of log level."
   "Typically used to verify code is reached" } ;
-
-! HELP: LOG" 
-! { $values { "msg" "string to send to syslog" } }
-! { $description "Sends note message to syslogd regardless of log level." } ;
 
 HELP: LOG
 { $values { "msg" "string to send to syslog" } }
 { $description "Sends note message to syslogd regardless of log level." } ;
 
-! HELP: LOGERR
-!   { $values
-!     { "msg" "string to send to syslog" }
-!     { "error" integer }
-!   } 
-!   { $description "Conditionally test the error value and sends test message to syslogd regardless of log level." } ;
+HELP: LOG" 
+{ $values { "msg" "string to send to syslog" } }
+{ $description "Sends note message to syslogd regardless of log level." } ;
 
-! HELP: LOGERROR
-! { $values { "msg" "string to send to syslog" } }
-! { $description "Sends message to syslogd using the ERROR log level." } ;
-
-HELP: LOGsetlevel
+HELP: LOG-setlevel
 { $values { "level" integer } }
 { $description "Sets the debugging level. LOG words with priority less than the level will not send messages to the syslog" } ;
 
-HELP: LOGpoplevel
+HELP: LOG-poplevel
 { $description "Returns log level to previous level" } ;
 
-HELP: LOGpushlevel
+HELP: LOG-pushlevel
 { $values { "level" integer } }
 { $description "Saves the current log level and establishes a new log level. Use this to control log level in loops where you may not wish to view reams of information" }
 ;
 
-HELP: LOGVALUE
-{ $values
-  { "msg" "string to send to syslog" }
-  { "value" integer }
-}
-  { $description "Test message along with a value to syslogd regardless of log level." } ;
-
-HELP: logLevelNone
+HELP: LOG_NONE
 { $values
         { "value" integer }
 }
-{ $description "Value for no log level" } ;
+{ $description "Value for no log level" } 
+{ $notes "This disables all logging except for logLevelTest" }
+;
 
-HELP: logLevelEmergency
+HELP: LOG_EMERG
 { $values
         { "value" integer }
 }
 { $description "Value for the EMERGENCY log level" } ;
 
-HELP: logLevelAlert
+HELP: LOG_ALERT
 { $values
         { "value" integer }
 }
 { $description "Value for the ALERT log level" } ;
 
-HELP: logLevelCritical
+HELP: LOG_CRIT
 { $values
         { "value" integer }
 }
 { $description "Value for the CRITICAL log level" } ;
 
-HELP: logLevelError
+HELP: LOG_ERR
 { $values
         { "value" integer }
 }
 { $description "Value for the ERROR log level" } ;
 
-HELP: logLevelWarning
+HELP: LOG_WARNING
 { $values
         { "value" integer }
 }
 { $description "Value for the WARNING log level" } ;
 
-HELP: logLevelInfo
+HELP: LOG_INFO
 { $values
         { "value" integer }
 }
 { $description "Value for the INFO log level" } ;
 
-HELP: logLevelNotice
+HELP: LOG_NOTICE
 { $values
         { "value" integer }
 }
 { $description "Value for the NOTICE log level" } ;
 
-HELP: logLevelDebug
+HELP: LOG_DEBUG
 { $values
         { "value" integer }
 }
 { $description "Value for the DEBUG log level" } ;
 
-HELP: logLevelTest
+HELP: LOG_TEST
 { $values
         { "value" integer }
 }
@@ -321,9 +253,9 @@ HELP: logLevel
   logLevel
   logStack
   logLevelIndex
-  LOGsetlevel
-  LOGpushlevel
-  LOGpoplevel
+  LOG-setlevel
+  LOG-pushlevel
+  LOG-poplevel
 }
 
 ;
@@ -334,9 +266,9 @@ HELP: logLevelIndex
   logLevel
   logStack
   logLevelIndex
-  LOGsetlevel
-  LOGpushlevel
-  LOGpoplevel
+  LOG-setlevel
+  LOG-pushlevel
+  LOG-poplevel
 }
 ;
 
@@ -346,9 +278,9 @@ HELP: logStack
   logLevel
   logStack
   logLevelIndex
-  LOGsetlevel
-  LOGpushlevel
-  LOGpoplevel
+  LOG-setlevel
+  LOG-pushlevel
+  LOG-poplevel
 }
 ;
 
