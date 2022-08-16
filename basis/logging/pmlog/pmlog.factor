@@ -3,7 +3,7 @@
 USING: accessors alien.c-types alien.syntax arrays assocs
 combinators formatting generalizations io kernel lexer math
 math.order math.parser multiline namespaces prettyprint
-sequences strings strings.parser words ;
+sequences strings strings.parser words help.syntax help.markup vocabs ;
 
 IN: libc
 LIBRARY: libc
@@ -14,16 +14,24 @@ FUNCTION: int setlogmask ( int maskpri )
 FUNCTION: void syslog ( int priority, c-string message )
 FUNCTION: void vsyslog ( int priority, c-string message, c-string args )
 
-IN: pmlog
-! Log Levels
-SYMBOLS: LOG_NONE LOG_EMERG LOG_ALERT LOG_CRIT LOG_ERR LOG_WARNING LOG_NOTICE LOG_INFO LOG_DEBUG ;
+IN: logging.pmlog
+
+! Log levels
+SYMBOLS: LOG_NONE LOG_EMERG LOG_ALERT LOG_CRIT LOG_ERR LOG_WARNING LOG_NOTICE LOG_INFO LOG_DEBUG ; 
+
 ! Facilities
 SYMBOLS: LOG_KERN LOG_USER LOG_MAIL LOG_DAEMON LOG_AUTH LOG_SYSLOG LOG_LPR LOG_NEWS LOG_UUCP LOG_CRON LOG_AUTHPRIV LOG_FTP LOG_NETINFO LOG_REMOTEAUTH LOG_INSTALL LOG_RAS LOG_LOCAL0 LOG_LOCAL1 LOG_LOCAL2 LOG_LOCAL3 LOG_LOCAL4 LOG_LOCAL5 LOG_LOCAL6 LOG_LOCAL7 LOG_LAUNCHD ;
 
-SYMBOL: LOG_NFACILITIES
-SYMBOL: LOG_FACMASK
-SYMBOL: LOG_TEST
+! VARIABLES
 SYMBOL: LOG_OPEN
+SYMBOL: LOG_TEST
+
+
+<PRIVATE
+SYMBOL: logLevel
+SYMBOL: logFacility
+SYMBOL: logLevelIndex
+SYMBOL: logStack
 
 INITIALIZE: LOG_KERN         0  3 shift ; ! kernel messages
 INITIALIZE: LOG_USER         1  3 shift ; ! random user-level messages
@@ -50,9 +58,16 @@ INITIALIZE: LOG_LOCAL5      21  3 shift ; ! reserved for local use
 INITIALIZE: LOG_LOCAL6      22  3 shift ; ! reserved for local use
 INITIALIZE: LOG_LOCAL7      23  3 shift ; ! reserved for local use
 INITIALIZE: LOG_LAUNCHD     24  3 shift ; ! launchd - general bootstrap daemon
-INITIALIZE: LOG_NFACILITIES 25          ; ! current number of facilities
-INITIALIZE: LOG_FACMASK     "03F8" hex> ; ! facilities bit mask
+
 INITIALIZE: LOG_OPEN { "PMLOG" 0 LOG_USER } ;
+INITIALIZE: LOG_NONE f ;
+INITIALIZE: LOG_TEST f ;
+INITIALIZE: logLevel LOG_INFO ;
+INITIALIZE: logFacility LOG_SYSLOG ;
+INITIALIZE: logLevelIndex 0 ; 
+INITIALIZE: logStack 256 0 <array> ;
+
+CONSTANT: LOG_FACMASK "0x03F8" ! facilities bit mask
 
 : log-levels ( --  assoc )
     H{ 
@@ -67,33 +82,9 @@ INITIALIZE: LOG_OPEN { "PMLOG" 0 LOG_USER } ;
         { LOG_TEST    8 } 
     } ;
 
-ERROR: undefined-log-level ;
-        
-: level>string ( level -- string )
-    {
-        { LOG_EMERG   [ "LOG_EMERG   " ] }
-        { LOG_ALERT   [ "LOG_ALERT   " ] }
-        { LOG_CRIT    [ "LOG_CRIT    " ] }
-        { LOG_ERR     [ "LOG_ERR     " ] }
-        { LOG_WARNING [ "LOG_WARNING " ] }
-        { LOG_NOTICE  [ "LOG_NOTICE  " ] }
-        { LOG_INFO    [ "LOG_INFO    " ] }
-        { LOG_DEBUG   [ "LOG_DEBUG   " ] }
-        { LOG_TEST    [ "LOG_TEST    " ] }
-    } case ;
+PRIVATE>
 
-SYMBOL: logLevel
-SYMBOL: logFacility
-SYMBOL: logLevelIndex
-SYMBOL: logStack
-
-INITIALIZE: LOG_NONE f ;
-INITIALIZE: LOG_TEST f ;
-INITIALIZE: logLevel LOG_INFO ;
-INITIALIZE: logFacility LOG_SYSLOG ;
-INITIALIZE: logLevelIndex 0 ; 
-INITIALIZE: logStack 256 0 <array> ;
-
+! Log Control
 : LOG-open ( -- )   LOG_OPEN get  [ first ] keep  [ second ] keep third get  openlog ;
 : LOG-enable ( -- )   f LOG_NONE set ;
 : LOG-disable ( -- )   t LOG_NONE set  f LOG_TEST set ; 
@@ -102,6 +93,8 @@ INITIALIZE: logStack 256 0 <array> ;
 : LOG-setfacility ( facility -- )   logFacility set ;
 : LOG-setfacilities ( seq -- )   [ get logFacility get  bitor  logFacility set ] each ;
 
+! Internals
+<PRIVATE
 : log-level@ ( log-level -- value )  log-levels at ;
 
 : log-level<= ( new-log-level current-log-level -- ? )
@@ -125,6 +118,23 @@ INITIALIZE: logStack 256 0 <array> ;
     ! dup "log?: LOG_TEST: %u\n" printf
     [ drop t ] when
 ;
+
+ERROR: undefined-log-level ;
+        
+: level>string ( level -- string )
+    {
+        { LOG_EMERG   [ "LOG_EMERG   " ] }
+        { LOG_ALERT   [ "LOG_ALERT   " ] }
+        { LOG_CRIT    [ "LOG_CRIT    " ] }
+        { LOG_ERR     [ "LOG_ERR     " ] }
+        { LOG_WARNING [ "LOG_WARNING " ] }
+        { LOG_NOTICE  [ "LOG_NOTICE  " ] }
+        { LOG_INFO    [ "LOG_INFO    " ] }
+        { LOG_DEBUG   [ "LOG_DEBUG   " ] }
+        { LOG_TEST    [ "LOG_TEST    " ] }
+    } case ;
+
+PRIVATE>
 
 : LOG-pushlevel ( level -- )
     logLevel get
@@ -156,7 +166,7 @@ INITIALIZE: logStack 256 0 <array> ;
     [ drop "Listener " ]
     if ;
 
-: (loghere) ( level name loc -- )
+: (log-here) ( level name loc -- )
     [ dup log? ] 2dip rot
     [ [ "IN: " prepend ] dip
         (location) prepend +space
@@ -166,7 +176,7 @@ INITIALIZE: logStack 256 0 <array> ;
     [ 2drop drop ] if
     ;
 
-: (logmsg) ( level name loc msg -- )
+: (log-message) ( level name loc msg -- )
     [ dup log? ] 3dip 4 nrot
     [ [ (location) prepend +colon-space ] dip
       [ dup level>string +colon-space ] 2dip
@@ -174,7 +184,7 @@ INITIALIZE: logStack 256 0 <array> ;
     [ 2drop 2drop ] if
     ;
 
-: (logstring) ( msg level name loc -- )
+: (log-string) ( msg level name loc -- )
     ! [ dup "(logstring): level: %u\n" printf ] 3dip 
     (location)
     [ dup log? ] 2dip rot
@@ -187,44 +197,44 @@ INITIALIZE: logStack 256 0 <array> ;
 : (embed-here) ( word -- word )
     last-word name>> suffix!
     last-word props>> "loc" swap at suffix!
-    \ (loghere) suffix! ;
+    \ (log-here) suffix! ;
 
-: (embed-inline) ( word -- word )
+: (embed-message) ( word -- word )
     last-word name>> suffix!
     last-word props>> "loc" swap at suffix!
     lexer get skip-blank parse-string suffix!
-    \ (logmsg) suffix! ;
+    \ (log-message) suffix! ;
 
 : (embed-string) ( word -- word )
     last-word name>> suffix!
     last-word props>> "loc" swap at suffix!
-    \ (logstring) suffix! ;
+    \ (log-string) suffix! ;
 
 
 SYNTAX: LOG \ LOG-settest suffix! \ LOG_DEBUG suffix! (embed-string) ;
-SYNTAX: LOG" \ LOG_TEST suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG" \ LOG_TEST suffix! (embed-message) ; ! "for the editors sake
 SYNTAX: LOG-HERE \ LOG_TEST suffix! (embed-here) ;
 
 SYNTAX: LOG-DEBUG \ LOG_DEBUG suffix! (embed-string) ;
-SYNTAX: LOG-DEBUG" \ LOG_DEBUG suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-DEBUG" \ LOG_DEBUG suffix! (embed-message) ; ! "for the editors sake
 
 SYNTAX: LOG-INFO \ LOG_INFO suffix! (embed-string) ;
-SYNTAX: LOG-INFO" \ LOG_INFO suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-INFO" \ LOG_INFO suffix! (embed-message) ; ! "for the editors sake
 
 SYNTAX: LOG-NOTICE \ LOG_NOTICE suffix! (embed-string) ;
-SYNTAX: LOG-NOTICE" \ LOG_NOTICE suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-NOTICE" \ LOG_NOTICE suffix! (embed-message) ; ! "for the editors sake
 
 SYNTAX: LOG-WARNING \ LOG_WARNING suffix! (embed-string) ;
-SYNTAX: LOG-WARNING" \ LOG_WARNING suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-WARNING" \ LOG_WARNING suffix! (embed-message) ; ! "for the editors sake
 
 SYNTAX: LOG-ERROR \ LOG_ERR suffix! (embed-string) ;
-SYNTAX: LOG-ERROR" \ LOG_ERR suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-ERROR" \ LOG_ERR suffix! (embed-message) ; ! "for the editors sake
 
 SYNTAX: LOG-CRITICAL \ LOG_CRIT suffix! (embed-string) ;
-SYNTAX: LOG-CRITICAL" \ LOG_CRIT suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-CRITICAL" \ LOG_CRIT suffix! (embed-message) ; ! "for the editors sake
 
 SYNTAX: LOG-ALERT \ LOG_ALERT suffix! (embed-string) ;
-SYNTAX: LOG-ALERT" \ LOG_ALERT suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-ALERT" \ LOG_ALERT suffix! (embed-message) ; ! "for the editors sake
 
 SYNTAX: LOG-EMERGENCY \ LOG_EMERG suffix! (embed-string) ;
-SYNTAX: LOG-EMERGENCY" \ LOG_EMERG suffix! (embed-inline) ; ! "for the editors sake
+SYNTAX: LOG-EMERGENCY" \ LOG_EMERG suffix! (embed-message) ; ! "for the editors sake
