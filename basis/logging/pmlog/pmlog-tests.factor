@@ -3,7 +3,7 @@
 
 USING: formatting kernel logging logging.pmlog math.order
 math.parser namespaces pmlog sequences tools.test ;
-FROM: pmlog => log? ;
+! FROM: pmlog => log? ;
 IN: pmlog.tests
 
 : LOG-LEVEL-TEST ( -- )
@@ -15,7 +15,6 @@ IN: pmlog.tests
     "Notice" LOG-NOTICE
     "Info" LOG-INFO
     "Debug" LOG-DEBUG
-    "plain LOG always sends" LOG
 ;
 
 : LOGGING-TEST ( -- )
