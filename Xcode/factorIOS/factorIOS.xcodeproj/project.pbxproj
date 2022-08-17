@@ -261,12 +261,12 @@
 		75E3E48B28AC280100B24A91 /* Config.arm.64 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Config.arm.64; sourceTree = "<group>"; };
 		75E3E48D28AC280100B24A91 /* quotations.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = quotations.hpp; sourceTree = "<group>"; };
 		75E3E5A828AC295000B24A91 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
-		75E3E5A928AC295000B24A91 /* factor-x86_64-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-x86_64-Info.plist"; path = "../factor-x86_64-Info.plist"; sourceTree = "<group>"; };
-		75E3E5AA28AC295100B24A91 /* factor-arm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-arm-Info.plist"; path = "../factor-arm-Info.plist"; sourceTree = "<group>"; };
+		75E3E5A928AC295000B24A91 /* factor-x86_64-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-x86_64-Info.plist"; path = "../factorOSX/factor-x86_64-Info.plist"; sourceTree = "<group>"; };
+		75E3E5AA28AC295100B24A91 /* factor-arm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-arm-Info.plist"; path = "../factorOSX/factor-arm-Info.plist"; sourceTree = "<group>"; };
 		75E3E5AB28AC295100B24A91 /* GNUmakefile */ = {isa = PBXFileReference; lastKnownFileType = text; name = GNUmakefile; path = ../../GNUmakefile; sourceTree = "<group>"; };
 		75E3E5AC28AC295100B24A91 /* shell.nix */ = {isa = PBXFileReference; lastKnownFileType = text; name = shell.nix; path = ../../shell.nix; sourceTree = "<group>"; };
 		75E3E5AD28AC295100B24A91 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = build.sh; path = ../../build.sh; sourceTree = "<group>"; };
-		75E3E5AF28AC2F4300B24A91 /* factor.image */ = {isa = PBXFileReference; lastKnownFileType = file; name = factor.image; path = ../factor.image; sourceTree = "<group>"; };
+		75E3E5AF28AC2F4300B24A91 /* factor.image */ = {isa = PBXFileReference; lastKnownFileType = file; name = factor.image; path = ../../factor.image; sourceTree = "<group>"; };
 		75E3E5B128AC32B100B24A91 /* factorIOS.image */ = {isa = PBXFileReference; lastKnownFileType = file; path = factorIOS.image; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -476,7 +476,8 @@
 				75E3E46328AC280100B24A91 /* Config.arm */,
 				75E3E48B28AC280100B24A91 /* Config.arm.64 */,
 			);
-			path = Config;
+			name = Config;
+			path = ../../vm;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
