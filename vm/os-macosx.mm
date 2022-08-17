@@ -35,7 +35,7 @@ const char* default_image_path(void) {
 //    NSString* path = [bundle bundlePath];
 //    NSString* executablePath = [[bundle executablePath] stringByResolvingSymlinksInPath];
 //    NSString* executable = [executablePath lastPathComponent];
-    NSString *image = [bundle pathForResource:@"InfoPlist" ofType:@"image"];
+    NSString *image = [bundle pathForResource:@"factorIOS" ofType:@"image"];
     return [image UTF8String];
     
 //    NSString* returnVal;
