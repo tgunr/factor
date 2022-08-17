@@ -10,7 +10,6 @@ namespace factor {
 static const unsigned SIGNAL_HANDLER_STACK_FRAME_SIZE = 192;
 
 inline static void flush_icache(cell start, cell len) {
-  int result;
   cell end = start + len;
 
   // From compiler-rt, Apache-2.0 WITH LLVM-exception
