@@ -3,7 +3,7 @@
 USING: accessors combinators combinators.smart command-line eval
 io io.pathnames kernel layouts math math.parser namespaces
 parser parser.notes prettyprint sequences source-files system
-vocabs.loader ;
+vocabs.loader logging logging.pmlog ; 
 IN: command-line.startup
 
 : help? ( -- ? )
@@ -49,6 +49,7 @@ from within Factor for more information.
     ] with-variable ;
 
 : command-line-startup ( -- )
+    LOG-HERE
     (command-line) parse-command-line {
         { [ help? ] [ help. ] }
         { [ version? ] [ version-info print ] }
