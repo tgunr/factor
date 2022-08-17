@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7530FB9128AD994C00F3A860 /* factorIOS.image in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E5B128AC32B100B24A91 /* factorIOS.image */; };
 		75E3E39728AC24CB00B24A91 /* factorIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E38728AC24C900B24A91 /* factorIOSApp.swift */; };
 		75E3E39828AC24CB00B24A91 /* factorIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E38728AC24C900B24A91 /* factorIOSApp.swift */; };
 		75E3E39928AC24CB00B24A91 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E38828AC24C900B24A91 /* ContentView.swift */; };
@@ -41,19 +42,16 @@
 		75E3E4C528AC280200B24A91 /* words.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3DF28AC280100B24A91 /* words.cpp */; };
 		75E3E4C628AC280200B24A91 /* jit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E028AC280100B24A91 /* jit.cpp */; };
 		75E3E4C728AC280200B24A91 /* jit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E028AC280100B24A91 /* jit.cpp */; };
-		75E3E4C928AC280200B24A91 /* Config.unix in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E3E228AC280100B24A91 /* Config.unix */; };
 		75E3E4CA28AC280200B24A91 /* bignum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E328AC280100B24A91 /* bignum.cpp */; };
 		75E3E4CB28AC280200B24A91 /* bignum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E328AC280100B24A91 /* bignum.cpp */; };
 		75E3E4CC28AC280200B24A91 /* code_heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E428AC280100B24A91 /* code_heap.cpp */; };
 		75E3E4CD28AC280200B24A91 /* code_heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E428AC280100B24A91 /* code_heap.cpp */; };
-		75E3E4D128AC280200B24A91 /* Config.macosx in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E3E628AC280100B24A91 /* Config.macosx */; };
 		75E3E4D628AC280200B24A91 /* run.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E928AC280100B24A91 /* run.cpp */; };
 		75E3E4D728AC280200B24A91 /* run.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3E928AC280100B24A91 /* run.cpp */; };
 		75E3E4DA28AC280200B24A91 /* contexts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3EF28AC280100B24A91 /* contexts.cpp */; };
 		75E3E4DB28AC280200B24A91 /* contexts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3EF28AC280100B24A91 /* contexts.cpp */; };
 		75E3E4E028AC280200B24A91 /* data_heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3F228AC280100B24A91 /* data_heap.cpp */; };
 		75E3E4E128AC280200B24A91 /* data_heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3F228AC280100B24A91 /* data_heap.cpp */; };
-		75E3E4E928AC280200B24A91 /* Config.macosx.x86.64 in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E3F728AC280100B24A91 /* Config.macosx.x86.64 */; };
 		75E3E4EE28AC280200B24A91 /* data_heap_checker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3FC28AC280100B24A91 /* data_heap_checker.cpp */; };
 		75E3E4EF28AC280200B24A91 /* data_heap_checker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E3FC28AC280100B24A91 /* data_heap_checker.cpp */; };
 		75E3E4F228AC280200B24A91 /* cpu-arm.64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E40028AC280100B24A91 /* cpu-arm.64.cpp */; };
@@ -67,7 +65,6 @@
 		75E3E50B28AC280200B24A91 /* callstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E41A28AC280100B24A91 /* callstack.cpp */; };
 		75E3E50C28AC280200B24A91 /* io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E41C28AC280100B24A91 /* io.cpp */; };
 		75E3E50D28AC280200B24A91 /* io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E41C28AC280100B24A91 /* io.cpp */; };
-		75E3E51328AC280200B24A91 /* Config.macosx.arm64 in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E42028AC280100B24A91 /* Config.macosx.arm64 */; };
 		75E3E51628AC280200B24A91 /* arrays.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E42928AC280100B24A91 /* arrays.cpp */; };
 		75E3E51728AC280200B24A91 /* arrays.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E42928AC280100B24A91 /* arrays.cpp */; };
 		75E3E51C28AC280200B24A91 /* callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E43028AC280100B24A91 /* callbacks.cpp */; };
@@ -80,7 +77,6 @@
 		75E3E52F28AC280200B24A91 /* debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E44128AC280100B24A91 /* debug.cpp */; };
 		75E3E53028AC280200B24A91 /* to_tenured_collector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E44228AC280100B24A91 /* to_tenured_collector.cpp */; };
 		75E3E53128AC280200B24A91 /* to_tenured_collector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E44228AC280100B24A91 /* to_tenured_collector.cpp */; };
-		75E3E53528AC280200B24A91 /* Config.x86.64 in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E44428AC280100B24A91 /* Config.x86.64 */; };
 		75E3E53A28AC280200B24A91 /* code_blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E44828AC280100B24A91 /* code_blocks.cpp */; };
 		75E3E53B28AC280200B24A91 /* code_blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E44828AC280100B24A91 /* code_blocks.cpp */; };
 		75E3E53C28AC280200B24A91 /* mvm-none.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E44928AC280100B24A91 /* mvm-none.cpp */; };
@@ -91,8 +87,6 @@
 		75E3E54528AC280200B24A91 /* gc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E45028AC280100B24A91 /* gc.cpp */; };
 		75E3E54A28AC280200B24A91 /* vm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E45328AC280100B24A91 /* vm.cpp */; };
 		75E3E54B28AC280200B24A91 /* vm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E45328AC280100B24A91 /* vm.cpp */; };
-		75E3E55F28AC280200B24A91 /* master.hpp.gch in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E46128AC280100B24A91 /* master.hpp.gch */; };
-		75E3E56328AC280200B24A91 /* Config.arm in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E46328AC280100B24A91 /* Config.arm */; };
 		75E3E56A28AC280200B24A91 /* errors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E46728AC280100B24A91 /* errors.cpp */; };
 		75E3E56B28AC280200B24A91 /* errors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E46728AC280100B24A91 /* errors.cpp */; };
 		75E3E56C28AC280200B24A91 /* compaction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E46A28AC280100B24A91 /* compaction.cpp */; };
@@ -118,7 +112,6 @@
 		75E3E59D28AC280200B24A91 /* inline_cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E48828AC280100B24A91 /* inline_cache.cpp */; };
 		75E3E59E28AC280200B24A91 /* aging_collector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E48928AC280100B24A91 /* aging_collector.cpp */; };
 		75E3E59F28AC280200B24A91 /* aging_collector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E48928AC280100B24A91 /* aging_collector.cpp */; };
-		75E3E5A328AC280200B24A91 /* Config.arm.64 in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E48B28AC280100B24A91 /* Config.arm.64 */; };
 		75E3E5AE28AC2D1200B24A91 /* os-macosx.mm in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E48228AC280100B24A91 /* os-macosx.mm */; };
 		75E3E5B228AC32B100B24A91 /* factorIOS.image in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E5B128AC32B100B24A91 /* factorIOS.image */; };
 /* End PBXBuildFile section */
@@ -571,16 +564,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				75E3E51328AC280200B24A91 /* Config.macosx.arm64 in Resources */,
+				7530FB9128AD994C00F3A860 /* factorIOS.image in Resources */,
 				75E3E57928AC280200B24A91 /* factor.rs in Resources */,
 				75E3E39C28AC24CB00B24A91 /* Assets.xcassets in Resources */,
-				75E3E55F28AC280200B24A91 /* master.hpp.gch in Resources */,
-				75E3E4C928AC280200B24A91 /* Config.unix in Resources */,
-				75E3E4E928AC280200B24A91 /* Config.macosx.x86.64 in Resources */,
-				75E3E5A328AC280200B24A91 /* Config.arm.64 in Resources */,
-				75E3E4D128AC280200B24A91 /* Config.macosx in Resources */,
-				75E3E56328AC280200B24A91 /* Config.arm in Resources */,
-				75E3E53528AC280200B24A91 /* Config.x86.64 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
