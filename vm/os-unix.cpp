@@ -111,7 +111,7 @@ segment::segment(cell size_, bool executable_p) {
                               MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
     
-    printf("mmap: %0X8 set: ", array);
+    printf("mmap: %p set: ", array);
     print_prot_bits(prot);
     printf("\n");
 
