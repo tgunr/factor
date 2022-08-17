@@ -39,27 +39,17 @@ void try_mmap_jit_and_mprotect(size_t size, int prot_mmap, int prot_mprotect) {
     putchar('\n');
 }
 
-int main(int argc, const char *argv[]) {
-for (int prot_mmap = 0; prot_mmap < 8; prot_mmap++) {
-for (int prot_mprotect = 0; prot_mprotect < 8; prot_mprotect++) {
-try_mmap_jit_and_mprotect(4096, prot_mmap, prot_mprotect);
+void dommapTest() {
+    for (int prot_mmap = 0; prot_mmap < 8; prot_mmap++) {
+        for (int prot_mprotect = 0; prot_mprotect < 8; prot_mprotect++) {
+            try_mmap_jit_and_mprotect(4096, prot_mmap, prot_mprotect);
+        }
     }
-  }
-return 0;
 }
 
-//int main(int argc, char** argv) {
-    
-//    int size = 4096;
-//    int map_flags = MAP_ANON | MAP_PRIVATE | MAP_JIT;
-//    void* mem = mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, map_flags, -1, 0);
-//    if (mem == MAP_FAILED||mem==nullptr)
-//        printf("Failed to allocate executable memory");
-//    if (mprotect(mem, size, PROT_READ | PROT_EXEC) != 0)
-//        printf("WriteProtectMemory failed!\nmprotect: %s\n", strerror(errno));
-//    return 0;
-
-//    factor::init_mvm();
-//    factor::start_standalone_factor(argc, argv);
-//    return 0;
-//}
+int main(int argc, char** argv) {
+    dommapTest();
+    factor::init_mvm();
+    factor::start_standalone_factor(argc, argv);
+    return 0;
+}
