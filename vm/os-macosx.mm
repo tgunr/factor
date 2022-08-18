@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+//#import <UIKit/UIKit.h>
 
 #include <mach/mach_time.h>
 #include <sys/utsname.h>
@@ -32,37 +32,40 @@ const char* vm_executable_path(void) {
 
 const char* default_image_path(void) {
     NSBundle* bundle = [NSBundle mainBundle];
-//    NSString* path = [bundle bundlePath];
-//    NSString* executablePath = [[bundle executablePath] stringByResolvingSymlinksInPath];
-//    NSString* executable = [executablePath lastPathComponent];
-    NSString *image = [bundle pathForResource:@"factorIOS" ofType:@"image"];
-    return [image UTF8String];
-    
-//    NSString* returnVal;
-//
-//    if ([path hasSuffix:@".app"] || [path hasSuffix:@".app/"]) {
-//        NSFileManager* mgr = [NSFileManager defaultManager];
-//        NSString* root = [path stringByDeletingLastPathComponent];
-//        NSString* resources = [path stringByAppendingPathComponent:@"Contents/Resources"];
-//
-//        NSString* imageInBundle = [resources stringByAppendingPathComponent:image];
-//        NSString* imageAlongBundle = [root stringByAppendingPathComponent:image];
-//
-//        returnVal = ([mgr fileExistsAtPath:imageInBundle] ? imageInBundle
-//                     : imageAlongBundle);
-//    } else if ([executablePath hasSuffix:@".app/Contents/MacOS/factor"]) {
-//        returnVal = executablePath;
-//        returnVal = [returnVal stringByDeletingLastPathComponent];
-//        returnVal = [returnVal stringByDeletingLastPathComponent];
-//        returnVal = [returnVal stringByDeletingLastPathComponent];
-//        returnVal = [returnVal stringByDeletingLastPathComponent];
-//        returnVal = [returnVal stringByAppendingPathComponent:image];
-//
-//    } else {
-//        returnVal = [path stringByAppendingPathComponent:image];
-//    }
-//
-//    return [returnVal UTF8String];
+    NSString* path = [bundle bundlePath];
+    NSString* executablePath = [[bundle executablePath] stringByResolvingSymlinksInPath];
+    NSString* executable = [executablePath lastPathComponent];
+    NSString* image = [executable stringByAppendingString:@".image"];
+    NSString *imagep = [bundle pathForResource:@"factorIOS" ofType:@"image"];
+//    return [image UTF8String];
+    std::cout << "imagep: " << [imagep UTF8String] << "\n";
+    NSString* returnVal;
+
+    if ([path hasSuffix:@".app"] || [path hasSuffix:@".app/"]) {
+        NSFileManager* mgr = [NSFileManager defaultManager];
+        NSString* root = [path stringByDeletingLastPathComponent];
+        NSString* resources = [path stringByAppendingPathComponent:@"Contents/Resources"];
+
+        NSString* imageInBundle = [resources stringByAppendingPathComponent:image];
+        NSString* imageAlongBundle = [root stringByAppendingPathComponent:image];
+
+        returnVal = ([mgr fileExistsAtPath:imageInBundle] ? imageInBundle
+                     : imageAlongBundle);
+    } else if ([executablePath hasSuffix:@".app/Contents/MacOS/factor"]) {
+        returnVal = executablePath;
+        returnVal = [returnVal stringByDeletingLastPathComponent];
+        returnVal = [returnVal stringByDeletingLastPathComponent];
+        returnVal = [returnVal stringByDeletingLastPathComponent];
+        returnVal = [returnVal stringByDeletingLastPathComponent];
+        returnVal = [returnVal stringByAppendingPathComponent:image];
+
+    } else {
+        returnVal = [path stringByAppendingPathComponent:image];
+    }
+
+    std::cout << "image: " << [returnVal UTF8String] << "\n" ;
+
+    return [returnVal UTF8String];
 }
 
 void factor_vm::init_signals(void) {
