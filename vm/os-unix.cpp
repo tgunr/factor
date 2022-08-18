@@ -2,22 +2,24 @@
 
 namespace factor {
 
+#ifdef FACTOR_DEBUG
 void print_prot_bits(int prot) {
     printf((prot & PROT_READ) == 0 ? "-" : "R");
     printf((prot & PROT_WRITE) == 0 ? "-" : "W");
     printf((prot & PROT_EXEC) == 0 ? "-" : "X");
 }
-
+#endif
 
 bool set_memory_locked(cell base, cell size, bool locked) {
     int prot = locked ? PROT_NONE : PROT_READ | PROT_WRITE;
+#ifdef FACTOR_DEBUG
     printf("set_memory_locked: ");
     if (locked) printf("lock   ");
     else printf("unlock ");
-    printf("%0X10 with ", base);
+    printf("%p with ", (void *)base);
     print_prot_bits(prot);
     printf("\n");
-
+#endif
 
     int status = mprotect((char*)base, size, prot);
     if (status)
@@ -111,10 +113,12 @@ segment::segment(cell size_, bool executable_p) {
                               MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
     
+#ifdef FACTOR_DEBUG
     printf("mmap: %p set: ", array);
     print_prot_bits(prot);
     printf("\n");
-
+#endif
+    
     if (array == (char*)-1) {
         printf("segment failed!\nmmap: %s\n", strerror(errno));
         fatal_error("Out of memory in mmap", alloc_size);

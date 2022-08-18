@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
+
+#ifdef FACTOR_DEBUG
 void print_prot_bits(int prot) {
     printf((prot & PROT_READ) == 0 ? "-" : "R");
     printf((prot & PROT_WRITE) == 0 ? "-" : "W");
@@ -46,9 +48,12 @@ void dommapTest() {
         }
     }
 }
+#endif
 
 int main(int argc, char** argv) {
+#ifdef FACTOR_DEBUG
     dommapTest();
+#endif
     factor::init_mvm();
     factor::start_standalone_factor(argc, argv);
     return 0;
