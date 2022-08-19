@@ -1,5 +1,4 @@
 #import <Foundation/Foundation.h>
-//#import <UIKit/UIKit.h>
 
 #include <mach/mach_time.h>
 #include <sys/utsname.h>
