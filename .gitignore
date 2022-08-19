@@ -26,10 +26,13 @@
 /factor
 /logs
 /work
-Factor.app/Contents/MacOS/factor
-Factor.app/Contents/_CodeSignature
+Factor.app/*
+FactorOSX.app/*
+FactorARM.app/*
 a.out
 checksums.txt
 factor.com
 factor.image.fresh
 xcuserdata
+factorARM.app
+factor.dSYM
