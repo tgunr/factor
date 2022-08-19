@@ -53,5 +53,7 @@ void check_ENOMEM(const char* msg);
 
 static inline void breakpoint() { __builtin_trap(); }
 
+void print_prot_bits(int prot);
+
 #define AS_UTF8(ptr) ptr
 }

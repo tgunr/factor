@@ -1,4 +1,5 @@
 #include "master.hpp"
+#include <pthread.h>
 
 namespace factor {
 
@@ -99,6 +100,8 @@ segment::segment(cell size_, bool executable_p) {
     int pagesize = getpagesize();
     
     int prot;
+    char* array;
+    
     if (executable_p)
         prot = PROT_READ | PROT_WRITE | PROT_EXEC;
     else
@@ -106,10 +109,17 @@ segment::segment(cell size_, bool executable_p) {
         
     cell alloc_size = 2 * pagesize + size;
 #if defined(__APPLE__) && defined(FACTOR_ARM64)  // FIXME: could be in header file
-    char* array = (char*)mmap(NULL, alloc_size, prot,
-                              MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (executable_p) {
+        array = (char*)mmap(NULL, alloc_size, prot,
+                              MAP_ANON | MAP_PRIVATE | MAP_JIT, -1, 0);
+        pthread_jit_write_protect_np(false);
+    
+    } else
+        array = (char*)mmap(NULL, alloc_size, prot,
+                                  MAP_ANON | MAP_PRIVATE, -1, 0);
+
 #else
-    char* array = (char*)mmap(NULL, alloc_size, prot,
+    array = (char*)mmap(NULL, alloc_size, prot,
                               MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
     
@@ -127,7 +137,8 @@ segment::segment(cell size_, bool executable_p) {
     start = (cell)(array + pagesize);
     end = start + size;
     
-    set_border_locked(true);
+    if (!executable_p) 
+        set_border_locked(true);
 }
 
 segment::~segment() {
