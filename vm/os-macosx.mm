@@ -31,17 +31,17 @@ const char* vm_executable_path(void) {
 
 const char* default_image_path(void) {
     NSBundle* bundle = [NSBundle mainBundle];
+    NSFileManager* mgr = [NSFileManager defaultManager];
     NSString* path = [bundle bundlePath];
     NSString* executablePath = [[bundle executablePath] stringByResolvingSymlinksInPath];
     NSString* executable = [executablePath lastPathComponent];
     NSString* image = [executable stringByAppendingString:@".image"];
-    NSString *imagep = [bundle pathForResource:@"factorIOS" ofType:@"image"];
+//    NSString *imagep = [bundle pathForResource:@"factorIOS" ofType:@"image"];
 //    return [image UTF8String];
-    std::cout << "imagep: " << [imagep UTF8String] << "\n";
+//    std::cout << "imagep: " << [imagep UTF8String] << "\n";
     NSString* returnVal;
 
     if ([path hasSuffix:@".app"] || [path hasSuffix:@".app/"]) {
-        NSFileManager* mgr = [NSFileManager defaultManager];
         NSString* root = [path stringByDeletingLastPathComponent];
         NSString* resources = [path stringByAppendingPathComponent:@"Contents/Resources"];
 
@@ -62,8 +62,15 @@ const char* default_image_path(void) {
         returnVal = [path stringByAppendingPathComponent:image];
     }
 
-    std::cout << "image: " << [returnVal UTF8String] << "\n" ;
-
+#ifdef FACTOR_DEBUG
+    std::cout << "image: " << [returnVal UTF8String];
+    BOOL r = [mgr fileExistsAtPath:returnVal];
+    if (r)
+        std::cout << " found\n";
+    else
+        std::cout << " not found\n";
+#endif
+    
     return [returnVal UTF8String];
 }
 
