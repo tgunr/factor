@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "75E3E38D28AC24CB00B24A91"
-               BuildableName = "factorIOS.app"
-               BlueprintName = "factorIOS (iOS)"
+               BlueprintIdentifier = "75BDB10228B0136C00983803"
+               BuildableName = "factorOSX copy.app"
+               BlueprintName = "factorARM"
                ReferencedContainer = "container:factorIOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -34,7 +34,7 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      launchStyle = "0"
+      launchStyle = "1"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
@@ -44,23 +44,15 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "75E3E38D28AC24CB00B24A91"
-            BuildableName = "factorIOS.app"
-            BlueprintName = "factorIOS (iOS)"
+            BlueprintIdentifier = "75BDB10228B0136C00983803"
+            BuildableName = "factorOSX copy.app"
+            BlueprintName = "factorARM"
             ReferencedContainer = "container:factorIOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-i=factorIOS.image"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-i=boot.unix-arm.64.image"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-no-user-init"
+            argument = "-fep"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
@@ -75,9 +67,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "75E3E38D28AC24CB00B24A91"
-            BuildableName = "factorIOS.app"
-            BlueprintName = "factorIOS (iOS)"
+            BlueprintIdentifier = "75BDB10228B0136C00983803"
+            BuildableName = "factorOSX copy.app"
+            BlueprintName = "factorARM"
             ReferencedContainer = "container:factorIOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "75E3E38D28AC24CB00B24A91"
-               BuildableName = "factorIOS.app"
-               BlueprintName = "factorIOS (iOS)"
+               BlueprintIdentifier = "7530FB9D28AFC55F00F3A860"
+               BuildableName = "factorOSX.app"
+               BlueprintName = "factorOSX"
                ReferencedContainer = "container:factorIOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -44,24 +44,20 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "75E3E38D28AC24CB00B24A91"
-            BuildableName = "factorIOS.app"
-            BlueprintName = "factorIOS (iOS)"
+            BlueprintIdentifier = "7530FB9D28AFC55F00F3A860"
+            BuildableName = "factorOSX.app"
+            BlueprintName = "factorOSX"
             ReferencedContainer = "container:factorIOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-i=factorIOS.image"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-i=boot.unix-arm.64.image"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "-no-user-init"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-e=&quot;LOG_HERE&quot;"
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
@@ -75,9 +71,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "75E3E38D28AC24CB00B24A91"
-            BuildableName = "factorIOS.app"
-            BlueprintName = "factorIOS (iOS)"
+            BlueprintIdentifier = "7530FB9D28AFC55F00F3A860"
+            BuildableName = "factorOSX.app"
+            BlueprintName = "factorOSX"
             ReferencedContainer = "container:factorIOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
