@@ -168,7 +168,7 @@ PRIVATE>
 
 : (log-here) ( level name loc -- )
     [ dup log? ] 2dip rot
-    [ [ "IN: " prepend ] dip
+    [ [ "LOG_HERE: " prepend ] dip
         (location) prepend +space
         over level>string +colon-space prepend
         (syslog)
@@ -211,9 +211,9 @@ PRIVATE>
     \ (log-string) suffix! ;
 
 
-SYNTAX: LOG \ LOG-settest suffix! \ LOG_DEBUG suffix! (embed-string) ;
-SYNTAX: LOG" \ LOG_TEST suffix! (embed-message) ; ! "for the editors sake
-SYNTAX: LOG-HERE \ LOG_TEST suffix! (embed-here) ;
+SYNTAX: LOG \ LOG-settest suffix!  \ LOG_DEBUG suffix!  (embed-string) ;
+SYNTAX: LOG" \ LOG-settest suffix!  \ LOG_DEBUG suffix!  (embed-message) ; ! "for the editors sake
+SYNTAX: LOG-HERE \ LOG-settest suffix!  \ LOG_DEBUG suffix!  (embed-here) ;
 
 SYNTAX: LOG-DEBUG \ LOG_DEBUG suffix! (embed-string) ;
 SYNTAX: LOG-DEBUG" \ LOG_DEBUG suffix! (embed-message) ; ! "for the editors sake
