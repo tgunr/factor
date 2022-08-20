@@ -181,7 +181,7 @@
 		75BDB13C28B0136C00983803 /* .factor-rc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7530FBDD28AFC67E00F3A860 /* .factor-rc */; };
 		75BDB13D28B0136C00983803 /* .factor-boot-rc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7530FBDE28AFC67E00F3A860 /* .factor-boot-rc */; };
 		75BDB13E28B0136C00983803 /* factor.rs in CopyFiles */ = {isa = PBXBuildFile; fileRef = 75E3E47028AC280100B24A91 /* factor.rs */; };
-		75BDB14628B0145100983803 /* factorARM.image in CopyFiles */ = {isa = PBXBuildFile; fileRef = 75BDB14528B0143700983803 /* factorARM.image */; };
+		75BDB14628B0145100983803 /* factorARM.image in CopyFiles */ = {isa = PBXBuildFile; fileRef = 75BDB14528B0143700983803 /* factorARM.image */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		75E3E39728AC24CB00B24A91 /* factorIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E38728AC24C900B24A91 /* factorIOSApp.swift */; };
 		75E3E39928AC24CB00B24A91 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E3E38828AC24C900B24A91 /* ContentView.swift */; };
 		75E3E39B28AC24CB00B24A91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75E3E38928AC24CB00B24A91 /* Assets.xcassets */; };
@@ -1223,6 +1223,7 @@
 				DEVELOPMENT_TEAM = BG856GB4D8;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				FACTOR_DEBUG = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1255,6 +1256,7 @@
 				DEVELOPMENT_TEAM = BG856GB4D8;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				FACTOR_DEBUG = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
