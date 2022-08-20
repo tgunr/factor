@@ -1,14 +1,17 @@
 ! Copyright (C) 2011 Joe Groff.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators combinators.smart command-line eval
-io io.pathnames kernel layouts math math.parser namespaces
-parser parser.notes prettyprint sequences source-files system
-vocabs.loader logging logging.pmlog ; 
+formatting io io.pathnames kernel layouts logging.pmlog math
+math.parser namespaces parser parser.notes prettyprint sequences
+source-files system vocabs.loader ;
+
 IN: command-line.startup
 
 : help? ( -- ? )
     "help" get "h" get or
     os windows? [ script get "/?" = or ] when ;
+
+: logging? ( -- ? )  "logging" get ; 
 
 : help. ( -- )
 "Usage: " write vm-path file-name write " [options] [script] [arguments]
@@ -33,6 +36,8 @@ Options:
     -pic=<int>          max pic size [3]
     -fep                enter fep mode immediately
     -no-signals         turn off OS signal handling
+    -logging            enable logging
+    -loglevel           set loglevel LOG_EMRG, LOG_ALERT, LOG_DEBUG, etc 
     -roots=<paths>      '" write os windows? ";" ":" ? write "'-separated list of extra vocab root directories
 
 Enter
@@ -43,6 +48,7 @@ from within Factor for more information.
 : version? ( -- ? ) "version" get ;
 
 : run-script ( file -- )
+    dup "file: %s" sprintf LOG-INFO
     t parser-quiet? [
         [ parse-file [ output>array datastack. ] call( quot --  ) ]
         [ path>source-file main>> [ execute( -- ) ] when* ] bi
@@ -53,13 +59,15 @@ from within Factor for more information.
     (command-line) parse-command-line {
         { [ help? ] [ help. ] }
         { [ version? ] [ version-info print ] }
+        { [ logging? ] [ LOG-open LOG_INFO "loglevel" set-global ] }
         [
             load-vocab-roots
             run-user-init
             "e" get script get or [
                 t auto-use? [
                     "e" get [ eval-with-stack ] when*
-                    script get [ run-script ] when*
+                    script get
+                    [ run-script ] when*
                 ] with-variable
             ] [
                 "run" get run

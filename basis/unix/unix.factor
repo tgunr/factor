@@ -4,7 +4,7 @@
 USING: accessors alien.c-types alien.syntax byte-arrays classes.struct
 combinators.short-circuit combinators.smart generalizations kernel
 libc locals math sequences sequences.generalizations strings system
-unix.ffi vocabs.loader ;
+unix.ffi vocabs.loader logging.pmlog ;
 IN: unix
 
 ERROR: unix-system-call-error args errno message word ;
@@ -64,7 +64,9 @@ HOOK: open-file os ( path flags mode -- fd )
 
 FUNCTION: int _exit ( int status )
 
-M: unix open-file [ open ] unix-system-call ;
+M: unix open-file
+    [ dup LOG-INFO ] 2dip
+    [ open ] unix-system-call ;
 
 : make-fifo ( path mode -- ) [ mkfifo ] unix-system-call drop ;
 
