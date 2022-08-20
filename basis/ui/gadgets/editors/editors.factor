@@ -8,7 +8,7 @@ models.arrow namespaces opengl opengl.gl sequences sorting
 splitting system timers ui.baseline-alignment ui.clipboards
 ui.commands ui.gadgets ui.gadgets.borders
 ui.gadgets.line-support ui.gadgets.menus ui.gadgets.scrollers
-prettyprint ui.gadgets.editors.private math.parser
+prettyprint math.parser
 ui.gestures ui.pens.solid ui.render ui.text ui.theme unicode variables ;
 IN: ui.gadgets.editors
 

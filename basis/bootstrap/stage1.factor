@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: assocs bootstrap.image.private hash-sets hashtables init
 io io.files kernel kernel.private make memory namespaces parser
-parser.notes sequences system vocabs vocabs.loader ;
+parser.notes sequences system vocabs vocabs.loader math prettyprint ;
 
 "Bootstrap stage 1..." print flush
 
@@ -54,6 +54,9 @@ load-help? off
             1 (exit)
         ] if
     ] %
-] [ ] make
+]
+[ ] make
+drop [ 1 1 + . ]
+
 OBJ-STARTUP-QUOT
 bootstrap.image.private:special-objects get set-at

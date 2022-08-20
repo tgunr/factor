@@ -1,6 +1,6 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors debugger io kernel libc prettyprint unix ;
+USING: accessors debugger io kernel libc prettyprint unix sequences ;
 IN: unix.debugger
 
 M: libc-error error.

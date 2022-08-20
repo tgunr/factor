@@ -3,7 +3,7 @@
 USING: accessors alien.strings assocs continuations
 io.encodings.utf8 io.files kernel kernel.private namespaces
 parser sequences source-files.errors splitting system
-vocabs.loader ;
+vocabs.loader formatting logging.pmlog ;
 IN: command-line
 
 SYMBOL: user-init-errors
@@ -22,13 +22,16 @@ SYMBOL: script
 SYMBOL: command-line
 
 : (command-line) ( -- args )
-    OBJ-ARGS special-object sift [ alien>native-string ] map ;
+    OBJ-ARGS dup "OBJ-ARGS: %d" sprintf LOG-DEBUG
+    special-object sift [ alien>native-string ] map ;
 
 : delete-user-init-errors ( file -- )
     user-init-errors get delete-at* nip
     [ notify-error-observers ] when ;
 
 : try-user-init ( file -- )
+    LOG-HERE
+    dup "file: %s" sprintf LOG-ALERT
     [ delete-user-init-errors ] keep
     "user-init" get swap '[
         _ [ ?run-file ] [
@@ -39,12 +42,15 @@ SYMBOL: command-line
     ] when ;
 
 : run-bootstrap-init ( -- )
+    LOG-HERE
     "~/.factor-boot-rc" try-user-init ;
 
 : run-user-init ( -- )
+    LOG-HERE
     "~/.factor-rc" try-user-init ;
 
 : load-vocab-roots ( -- )
+    LOG-HERE
     "user-init" get [
         "~/.factor-roots" dup file-exists? [
             utf8 file-lines harvest [ add-vocab-root ] each
@@ -63,6 +69,7 @@ SYMBOL: command-line
     "=" split1 [ var-param ] [ bool-param ] if* ;
 
 : (parse-command-line) ( args -- )
+    LOG-HERE
     [
         unclip "-" ?head [
             [ CHAR: - = ] trim-head
@@ -70,6 +77,7 @@ SYMBOL: command-line
             [ command-line set ]
             [ (parse-command-line) ] if
         ] [
+            dup "script: %s" sprintf LOG-DEBUG
             script set command-line set
         ] if
     ] unless-empty ;

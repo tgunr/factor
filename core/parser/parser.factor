@@ -4,7 +4,7 @@ USING: accessors arrays classes combinators compiler.units
 continuations definitions effects io io.encodings.utf8 io.files
 kernel lexer math math.parser namespaces parser.notes quotations
 sequences sets slots source-files vectors vocabs vocabs.parser
-words words.symbol ;
+words words.symbol formatting logging.pmlog ;
 FROM: namespaces => set ;
 IN: parser
 
@@ -260,6 +260,7 @@ FROM: namespaces => set ;
     ] recover ;
 
 : run-file ( path -- )
+    dup "path: %s" sprintf LOG-INFO
     parse-file call( -- ) ;
 
 : ?run-file ( path -- )
