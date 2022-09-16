@@ -1,3 +1,6 @@
 [submodule "overlays"]
 	path = overlays
 	url = git@github.com:tgunr/fOverlays.git
+[submodule "ghskov"]
+	path = ghskov
+	url = git@github.com:nicolas-p/skov.git
