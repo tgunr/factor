@@ -3,11 +3,17 @@
 USING: accessors code code.execution colors combinators
 combinators.smart kernel locals models sequences system
 ui.gadgets ui.gadgets.borders ui.gadgets.buttons
-ui.gadgets.buttons.round ui.gadgets.icons ui.gadgets.labels
-ui.gadgets.packs ui.gestures ui.pens.gradient-rounded
-ui.pens.tile ui.tools.environment.cell ui.tools.environment.tree 
-ui.tools.environment.navigation.dot-pattern
-ui.tools.environment.theme ui.tools.environment ;
+skov.basis.ui.gadgets.buttons.round
+ui.gadgets.icons
+ui.gadgets.labels
+ui.gadgets.packs ui.gestures
+skov.basis.ui.pens.gradient-rounded
+ui.pens.tile
+skov.basis.ui.tools.environment.cell
+skov.basis.ui.tools.environment.tree 
+skov.basis.ui.tools.environment.navigation.dot-pattern
+skov.basis.ui.tools.environment.theme
+skov.basis.ui.tools.environment ;
 FROM: models => change-model ;
 IN: ui.tools.environment.navigation
 

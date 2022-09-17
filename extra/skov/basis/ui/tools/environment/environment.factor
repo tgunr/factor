@@ -3,7 +3,9 @@
 USING: accessors kernel memory models namespaces ui ui.gadgets
 ui.gadgets.scrollers ui.gadgets.status-bar ui.gadgets.tracks
 ui.gadgets.worlds ui.gestures ui.pixel-formats ui.tools.browser
-ui.tools.common ;
+ui.tools.common
+skov.basis.ui.tools.environment.navigation
+;
 FROM: models => change-model ;
 IN: ui.tools.environment
 

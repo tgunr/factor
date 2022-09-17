@@ -1,12 +1,13 @@
 ! Copyright (C) 2015-2016 Nicolas Pénet.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs classes.parser classes.tuple code
+USING: accessors arrays assocs classes.parser classes.tuple 
 combinators combinators.smart compiler.units debugger effects io
 io.streams.string kernel listener locals locals.rewrite
 locals.types math math.statistics namespaces quotations
 sequences sequences.deep sets splitting ui.gadgets.panes
-vocabs.parser ;
-FROM: code => call ;
+vocabs.parser
+skov.basis.code ;
+! FROM: code => call ;
 QUALIFIED: words
 QUALIFIED: vocabs
 IN: code.execution
