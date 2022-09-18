@@ -4,13 +4,13 @@ USING: accessors arrays assocs classes.parser classes.tuple
 combinators combinators.smart compiler.units debugger effects io
 io.streams.string kernel listener locals locals.rewrite
 locals.types math math.statistics namespaces quotations
-sequences sequences.deep sets splitting ui.gadgets.panes
-vocabs.parser
-skov.basis.code ;
-! FROM: code => call ;
+sequences sequences.deep sets skov.basis.code splitting
+ui.gadgets.panes vocabs.parser ;
+
+FROM: skov.basis.code => call ;
 QUALIFIED: words
 QUALIFIED: vocabs
-IN: code.execution
+IN: skov.basis.code.execution
 
 : effect ( def -- effect )
     [ introduces [ name>> empty? ] reject ] [ returns ] bi

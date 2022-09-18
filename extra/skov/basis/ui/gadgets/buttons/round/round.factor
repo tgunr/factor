@@ -4,7 +4,7 @@ USING: accessors arrays colors colors.gray kernel locals math
 math.order sequences ui.gadgets ui.gadgets.buttons combinators.smart
 skov.basis.ui.pens.gradient-rounded
 skov.basis.ui.tools.environment.theme ;
-IN: ui.gadgets.buttons.round
+IN: skov.basis.ui.gadgets.buttons.round
 
 TUPLE: round-button < button ;
 
