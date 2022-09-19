@@ -22,6 +22,7 @@ Options:
         -run=ui.tools   run Factor development UI
     -e=<code>           evaluate <code>
     -no-user-init       suppress loading of .factor-rc
+    -no-overlays        supress loaading of overlays
     -datastack=<int>    datastack size in KiB [" write cell 32 * number>string write "]
     -retainstack=<int>  retainstack size in KiB [" write cell 32 * number>string write "]
     -callstack=<int>    callstack size in KiB [" write cell cpu ppc? 256 128 ? * number>string write "]

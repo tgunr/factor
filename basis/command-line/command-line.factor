@@ -92,6 +92,7 @@ SYMBOL: main-vocab-hook
     [
         "e" off
         "user-init" on
+        "overlays" on
         main-vocab "run" set
     ] with-global ;
 
