@@ -1,7 +1,8 @@
-USING: assocs core-text.fonts io.styles kernel ui.commands ui.gestures
-ui.tools.listener.completion vocabs.refresh ;
-
+USING: assocs core-text.fonts io.styles kernel ui.commands
+ui.gadgets.editors ui.gestures ui.tools.listener.completion
+vocabs.refresh ;
 IN: ui.tools.listener
+
 interactor "interactor" f {
     { T{ key-down f f "RET" } evaluate-input }
     { T{ key-down f { C+ } "d" } delete-next-character/eof }
