@@ -6,19 +6,19 @@ IN: skov.basis.ui.tools.environment.theme
 
 CONSTANT: content-background-colour COLOR: #002b36
 
-CONSTANT: dark-background { COLOR: light-gray  COLOR: dark-gray }
-CONSTANT: green-background { COLOR: gray68 COLOR: gray4 }
-CONSTANT: white-background { COLOR: gray2 COLOR: gray2 }
-CONSTANT: blue-background { COLOR: solarized-base02 COLOR: gray6 }
-CONSTANT: red-background { COLOR: DodgerBlue4 COLOR: gray6 }
-CONSTANT: yellow-background { COLOR: gray5 COLOR: gray4 }
-CONSTANT: inactive-background { COLOR: dark-green COLOR: FactorDarkGreen }
-CONSTANT: active-background { COLOR: DeepSkyBlue4 COLOR: dark-green }
+CONSTANT: dark-background { COLOR: #5C8284 COLOR: #26515A }
+CONSTANT: green-background { COLOR: #ACDC3F COLOR: #79B900 }
+CONSTANT: white-background { COLOR: #D4DFDF COLOR: #A3BEBD }
+CONSTANT: blue-background { COLOR: #56C5FF COLOR: #1B94FF }
+CONSTANT: red-background { COLOR: #FF7C65 COLOR: #FE2F26 }
+CONSTANT: yellow-background { COLOR: #DCC23F COLOR: #B9A013 }
+CONSTANT: inactive-background { COLOR: #004457 COLOR: #002B36 }
+CONSTANT: active-background { COLOR: #006581 COLOR: #004153 }
 
-CONSTANT: content-text-colour COLOR: solarized-base02
+CONSTANT: content-text-colour COLOR: #E5E5E5
 CONSTANT: dark-text-colour COLOR: black
-CONSTANT: light-text-colour COLOR: gray2
-CONSTANT: faded-text-colour COLOR: gray2
+CONSTANT: light-text-colour COLOR: #C4DCDE
+CONSTANT: faded-text-colour COLOR: #93A1A1
 
 : set-small-font ( label -- label )
     [ 13 >>size t >>bold? ] change-font ;
