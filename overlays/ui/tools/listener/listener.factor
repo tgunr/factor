@@ -5,12 +5,16 @@ IN: ui.tools.listener
 interactor "interactor" f {
     { T{ key-down f f "RET" } evaluate-input }
     { T{ key-down f { C+ } "d" } delete-next-character/eof }
+    { T{ key-down f { C+ } "k" } clear-editor }
 } define-command-map
 
 interactor "completion" f {
     { T{ key-down f f "TAB" } code-completion-popup }
+    { T{ key-down f { C+ } "y" } history-completion-popup }
     { T{ key-down f { C+ } "p" } recall-previous }
     { T{ key-down f { C+ } "n" } recall-next }
+    { T{ key-down f f "UP" } recall-previous }
+    { T{ key-down f f "DOWN" } recall-next }
     { T{ key-down f { C+ } "r" } history-completion-popup }
     { T{ key-down f { C+ } "s" } history-completion-popup }
 } define-command-map
