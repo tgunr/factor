@@ -10,9 +10,19 @@ math.functions math.order math.vectors models models.range opengl
 opengl.gl sequences skov.basis.code.execution
 skov.basis.ui.gadgets.buttons.round
 skov.basis.ui.pens.gradient-rounded
-skov.basis.ui.tools.environment.theme ui.gadgets ui.gadgets.buttons
-ui.gadgets.packs ui.pens ui.pens.caching vocabs words ;
+skov.basis.ui.tools.environment
+skov.basis.ui.tools.environment.theme
+ui.gadgets ui.gadgets.buttons
+ui.gadgets.packs ui.pens ui.pens.caching vocabs words
+ui.backend namespaces ;
 IN: skov
+
+! : ui-tools-main ( -- )
+!     f ui-stop-after-last-window? set-global
+!     "resource:" absolute-path current-directory set-global
+!     listener-window ;
+
+MAIN: ui-tools-main
 
 : ui-tools-main ( -- )
     f ui-stop-after-last-window? set-global
