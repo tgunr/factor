@@ -245,6 +245,7 @@ PRIVATE>
         } cleave ;
 
 ! skov
+! This looks like an older implementation, probably can eliminate
 ! : <slider> ( range orientation -- slider )
 !     slider new-track
 !         swap >>model

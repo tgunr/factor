@@ -30,7 +30,7 @@ CONSTANT: faded-text-colour COLOR: #93A1A1
     [ 17 >>size t >>bold? content-text-colour >>foreground ] change-font ;
 
 : faded-color ( rgba -- rgba )
-    >rgba-components drop 0.4 <rgba> ;
+    >rgba-components drop 0.2 <rgba> ;
 
 : with-background ( gadget -- gadget )
     content-background-colour <solid> >>interior ;

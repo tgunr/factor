@@ -35,8 +35,8 @@ environment { 700 600 } set-tool-dim
     update-skov-root skov-root get-global swap set-control-value ;
 
 environment H{
-    { T{ key-down f { C+ } "h" } [ drop show-browser ] }
-    { T{ key-down f { C+ } "H" } [ drop show-browser ] }
+    { T{ key-down f { C+ } "h" } [ drop show-skov-browser ] }
+    { T{ key-down f { C+ } "H" } [ drop show-skov-browser ] }
     { save-action [ save-image-and-vocabs ] }
     { open-action [ load-vocabs ] }
 } set-gestures
