@@ -5,7 +5,8 @@ definitions.icons effects hashtables help.stylesheet help.topics
 io io.styles kernel make math namespaces present prettyprint
 prettyprint.stylesheet quotations see sequences
 sequences.private sets sorting splitting strings urls vocabs
-words words.symbol ; 
+words words.symbol ui.gadgets.panes
+skov.basis.ui.tools.environment.tree.help-tree ; 
 FROM: prettyprint.sections => with-pprint ;
 IN: skov.basis.help.markup
 
@@ -434,11 +435,11 @@ M: f ($instance) ($link) ;
 : ($see) ( word quot -- )
     [ code-style get swap with-nesting ] ($block) ; inline
 
-: $see ( element -- ) check-first [ see* ] ($see) ;
+! : $see ( element -- ) check-first [ see* ] ($see) ;
 
 ! skov
-! : $see ( element -- )
-!     check-first <definition-tree> nl output-stream get write-gadget ;
+: $see ( element -- )
+    check-first <definition-tree> nl output-stream get write-gadget ;
 
 : $synopsis ( element -- ) check-first [ synopsis write ] ($see) ;
 

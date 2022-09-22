@@ -9,7 +9,7 @@ ui.gadgets ui.gadgets.borders ui.gadgets.editors
 ui.gadgets.glass ui.gadgets.panes ui.gadgets.scrollers
 ui.gadgets.status-bar ui.gadgets.toolbar ui.gadgets.tracks
 ui.gadgets.viewports ui.gadgets.worlds ui.gestures ui.pens.solid
-ui.theme ui.tools.browser.history ui.tools.browser.popups
+ui.theme ui.tools.browser.history ui.tools.browser.popups ui.pixel-formats
 ui.tools.common unicode vocabs skov.basis.ui.gadgets.buttons.activate ;
 IN: skov.basis.ui.tools.browser
 
@@ -153,43 +153,43 @@ M: browser-gadget definitions-changed
 
 M: browser-gadget focusable-child* search-field>> ;
 
-: (browser-window) ( topic -- )
-    <browser-gadget>
-    <world-attributes>
-        "Browser" >>title
-    open-status-window ;
-
-! skov
 ! : (browser-window) ( topic -- )
 !     <browser-gadget>
 !     <world-attributes>
 !         "Browser" >>title
-!         { windowed double-buffered multisampled
-!           T{ samples f 4 } T{ sample-buffers f 1 } }
-!         >>pixel-format-attributes
 !     open-status-window ;
 
-: browser-window ( -- )
-    "help.home" (browser-window) ;
+! skov
+: (skov-browser-window) ( topic -- )
+    <browser-gadget>
+    <world-attributes>
+        "Browser" >>title
+        { windowed double-buffered multisampled
+          T{ samples f 4 } T{ sample-buffers f 1 } }
+        >>pixel-format-attributes
+    open-status-window ;
+
+: skov-browser-window ( -- )
+    "help.home" (skov-browser-window) ;
 
 : error-help-window ( error -- )
     {
         [ error-help ]
         [ dup tuple? [ class-of ] [ drop "errors" ] if ]
-    } 1|| (browser-window) ;
+    } 1|| (skov-browser-window) ;
 
-\ browser-window H{ { +nullary+ t } } define-command
+\ skov-browser-window H{ { +nullary+ t } } define-command
 
 : com-browse ( link -- )
     [ browser-gadget? ] find-window
     [ [ raise-window ] [ gadget-child show-help ] bi ]
-    [ (browser-window) ] if* ;
+    [ (skov-browser-window) ] if* ;
 
-: show-browser ( -- )
+: show-skov-browser ( -- )
     [ browser-gadget? ] find-window
-    [ [ raise-window ] [ request-focus ] bi ] [ browser-window ] if* ;
+    [ [ raise-window ] [ request-focus ] bi ] [ skov-browser-window ] if* ;
 
-\ show-browser H{ { +nullary+ t } } define-command
+\ show-skov-browser H{ { +nullary+ t } } define-command
 
 : com-back ( browser -- ) history>> go-back ;
 
@@ -278,4 +278,4 @@ browser-gadget "fonts" f {
     { T{ key-down f ${ os macosx? M+ C+ ? } "0" } com-font-size-normal }
 } define-command-map
 
-MAIN: browser-window
+MAIN: skov-browser-window

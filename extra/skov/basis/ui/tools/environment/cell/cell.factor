@@ -7,7 +7,8 @@ skov.basis.ui.gadgets.buttons.round
 skov.basis.ui.pens.gradient-rounded skov.basis.ui.pens.title-gradient
 skov.basis.ui.tools.browser skov.basis.ui.tools.environment.theme
 ui.commands ui.gadgets ui.gadgets.borders ui.gadgets.editors
-ui.gadgets.labels ui.gadgets.packs ui.gestures ;
+ui.gadgets.labels ui.gadgets.packs ui.gestures
+skov.basis.ui.tools.browser ;
 FROM: skov.basis.code => call ;
 FROM: models => change-model ;
 IN: skov.basis.ui.tools.environment.cell
@@ -152,7 +153,7 @@ M: cell pref-dim*
 
 : show-help-on-word ( cell -- )
     [ control-value target>>
-        [ (browser-window) ] [ show-browser ] if*
+        [ (skov-browser-window) ] [ show-skov-browser ] if*
     ] with-interactive-vocabs ;
 
 :: ask-for-completion ( cell -- )
