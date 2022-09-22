@@ -11,17 +11,17 @@ namespaces opengl opengl.gl sequences skov.basis.code.execution
 skov.basis.ui.gadgets.buttons.round
 skov.basis.ui.pens.gradient-rounded
 skov.basis.ui.tools.environment
-skov.basis.ui.tools.environment.theme ui.backend ui.gadgets
+skov.basis.ui.tools.environment.theme
+skov.basis.ui.tools.listener
+ui.backend ui.gadgets
 ui.gadgets.buttons ui.gadgets.packs ui.pens ui.pens.caching
-ui.tools vocabs words ;
+ui.tools vocabs words ui.private ;
 IN: skov
 
-! : ui-tools-main ( -- )
-!     f ui-stop-after-last-window? set-global
-!     "resource:" absolute-path current-directory set-global
-!     listener-window ;
-
-MAIN: ui-tools-main
+: skov-world ( -- world|f )
+    worlds get [ second title>> "Skov" = ] filter
+    dup length 0= not
+    [ first second ] [ drop f ] if ;
 
 : ui-tools-main ( -- )
     f ui-stop-after-last-window? set-global

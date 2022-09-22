@@ -7,7 +7,7 @@ skov.basis.ui.tools.environment.cell
 skov.basis.ui.tools.environment.navigation.dot-pattern
 skov.basis.ui.tools.environment.theme
 skov.basis.ui.tools.environment.tree ui.gadgets ui.gadgets.borders
-ui.gadgets.labels ui.gadgets.packs ui.gestures ;
+ui.gadgets.labels ui.gadgets.packs ui.gestures pmlog ;
 FROM: models => change-model ;
 IN: skov.basis.ui.tools.environment.navigation
 
