@@ -13,6 +13,9 @@ skov.basis.ui.pens.gradient-rounded
 skov.basis.ui.tools.environment
 skov.basis.ui.tools.environment.theme
 skov.basis.ui.tools.listener
+skov.basis.help
+skov.basis.help.markup
+skov.basis.ui.tools.browser
 ui.backend ui.gadgets
 ui.gadgets.buttons ui.gadgets.packs ui.pens ui.pens.caching
 ui.tools vocabs words ui.private ;

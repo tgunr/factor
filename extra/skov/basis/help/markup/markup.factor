@@ -8,7 +8,7 @@ sequences.private sets sorting splitting strings urls vocabs
 words words.symbol ui.gadgets.panes
 skov.basis.ui.tools.environment.tree.help-tree ; 
 FROM: prettyprint.sections => with-pprint ;
-IN: skov.basis.help.markup
+IN: help.markup
 
 PREDICATE: simple-element < array
     [ t ] [ first word? not ] if-empty ;

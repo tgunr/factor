@@ -5,7 +5,7 @@ combinators.short-circuit continuations debugger effects fry
 generic help.crossref skov.basis.help.markup help.stylesheet help.topics io
 io.styles kernel make namespaces prettyprint sequences sets
 sorting vocabs words words.alias words.symbol ;
-IN: skov.basis.help
+IN: help
 
 GENERIC: word-help* ( word -- content )
 

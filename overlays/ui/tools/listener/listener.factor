@@ -1,4 +1,4 @@
-USING: assocs core-text.fonts io.styles kernel ui.commands ui.gadgets.editors ui.gestures
+USING: assocs core-text.fonts io.styles kernel ui.commands ui.gestures
 ui.tools.listener.completion vocabs.refresh ;
 
 IN: ui.tools.listener
