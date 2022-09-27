@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-i=/Users/davec/Dropbox/Sources/factor/factor.image"
+            argument = "-i=/Users/davec/factor/factorOSX.image"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.syntax arrays assocs
 combinators formatting generalizations io kernel lexer math
-math.order math.parser multiline namespaces prettyprint
+math.order math.parser multiline namespaces prettyprint io.streams.string
 sequences strings strings.parser words help.syntax help.markup vocabs ;
 
 IN: libc

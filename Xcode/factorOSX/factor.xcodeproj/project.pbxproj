@@ -128,7 +128,7 @@
 
 /* Begin PBXFileReference section */
 		7595E1ED28A1DBDA0031EB24 /* factor */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = factor; sourceTree = BUILT_PRODUCTS_DIR; };
-		7595E1F728A1DC150031EB24 /* factor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = factor.entitlements; path = Xcode/factor.entitlements; sourceTree = "<group>"; };
+		7595E1F728A1DC150031EB24 /* factor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = factor.entitlements; path = Xcode/factorOSX/factor.entitlements; sourceTree = "<group>"; };
 		7595E2DA28A1DC7A0031EB24 /* Config.macosx.arm64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.macosx.arm64; path = vm/Config.macosx.arm64; sourceTree = "<group>"; };
 		7595E2DB28A1DC7A0031EB24 /* Config.arm.64 */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.arm.64; path = vm/Config.arm.64; sourceTree = "<group>"; };
 		7595E2DC28A1DC7A0031EB24 /* Config.unix */ = {isa = PBXFileReference; lastKnownFileType = text; name = Config.unix; path = vm/Config.unix; sourceTree = "<group>"; };
@@ -244,8 +244,8 @@
 		7595E42C28A1DD3C0031EB24 /* shell.nix */ = {isa = PBXFileReference; lastKnownFileType = text; path = shell.nix; sourceTree = "<group>"; };
 		7595E42D28A1DD3C0031EB24 /* GNUmakefile */ = {isa = PBXFileReference; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
 		7595E42E28A1DD3C0031EB24 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
-		7595E42F28A1DD3C0031EB24 /* factor-x86_64-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-x86_64-Info.plist"; path = "Xcode/factor-x86_64-Info.plist"; sourceTree = "<group>"; };
-		7595E43028A1DD3C0031EB24 /* factor-arm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-arm-Info.plist"; path = "Xcode/factor-arm-Info.plist"; sourceTree = "<group>"; };
+		7595E42F28A1DD3C0031EB24 /* factor-x86_64-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-x86_64-Info.plist"; path = "Xcode/factorOSX/factor-x86_64-Info.plist"; sourceTree = "<group>"; };
+		7595E43028A1DD3C0031EB24 /* factor-arm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "factor-arm-Info.plist"; path = "Xcode/factorOSX/factor-arm-Info.plist"; sourceTree = "<group>"; };
 		7595E43128A1DD3C0031EB24 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7595E43228A1DE620031EB24 /* master.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = master.hpp; sourceTree = "<group>"; };
 		7595E43328A1DEAC0031EB24 /* cpu-arm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "cpu-arm.hpp"; sourceTree = "<group>"; };
@@ -310,7 +310,7 @@
 				7595E1F828A1DC560031EB24 /* vm */,
 			);
 			name = factor;
-			path = ..;
+			path = ../..;
 			sourceTree = "<group>";
 		};
 		7595E1F828A1DC560031EB24 /* vm */ = {
