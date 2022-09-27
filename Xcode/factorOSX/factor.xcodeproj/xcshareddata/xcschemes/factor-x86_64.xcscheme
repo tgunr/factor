@@ -56,7 +56,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-i=/Users/davec/Dropbox/Sources/factor/boot.unix-x86.64.image"
+            argument = "-i=/Users/davec/factor/boot.unix-x86.64.image"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
