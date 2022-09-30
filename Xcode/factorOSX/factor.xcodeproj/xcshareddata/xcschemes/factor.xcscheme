@@ -56,8 +56,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-i=/Users/davec/factor/factorARM.image"
+            argument = "-i=/Users/davec/factor/boot.unix-arm.64.image"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-i=/Users/davec/factor/factorARM.image"
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
