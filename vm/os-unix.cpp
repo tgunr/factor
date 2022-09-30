@@ -14,7 +14,7 @@ void print_prot_bits(int prot) {
 bool set_memory_locked(cell base, cell size, bool locked) {
     int prot = locked ? PROT_NONE : PROT_READ | PROT_WRITE;
 #ifdef FACTOR_DEBUG
-    printf("set_memory_locked: ");
+    printf("mprotect: ");
     if (locked) printf("lock   ");
     else printf("unlock ");
     printf("%p with ", (void *)base);
@@ -122,7 +122,7 @@ segment::segment(cell size_, bool executable_p) {
     array = (char*)mmap(NULL, alloc_size, prot,
                               MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
-    
+
 #ifdef FACTOR_DEBUG
     printf("mmap: %p set: ", array);
     print_prot_bits(prot);

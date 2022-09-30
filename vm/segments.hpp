@@ -29,11 +29,17 @@ struct segment {
   void set_border_locked(bool locked) {
     int pagesize = getpagesize();
     cell lo = start - pagesize;
+#ifdef FACTOR_DEBUG
+    printf("set_border_locked lo: %p locked: %d\n", lo, locked);
+#endif
     if (!set_memory_locked(lo, pagesize, locked)) {
       fatal_error("Cannot (un)protect low guard page", lo);
     }
 
     cell hi = end;
+#ifdef FACTOR_DEBUG
+    printf("set_border_locked hi: %p locked: %d\n", hi, locked);
+#endif
     if (!set_memory_locked(hi, pagesize, locked)) {
       fatal_error("Cannot (un)protect high guard page", hi);
     }
