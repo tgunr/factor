@@ -44,11 +44,22 @@ M: object reader-quot
     ">>" append "accessors" create-word
     dup t "reader" set-word-prop ;
 
+: getter-word ( name -- word )
+    "<<" prepend "accessors" create-word
+    dup t "reader" set-word-prop ;
+    
 : reader-props ( slot-spec -- assoc )
     "reading" associate ;
 
 : define-reader-generic ( name -- )
     reader-word ( object -- value ) define-simple-generic ;
+
+GENERIC#: getter-quot 1 ( class slot-spec -- quot )
+
+M: object getter-quot
+    nip [ offset>> [ slot ] curry  [ dup ] prepose ] [ class>> ] bi
+    dup object bootstrap-word eq?
+    [ drop ] [ 1array [ declare ] curry compose ] if ;
 
 : define-reader ( class slot-spec -- )
     [ nip name>> define-reader-generic ]
@@ -59,7 +70,17 @@ M: object reader-quot
             [ reader-quot ]
             [ nip reader-props ]
         } 2cleave define-typecheck
-    ] 2bi ;
+    ]
+    [
+        {
+            [ nip name>> define-reader-generic ]
+            [ drop ]
+            [ nip name>> getter-word ]
+            [ getter-quot ]
+            [ nip reader-props ]
+        } 2cleave define-typecheck
+    ]
+    2tri ;
 
 : writer-word ( name -- word )
     "<<" append "accessors" create-word
