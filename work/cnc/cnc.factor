@@ -19,7 +19,7 @@ IN: cnc
     ] map string-squeeze-spaces ;
 
 SYMBOL: sql-statement 
-SYMBOL: cnc-db-path cnc-db-path [ "/Users/davec/Dropbox/3CL/Data/cnc.db" ]  initialize
+SYMBOL: cnc-db-path cnc-db-path [ "/Users/davec/Library/Mobile Documents/com~apple~CloudDocs/3CL/Data/cnc.db" ]  initialize
 ENUM: units +mm+ +in+ ;
 
 TUPLE: cnc-db < sqlite-db ;

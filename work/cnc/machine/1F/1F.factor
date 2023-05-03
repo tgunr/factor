@@ -1,7 +1,7 @@
 ! File: cnc.machine.1F
 ! Version: 0.1
 ! DRI: Dave Carlton
-! Description: OneFinifty CNC Machines!
+! Description: OneFinifty CNC Machines
 ! Copyright (C) 2022 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: cnc cnc.SM2 cnc.bit cnc.machine cnc.tools io

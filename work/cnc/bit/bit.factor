@@ -11,7 +11,7 @@ namespaces  sequences splitting strings syntax.terse ui
 ui.commands ui.gadgets ui.gadgets.borders ui.gadgets.editors
 ui.gadgets.labels ui.gadgets.packs ui.gadgets.toolbar
 ui.gadgets.worlds ui.gestures ui.tools.browser ui.tools.common
-ui.tools.deploy uuid uuid.private cnc.bit.entity ;
+ui.tools.deploy uuid uuid.private cnc.bit.entity multiline ;
 IN: cnc.bit
 
 SYMBOL: amanavt-db-path amanavt-db-path [ "/Users/davec/Dropbox/3CL/Data/amanavt.db" ] initialize
@@ -19,7 +19,7 @@ SYMBOL: imperial-db-path imperial-db-path [ "/Users/davec/Desktop/Imperial.db" ]
 
 ENUM: BitType straight upcut downcut compression ;
 ENUM: ToolType { ballnose 0 } { endmill 1 } { radius-endmill 2 } { v-bit 3 } { engraving 4 } { taper-ballmill 5 }
-    { drill 6 } { diamond 7 } { threadmill 14 } { multit-thread 15 } { laser 12 } ; 
+    { drill 6 } { diamond 7 } { groove 8 } { threadmill 14 } { multit-thread 15 } { laser 12 } ;
 ENUM: RateUnits { mm/sec 0 } { mm/min 1 } { m/min 2 } { in/sec 3 } { in/min 4 } { ft/min 5 } ;
 
 ! TUPLES
@@ -60,17 +60,18 @@ bit "bits" {
     18000 >>spindle_speed  0 >>spindle_dir 
     2 >>flutes  mm/min >>rate_units  quintid >>id  ;
 
-: convert-bit-slots ( bit -- bit )
+: sql>bit ( bit -- bit )
     [ name>> ] retain  " " split  unclip  dup unclip
     CHAR: # =
     [ drop  [ " " join  trim-whitespace  >>name ] dip  >>amana_id ]
     [ 3drop ]
     if
-    [ tool_type>> ] retain  >number >>tool_type
+    [ tool_type>> ] retain >number >>tool_type
+    [ bit_type>> ] retain >number >>bit_type
     [ diameter>> ] retain  >number  >>diameter 
     [ units>> ] retain  >number  >>units 
     [ feed_rate>> ] retain  >number  >>feed_rate 
-    [ rate_units>> ] retain  >number  >>rate_units 
+    [ rate_units>> ] retain  >number >>rate_units 
     [ plunge_rate>> ] retain  >number  >>plunge_rate 
     [ spindle_speed>> ] retain  >number  >>spindle_speed 
     [ spindle_dir>> ] retain  >number  >>spindle_dir 
@@ -78,8 +79,14 @@ bit "bits" {
     [ stepover>> ] retain  >number  >>stepover 
     ;
 
+: bit>sql ( bit -- bit )
+    [ units>> ] retain enum>number >>units
+    [ tool_type>> ] retain enum>number >>tool_type
+    [ bit_type>> ] retain  enum>number  >>bit_type
+    [ rate_units>> ] retain  enum>number  >>rate_units ;
+
 : cncdb>bit ( cnc-dbvt -- bit )
-    bit slots>tuple convert-bit-slots ;
+    bit slots>tuple sql>bit ;
 
 : do-cncdb ( statement -- result ? )
     sql-statement set
@@ -206,3 +213,4 @@ bit "bits" {
     { "name LIKE '%SPOIL%1/4\"SHANK'" } bit-where ;
 
 : update-bit ( -- ) 
+;

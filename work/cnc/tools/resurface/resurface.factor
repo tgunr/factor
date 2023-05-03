@@ -117,7 +117,6 @@ FROM: cnc.bit => >mm ;
 
 : resurface ( xmax ymax -- toolpath )
     "mukaj-togif" bit-id= 
-    1 >>stepdown-mm  2 >>rate_units  1.2 >>feed_rate  0.6 >>plunge_rate
     rot rot bit-resurface  LAST-TOOLPATH get ;
 
 : >onefinity ( -- )
