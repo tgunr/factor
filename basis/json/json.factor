@@ -22,6 +22,9 @@ M: json-fp-special-error summary
     [ [ drop ] prepose ]
     [ ] tri* if ; inline
 
+: json-null>f ( obj/json-null -- obj/f )
+    dup json-null = [ drop f ] when ; inline
+
 : when-json-null ( x if-null -- ) [ ] if-json-null ; inline
 
 : unless-json-null ( x else -- ) [ ] swap if-json-null ; inline
@@ -311,3 +314,6 @@ M: hashtable stream-json-print json-print-assoc ;
 
 M: word stream-json-print
     [ name>> ] dip stream-json-print ;
+
+: ?>json ( obj -- json ) dup string? [ >json ] unless ;
+: ?json> ( obj -- json/f ) f like [ json> ] ?call ;

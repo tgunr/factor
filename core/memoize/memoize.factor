@@ -23,7 +23,7 @@ IN: memoize
 
 : packer ( seq -- quot )
     length dup 4 <=
-    [ { [ t ] [ ] [ 2array ] [ 3array ] [ 4array ] } nth ]
+    [ { [ f ] [ ] [ 2array ] [ 3array ] [ 4array ] } nth ]
     [ { } [nsequence] ] if ;
 
 : unpacker ( seq -- quot )
@@ -44,9 +44,11 @@ IN: memoize
 : make/0 ( table quot effect -- quot )
     out>> [
         packer '[
-            _
-            [ first-unsafe ]
-            [ @ @ [ 0 rot set-nth-unsafe ] keep ] ?unless
+            _ dup first-unsafe [ second-unsafe ] [
+                @ @ [
+                    1 pick set-nth-unsafe t 0 rot set-nth-unsafe
+                ] keep
+            ] if
         ]
     ] keep unpacker compose ;
 
@@ -62,11 +64,11 @@ PRIVATE>
     3tri ;
 
 : define-memoized ( word quot effect -- )
-    dup in>> length zero? [ f 1array ] [ H{ } clone ] if
+    dup in>> length zero? [ f f 2array ] [ H{ } clone ] if
     (define-memoized) ;
 
 : define-identity-memoized ( word quot effect -- )
-    dup in>> length zero? [ f 1array ] [ IH{ } clone ] if
+    dup in>> length zero? [ f f 2array ] [ IH{ } clone ] if
     (define-memoized) ;
 
 PREDICATE: memoized < word "memoize" word-prop >boolean ;
@@ -83,7 +85,7 @@ M: memoized reset-word
     bi ;
 
 : memoize-quot ( quot effect -- memo-quot )
-    dup in>> length zero? [ f 1array ] [ H{ } clone ] if
+    dup in>> length zero? [ f f 2array ] [ H{ } clone ] if
     -rot make-memoizer ;
 
 : reset-memoized ( word -- )
