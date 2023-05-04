@@ -74,7 +74,7 @@ gpt-gadget "toolbar" f {
 
 : <gpt-gadget> ( -- gadget )
     vertical gpt-gadget new-track
-    1 >>fill  { 10 10 } >>gap
+    1 >>fill  { 10 10 } >>gap  white-interior
     <editor> dup "hello world" swap set-editor-string   >>ask
     <multiline-editor>  10 >>min-rows  80 >>min-cols  >>response
     dup <ask> f track-add
