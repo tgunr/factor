@@ -28,7 +28,7 @@ INITIALIZED-SYMBOL: OPENAI-KEY-PATH [ "~/.config/configstore/openai-key" ]
 
 : >B ( -- ) ! "
     get-listener input>> output>> 
-    [ .s nl "---" print ]
+    [ nl "---" print .s ]
     with-output-stream*  ;
 
     
@@ -83,7 +83,7 @@ M: gpt-gadget history-value
     ask>> editor-string 1 2array ;
 
 M: gpt-gadget set-history-value
-    swap first swap ask>> set-editor-string ; 
+    [ first ] dip ask>> set-editor-string ; 
 
 gpt-gadget "toolbar" f {
     { T{ key-down f f "RET" } com-send }
