@@ -25,12 +25,6 @@ INITIALIZED-SYMBOL: OPENAI-KEY-PATH [ "~/.config/configstore/openai-key" ]
         ]
         if
     ] unless ; 
-
-: >B ( -- ) ! "
-    get-listener input>> output>> 
-    [ nl "---" print .s ]
-    with-output-stream*  ;
-
     
 : wrap-result ( string maxwidth -- string' )
     monospace-font " " text-width >integer /  wrap-string ;
