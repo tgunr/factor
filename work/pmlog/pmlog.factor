@@ -6,11 +6,11 @@ formatting sequences words combinators ;
 IN: libc
 LIBRARY: libc
 
-FUNCTION: void closelog (  ) ;
-FUNCTION: void openlog ( c-string ident, int logopt, int facility ) ;
-FUNCTION: int setlogmask ( int maskpri ) ;
-FUNCTION: void syslog ( int priority, c-string message ) ;
-FUNCTION: void vsyslog ( int priority, c-string message, c-string args ) ;
+FUNCTION: void closelog ( )
+FUNCTION: void openlog ( c-string ident, int logopt, int facility ) 
+FUNCTION: int setlogmask ( int maskpri ) 
+FUNCTION: void syslog ( int priority, c-string message ) 
+FUNCTION: void vsyslog ( int priority, c-string message, c-string args ) 
 
 IN: pmlog
 
@@ -55,12 +55,14 @@ pmLogStack [ 256 0 <array> ] initialize
 : PMLOG_SetVerbose ( level -- )
     pmLogLevel set
     ;
+
 : PMLOG_PushVerbose ( level -- )
     pmLogLevel get  pmLogLevelIndex get  pmLogStack get  set-nth
     pmLogLevelIndex get  1 +  dup  pmLogLevelIndex set
     255 > [ 255 pmLogLevelIndex set ] when
     pmLogLevel set
     ;
+
 : PMLOG_PopVerbose ( -- )
     pmLogLevelIndex get  1 -  dup  pmLogLevelIndex set
     0 < [ 0 pmLogLevelIndex set ] when
@@ -97,31 +99,42 @@ pmLogStack [ 256 0 <array> ] initialize
     [ number>string  " " append
       "Error: " prepend
       prepend PMLogLevelTest PMLOGWITHLEVEL ] if ;
+
 : PMLOG_VALUE ( msg value -- )
-    number>string  "Value: " prepend prepend 
+    number>string  "Value: " prepend " " append  prepend 
     PMLogLevelTest PMLOGWITHLEVEL ;
+
 : PMLOG_NOTE ( msg -- )
     "NOTE: " prepend
     PMLogLevelTest PMLOGWITHLEVEL ;
+
 : PMLOG_HERE ( -- )
     "" PMLogLevelTest PMLOGWITHLEVEL ;
+
 : PMLOG_TEST ( msg -- )
     PMLogLevelTest PMLOGWITHLEVEL ;
 
 : PMLOG_EMERG ( msg -- )
     PMLogLevelEmerg PMLOGWITHLEVEL ;
+
 : PMLOG_ALERT ( msg -- )
     PMLogLevelAlert PMLOGWITHLEVEL ;
+
 : PMLOG_CRITICAL ( msg -- )
     PMLogLevelCritical PMLOGWITHLEVEL ;
+
 : PMLOG_ERROR ( msg -- )
     PMLogLevelError PMLOGWITHLEVEL ;
+
 : PMLOG_WARNING ( msg -- )
     PMLogLevelWarning PMLOGWITHLEVEL ;
+
 : PMLOG_NOTICE ( msg -- )
     PMLogLevelNotice PMLOGWITHLEVEL ;
+
 : PMLOG_INFO ( msg -- )
     PMLogLevelInfo PMLOGWITHLEVEL ;
+
 : PMLOG_DEBUG ( msg -- )
     PMLogLevelDebug PMLOGWITHLEVEL ;
 
@@ -139,7 +152,7 @@ pmLogStack [ 256 0 <array> ] initialize
 : PMTEST ( -- )
     PMLOG_HERE
     "Testing 1 2 3" PMLOG_TEST
-    10 iota 
+    10 <iota> 
     [ dup
       PMLOG_PushVerbose
       "Log Level: %d\n" sprintf PMLOG_NOTE
