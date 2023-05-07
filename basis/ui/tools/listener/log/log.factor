@@ -4,16 +4,11 @@ USING: accessors io kernel lexer namespaces prettyprint sequences
 strings.parser ui.tools.listener words ;
 IN: ui.tools.listener.log
 
-: L.s* ( listener -- )
-    input>> output>> 
-    [ "---" print .s ]
+<PRIVATE
+: L. ( -- ) 
+    get-listener input>> output>> 
+    [ nl "---" print .s ]
     with-output-stream*  ;
-
-: L.s ( -- ) 
-    get-listener L.s* ; 
-   
-: (lcompose) ( string -- quot )
-    [ nl print ] curry ; 
 
 SYMBOL: LPRINT
 
@@ -31,11 +26,12 @@ SYMBOL: LPRINT
 
 : (.here) ( name -- )  +colon-space Lprint ;
 : (here.) ( obj name -- )  [ unparse ] dip +colon-space prepend  Lprint ;
-: (here.s) ( name -- )  +colon-space Lprint L.s ;
+: (here.s) ( name -- )  +colon-space Lprint L. ;
+PRIVATE>
 
 SYNTAX: .HERE last-word name>> suffix!  \ (.here) suffix! ;
 SYNTAX: HERE. last-word name>> suffix!  \ (here.) suffix! ;
-SYNTAX: HERE.S last-word name>> suffix!  \ (here.s) suffix! ;
+SYNTAX: HERE.S  last-word name>> suffix!  \ (here.s) suffix! ;
 SYNTAX: HERE" last-word name>> +colon-space  ! "for the editors sake
     lexer get skip-blank parse-string append suffix!
     \ Lprint suffix! ;
