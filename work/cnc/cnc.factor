@@ -5,8 +5,8 @@
 ! Copyright (C) 2022 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors alien.enums alien.syntax classes.tuple db db.sqlite
- extensions db.tuples db.types kernel math namespaces proquint
- sequences strings uuid uuid.private variables ; 
+ db.tuples db.types kernel math namespaces proquint
+ sequences strings uuid uuid.private variables  ;
 IN: cnc
 
 ! Utility
@@ -19,9 +19,7 @@ IN: cnc
     ] map string-squeeze-spaces ;
 
 SYMBOL: sql-statement 
-SYMBOL: cnc-db-path cnc-db-path [ "/Users/davec/Library/Mobile Documents/com~apple~CloudDocs/3CL/Data/cnc.db" ]  initialize
-ENUM: units +mm+ +in+ ;
-
+SYMBOL: cnc-db-path cnc-db-path [ "~/icloud/3CL/Data/cnc.db" ]  initialize
 TUPLE: cnc-db < sqlite-db ;
 : <cnc-db> ( -- <cnc-db> )
     cnc-db new
