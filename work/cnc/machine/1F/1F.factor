@@ -18,3 +18,20 @@ TUPLE: 1F < machine ;
     "1F" "OneFinity J50" +cnc+ +mm+ 1220 812 133 <machine>
     ;
 
+
+: >onefinity ( -- )
+    "/usr/bin/scp /Users/davec/Desktop/Resurface* root@onefinity.local:upload/"
+    run-process wait-for-process 0=
+    [ "ok" ] [ "fail" ] if print 
+    "rsync -auv /Users/davec/Desktop/Resurface* root@onefinity.local:upload/"
+    run-process wait-for-process 0=
+    [ "ok" ] [ "fail" ] if print ;
+
+: onefinity-clear ( -- ) 
+    "ssh root@onefinity.local rm -r upload/*"
+    run-process wait-for-process 0=
+    [ "ok" ] [ "fail" ] if print ;
+
+FROM: cnc.tools.resurface => resurface ;
+: resurface ( -- )
+    <1F> resurface ; 
