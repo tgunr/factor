@@ -4,10 +4,10 @@
 ! Description: Build gcode to resurface 
 ! Copyright (C) 2023 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors cnc.bit cnc.gcode cnc.machine.1F formatting io
+USING: accessors cnc.bit cnc.gcode cnc.machine cnc.tools formatting io
 io.encodings.utf8 io.files io.launcher kernel math math.parser
 multiline namespaces sequences variables syntax.terse ;
-IN: cnc.tools
+IN: cnc.resurface
 
 :: do-x ( gcodes x ymax step -- gcodes )
     gcodes
@@ -59,14 +59,13 @@ IN: cnc.tools
     lasty xmax laststep do-y 
     ;
 
-: <surface-job> ( xmax ymax -- machine )
-    <1F>
+: <surface-job> ( xmax ymax machine -- machine )
     "Resurface" >>name
     "Resurface Job" >>model
     swap >>ymax
     swap >>xmax ;
 
-FROM: cnc.gcode => f ; 
+! FROM: cnc.gcode => f ; 
 :: resurfacex ( toolpath -- )
     "~/Desktop/"  toolpath machine>> name>> "-x" append  append  ".gcode" append  :> path
     preamble
@@ -107,7 +106,7 @@ FROM: cnc.gcode => f ;
 
 SYMBOL: LAST-TOOLPATH
 FROM: cnc.bit => >mm ; 
-: bit-resurface ( bit xmax ymax -- )
+: bit-resurface ( bit xmax ymax machine -- )
     <surface-job> <toolpath>
     dup LAST-TOOLPATH set
     [ resurfacex  ] keep
@@ -115,22 +114,9 @@ FROM: cnc.bit => >mm ;
     bounds-check
     ;
 
-: resurface ( xmax ymax -- toolpath )
+:: resurface ( xmax ymax machine -- toolpath )
     "mukaj-togif" bit-id= 
-    rot rot bit-resurface  LAST-TOOLPATH get ;
-
-: >onefinity ( -- )
-    "/usr/bin/scp /Users/davec/Desktop/Resurface* root@onefinity.local:upload/"
-    run-process wait-for-process 0=
-    [ "ok" ] [ "fail" ] if print 
-    "rsync -auv /Users/davec/Desktop/Resurface* root@onefinity.local:upload/"
-    run-process wait-for-process 0=
-    [ "ok" ] [ "fail" ] if print ;
-
-: onefinity-clear ( -- ) 
-    "ssh root@onefinity.local rm -r upload/*"
-    run-process wait-for-process 0=
-    [ "ok" ] [ "fail" ] if print ;
+    xmax ymax machine bit-resurface  LAST-TOOLPATH get ;
 
 GLOBAL: xmax
 GLOBAL: ymax

@@ -4,10 +4,11 @@
 ! Description: CNC Machine
 ! Copyright (C) 2022 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.enums alien.syntax classes.tuple db db.sqlite
- db.tuples db.types kernel math namespaces proquint
- sequences strings uuid uuid.private variables  ;
+USING: accessors alien.syntax db db.sqlite kernel namespaces proquint
+sequences strings uuid uuid.private extensions ;
 IN: cnc
+
+ENUM: Units +mm+ +in+ ;
 
 ! Utility
 : quintid ( -- id )   uuid1 string>uuid  32 >quint ; 
@@ -21,12 +22,15 @@ IN: cnc
 SYMBOL: sql-statement 
 SYMBOL: cnc-db-path cnc-db-path [ "~/icloud/3CL/Data/cnc.db" ]  initialize
 TUPLE: cnc-db < sqlite-db ;
+
 : <cnc-db> ( -- <cnc-db> )
     cnc-db new
     cnc-db-path get >>path ;
 
 : with-cncdb ( quot -- )
     '[ <cnc-db> _ with-db ] call ; inline
+
+
 
 
 
