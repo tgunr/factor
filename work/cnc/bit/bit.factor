@@ -88,12 +88,6 @@ bit "bits" {
 : cncdb>bit ( cnc-dbvt -- bit )
     bit slots>tuple sql>bit ;
 
-: do-cncdb ( statement -- result ? )
-    sql-statement set
-    [ sql-statement get sql-query ] with-cncdb
-    dup empty?
-    [ f ] [ [ cncdb>bit ] map t ] if ;
-
 : (inch>mm) ( bit inch -- bit mm )
     over units>> 1 = [ 25.4 / ] when ;
 
@@ -128,6 +122,15 @@ bit "bits" {
     mm/min enum>number >>rate_units
     0 >>units 
     ;
+
+: cnc-db>bit ( cnc-dbvt -- bit )
+    bit slots>tuple sql>bit ;
+
+ :: do-cncdb ( statement -- result ? )
+    sql-statement set
+    [ sql-statement get sql-query ] with-cncdb
+    dup empty?
+    [ f ] [ [ cnc-db>bit ] map t ] if ;
 
 : bit-table-drop ( -- )
     "DROP TABLE IF EXISTS bits"

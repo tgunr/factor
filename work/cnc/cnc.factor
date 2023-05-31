@@ -36,4 +36,3 @@ TUPLE: cnc-db < sqlite-db ;
 
 
 
-
