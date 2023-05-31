@@ -133,6 +133,16 @@ $nl
 { $code "query/tuple select-tuples quot map sift [ update-tuple ] each" }
 "The difference is that " { $snippet "update-tuples" } " handles query results one by one, thus avoiding the overhead of allocating the intermediate array of tuples, which " { $link select-tuples } " would do. This is important when processing large amounts of data in limited memory." } ;
 
+HELP: replace-tuple
+HELP{
+    { $values
+      { "tuple" tuple } }
+    { $description
+      If the tuple does not exist it is inserted into the table. If the tuple already exists,
+      it is updated.
+    }
+} ;
+
 HELP: delete-tuples
 { $values
     { "tuple" tuple } }
@@ -209,6 +219,7 @@ ARTICLE: "db-tuples-words" "High-level tuple/database words"
 { $subsections
     update-tuple
     update-tuples
+    replace-tuple
 }
 "Deleting tuples:"
 { $subsections
