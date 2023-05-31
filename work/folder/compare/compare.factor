@@ -4,15 +4,9 @@ USING: accessors checksums checksums.sha classes combinators
 folder help.syntax io io.backend io.directories
 io.pathnames kernel locals namespaces
 regexp regexp.combinators sequences sets strings
-tools.continuations ;
+folder tools.continuations ;
 
 FROM: namespaces => set ;
-FROM: namespaces => set ;
-FROM: namespaces => set ;
-FROM: folder => pathname ;
-FROM: string => to-folder ;
-FROM: folder => pathname ;
-FROM: folder => pathname ;
 IN: folder.compare
 
 : filter-nothing ( -- regexp )
@@ -27,37 +21,39 @@ IN: folder.compare
     ".*[.]git.*" <regexp> ;
 
 FROM: namespaces => set ;
-SYMBOL: folder-filter
-
 : folder-filter-reset ( -- )
-    filter-nothing folder-filter set ! default is exclude nothing
+    filter-nothing FOLDERFILTER set ! default is exclude nothing
     ;
 
 TUPLE: folder-compare src-path dst-path dir-word filter src-entries dst-entries ;
+
+FROM: string => >folder >folder-tree ;
 : <folder-compare> ( src dst -- folder-compare )
     folder-compare new
-    [ directory-tree-files ] >>dir-word ! default is deep compare
-    folder-filter get
+    [ >folder-tree ] >>dir-word ! default is deep compare
+    FOLDERFILTER get
     dup [ ] [ drop filter-nothing ] if >>filter
     swap >>dst-path
     swap >>src-path
 ;
 
 : create-src-entries ( folder-compare -- folder-compare' )
-    [ dup filter>> 
+    [ dup filter>>
       over src-path>>
       rot dir-word>> 
       call( path -- seq )
-      [ swap matches? not ] with filter ] keep
+      entries>>
+      [ name>> swap matches? not ] with filter ] keep
       swap >>src-entries
 ;
 
 : create-dst-entries ( folder-compare -- folder-compare' )
-    [ dup filter>>
+    [ dup filter>> 
       over dst-path>>
       rot dir-word>>
       call( path -- seq )
-      [ swap matches? not ] with filter ] keep
+      entries>>
+      [ name>> swap matches? not ] with filter ] keep
     swap >>dst-entries
 ;
 
@@ -72,30 +68,30 @@ TUPLE: folder-compare src-path dst-path dir-word filter src-entries dst-entries 
     ;
 
 : set-dir-word ( folder-compare t|f -- folder-compare' )
-    [ [ directory-tree-files ] >>dir-word ]
-    [ [ directory-files ] >>dir-word ]
+    [ [ >folder-tree ] >>dir-word ]
+    [ [ >folder ] >>dir-word ]
     if
     ;
 
 : swap-entries ( folder-compare -- folder-compare )
-    <<src-path <<src-entries
-    <<dst-path <<dst-entries
-    >>src-entries >>src-path
-    >>dst-entries >>dst-path ;
+    [ [ src-path>> ] [ src-entries>> ] bi ] keep
+    [ [ dst-path>> ] [ dst-entries>> ] bi ] keep
+    swap >>src-entries  swap >>src-path
+    swap >>dst-entries  swap >>dst-path ;
 
 SYMBOL: folder-pair
 
 : set-folder-pair-src ( src dir-word -- seq )
-    [ directory-tree-files ]
-    [ directory-files ]
+    [ >folder-tree ]
+    [ >folder ]
     if
     folder-pair get  swap >>src-entries
     src-entries>>
     ;
 
 : set-folder-pair-dst ( dst dir-word -- seq )
-    [ directory-tree-files ]
-    [ directory-files ]
+    [ >folder-tree ]
+    [ >folder ]
     if
     folder-pair get swap >>dst-entries
     dst-entries>>
@@ -141,10 +137,10 @@ GENERIC: to-folder-compare ( src dst -- folder-compare )
 M: string to-folder-compare
     <folder-compare> ;
 
-FROM: folder => pathname ;
+FROM: folder => pathname>> ;
 M: folder-entry to-folder-compare
-    swap pathname
-    swap pathname
+    swap pathname>>
+    swap pathname>>
     <folder-compare> ;
 
 : src-entries ( folder-compare -- seq )
@@ -187,17 +183,17 @@ M: folder-entry to-folder-compare
     ! List of files in DST not in SRC (prune)
     ;
 
-FROM: string => to-folder ;
+FROM: string => >folder ;
 :: gather-files ( seq folder-compare -- seq1 seq2 )
     folder-compare src-path>> as-directory :> path1
     folder-compare dst-path>> as-directory :> path2
     { } { } 
     seq [ 
-        [ path1 prepend to-folder
+        [ path1 prepend >folder
           dup is-file?  over is-hidden?  not and
           [ suffix ] [ drop ] if
         ] keep 
-        path2 prepend to-folder
+        path2 prepend >folder
         dup is-file? over is-hidden?  not and
         [ rot swap suffix ] [ drop swap ] if
         swap
@@ -211,7 +207,6 @@ FROM: string => to-folder ;
     =
     ;
 
-FROM: folder => pathname ;
 :: folder-fingerprint-diff ( folder-compare -- x )
     folder-compare folder-entries intersect
     folder-compare gather-files 
@@ -249,13 +244,13 @@ CONSTANT: f2 "/Applications/Aux"
             [ prepend ] keep
             append  ".*" append
             <regexp> { } 1sequence
-            folder-filter get  prefix
-            <or> folder-filter set
+            FOLDERFILTER get  prefix
+            <or> FOLDERFILTER set
         ] keep
     ] when
     ;
     
-FROM: folder => pathname ;
+FROM: folder => pathname>> ;
 : compare-these ( path path -- x )
     ! check-for-subpath ! Exclude if dst subpath is in src path
     <folder-compare>
