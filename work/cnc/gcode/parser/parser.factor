@@ -1,6 +1,6 @@
 ! Copyright (C) 2023 Dave Carlton.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: alien.c-types kernel lexer math.parser sequences strings multiline ;
+USING: kernel math.parser multiline peg peg.ebnf ;
 IN: cnc.gcode.parser
 
 ! <program>        ::= {<line>}
@@ -12,18 +12,12 @@ IN: cnc.gcode.parser
 ! <feedrate_parameter> ::= 'F' <number>
 ! <number>         ::= <digit> { <digit> } [ '.' { <digit> } ]
 ! <digit>          ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-                   
-: number ( -- parser )
-  token string>number ;
 
-: command ( -- parser )
-  "G" [ number ] sequence ;
+EBNF: gtoken [=[
+line = command                  
+space = (" " | "\r" | "\t" | "\n")
+spaces = space* => [[ drop ignore ]]
+number = ([0-9])+         => [[ string>number ]]
+command = "G0" | "G1"                   
+]=]
 
-: axis ( char -- parser )
-  swap [ [ char = ] keep number ] sequence ;
-
-: line ( -- parser )
-  command [ "X" axis "Y" axis "Z" axis "F" axis ] 4 sequence ;
-
-: gcode ( string -- command )
-  line scan ;
