@@ -227,9 +227,6 @@ FROM: string => >folder ;
 !     drop
 !     ;
 
-CONSTANT: f1 "/Applications"
-CONSTANT: f2 "/Applications/Aux"
-
 : has-subpath ( path path -- path path )
     2dup
     [ normalize-path ] bi@
@@ -254,10 +251,6 @@ FROM: folder => pathname>> ;
 : compare-these ( path path -- x )
     ! check-for-subpath ! Exclude if dst subpath is in src path
     <folder-compare>
-    ;
-
-: compare-f3f4 ( -- x )
-    f1 f2 compare-these
     ;
 
 : not-in-dst ( folder-compare -- seq )
