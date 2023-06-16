@@ -78,7 +78,7 @@ M: folder-entry equal?
     [ fingerprintRead ] bi@ = ;
 
 M: folder-entry hashcode*
-    nip fingerprintRead ;
+    nip fingerprintRead  string>number ;
 
 IN: folder.fingerprint
 
