@@ -259,31 +259,4 @@ FROM: folder => pathname>> ;
     swap [ append ] with map
     ;
 
-: test-src ( -- seq )
-    compare-f3f4
-    "These files are not in the destination: "
-    over dst-path>> append print
-    not-in-dst ;
- 
-: test-dst ( -- seq )
-    compare-f3f4
-    "These files are not in the source: "
-    over src-path>> append print 
-    swap-entries not-in-dst ;
- 
-: test-intersect ( -- seq )
-    compare-f3f4
-    "These files are found in the both folders " print
-    folder-intersect 
-    ;
-
-: test-union ( -- seq )
-    compare-f3f4
-    "These are all the files in  both folders " print
-    folder-union 
-    ;
-
-: test-md5 ( -- seq )
-    compare-f3f4 folder-fingerprint-diff 
-    ;
  
