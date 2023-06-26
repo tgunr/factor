@@ -397,7 +397,7 @@ M: directory-entry entry>folder-tree
 IN: folder
 
 : pathname>> ( entry -- path )  pathnameRead ; 
-
+    
 : error>string ( error -- string )
     "ERROR: "
     over args>> first append
@@ -591,8 +591,11 @@ SYMBOL: ERRORS
     ;
 
 
-: entry-rename ( from to -- )
-    2drop "Unimplemented" .
+: entry-rename ( from to-str -- )
+    over pathname>>
+    [ path>> as-directory ] 2dip
+    [ append ] dip swap
+    move-file
     ;
 
 : entry-delete ( entry -- )
