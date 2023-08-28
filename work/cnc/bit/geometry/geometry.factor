@@ -1,7 +1,9 @@
 ! Copyright (C) 2023 Dave Carlton.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors cnc cnc.bit db.tuples db.types kernel math.parser sequences
-splitting strings syntax.terse ;
+USING: accessors db.tuples db.types kernel math.parser sequences
+splitting strings syntax.terse
+cnc
+cnc.bit ;
 IN: cnc.bit.geometry
 
 TUPLE: bit-geometry name tool_type units diameter shank notes amanaid id ;

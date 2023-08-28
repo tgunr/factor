@@ -65,7 +65,7 @@ IN: cnc.resurface
     swap >>ymax
     swap >>xmax ;
 
-! FROM: cnc.gcode => f ; 
+FROM: cnc.gcode => f ; 
 :: resurfacex ( toolpath -- )
     "~/Desktop/"  toolpath machine>> name>> "-x" append  append  ".gcode" append  :> path
     preamble
@@ -105,7 +105,7 @@ IN: cnc.resurface
     [ toolpath boundary ] with-file-writer ;
 
 SYMBOL: LAST-TOOLPATH
-FROM: cnc.bit => >mm ; 
+
 : bit-resurface ( bit xmax ymax machine -- )
     <surface-job> <toolpath>
     dup LAST-TOOLPATH set
@@ -113,6 +113,8 @@ FROM: cnc.bit => >mm ;
     [ resurfacey  ] keep
     bounds-check
     ;
+
+FROM: cnc.bit => bit-id= ; 
 
 :: resurface ( xmax ymax machine -- toolpath )
     "mukaj-togif" bit-id= 

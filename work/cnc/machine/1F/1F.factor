@@ -4,9 +4,9 @@
 ! Description: OneFinifty CNC Machines
 ! Copyright (C) 2022 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: cnc cnc.SM2 cnc.bit cnc.machine cnc.tools io
+USING: cnc cnc.SM2 cnc.bit cnc.machine cnc.tools io io.launcher
  io.encodings.utf8 io.files kernel math.parser multiline sequences
-    ;
+syntax.terse ;
 FROM: cnc.machine => machine ;
 IN: cnc.machine.1F
 
@@ -32,6 +32,3 @@ TUPLE: 1F < machine ;
     run-process wait-for-process 0=
     [ "ok" ] [ "fail" ] if print ;
 
-FROM: cnc.tools.resurface => resurface ;
-: resurface ( -- )
-    <1F> resurface ; 

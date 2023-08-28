@@ -4,14 +4,18 @@
 ! Description: CNC bit data
 ! Copyright (C) 2022 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors alien.enums alien.syntax assocs classes.tuple cnc
-cnc.bit.cutting-data cnc.bit.geometry combinators combinators.smart db
+USING: accessors alien.enums alien.syntax assocs classes.tuple combinators combinators.smart db
 db.sqlite db.tuples db.types hashtables kernel math math.parser models
 namespaces  sequences splitting strings syntax.terse ui
 ui.commands ui.gadgets ui.gadgets.borders ui.gadgets.editors
 ui.gadgets.labels ui.gadgets.packs ui.gadgets.toolbar
 ui.gadgets.worlds ui.gestures ui.tools.browser ui.tools.common
-ui.tools.deploy uuid uuid.private cnc.bit.entity multiline ;
+ui.tools.deploy uuid uuid.private
+cnc
+cnc.bit.cutting-data
+cnc.bit.geometry
+cnc.bit.entity
+multiline ;
 IN: cnc.bit
 
 SYMBOL: amanavt-db-path amanavt-db-path [ "/Users/davec/Dropbox/3CL/Data/amanavt.db" ] initialize
@@ -126,7 +130,7 @@ bit "bits" {
 : cnc-db>bit ( cnc-dbvt -- bit )
     bit slots>tuple sql>bit ;
 
- :: do-cncdb ( statement -- result ? )
+: do-cncdb ( statement -- result ? )
     sql-statement set
     [ sql-statement get sql-query ] with-cncdb
     dup empty?
