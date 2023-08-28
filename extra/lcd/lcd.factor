@@ -6,10 +6,10 @@ IN: lcd
 
 : lcd-digit ( digit row -- str )
     [ dup CHAR: : = [ drop 10 ] [ CHAR: 0 - ] if ] dip {
-        "  _       _  _       _   _   _   _   _      "
-        " | |  |   _| _| |_| |_  |_    | |_| |_|  *  "
-        " |_|  |  |_  _|   |  _| |_|   | |_|   |  *  "
-        "                                            "
+        "  _       _   _       _   _   _   _   _      "
+        " | |   |  _|  _| |_| |_  |_    | |_| |_|  *  "
+        " |_|   | |_   _|   |  _| |_|   | |_|   |  *  "
+        "                                             "
     } nth 4 <groups> nth ;
 
 : lcd-row ( row digit -- string )
@@ -21,7 +21,7 @@ IN: lcd
 TUPLE: time-display < label timer ;
 
 : <time-display> ( -- gadget )
-    "99:99:99" lcd time-display new-label
+    "99:99:99" lcd " " append time-display new-label
         monospace-font >>font
         dup '[ now timestamp>hms lcd _ string<< ]
         f 1 seconds <timer> >>timer ;

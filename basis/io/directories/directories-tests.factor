@@ -1,8 +1,8 @@
 USING: arrays combinators destructors grouping io io.directories
-io.encodings.ascii io.encodings.utf8 io.files io.files.info
-io.files.unique io.launcher io.pathnames kernel math namespaces
-sequences sorting splitting splitting.monotonic strings system
-tools.test ;
+io.encodings.ascii io.encodings.binary io.encodings.utf8
+io.files io.files.info io.files.unique io.launcher io.pathnames
+kernel math namespaces sequences sorting splitting
+splitting.monotonic strings system tools.test ;
 
 { { "kernel" } } [
     "core" resource-path [
@@ -300,3 +300,18 @@ tools.test ;
 
 { "/foo/bar" } [ P"/foo" P"./bar" append-path ] unit-test
 { "/bar/foo" } [ P"./foo" P"/bar" prepend-path ] unit-test
+
+[ "resource:asdljkfasldkjfasdljfk" 0 truncate-file ] must-fail
+
+{ f 16 8 } [
+    [
+        {
+            [ touch-file ]
+            [ binary [ input-stream get stream-length ] with-file-reader ]
+            [ 16 truncate-file ]
+            [ binary [ input-stream get stream-length ] with-file-reader ]
+            [ 8 truncate-file ]
+            [ binary [ input-stream get stream-length ] with-file-reader ]
+        } cleave
+    ] with-test-file
+] unit-test

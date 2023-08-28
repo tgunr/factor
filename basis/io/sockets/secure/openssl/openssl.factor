@@ -8,7 +8,7 @@ io.encodings.string io.encodings.utf8 io.files io.pathnames
 io.ports io.sockets io.sockets.secure io.timeouts kernel libc
 math math.functions math.order math.parser namespaces openssl
 openssl.libcrypto openssl.libssl random sequences sets splitting
-unicode ;
+system unicode ;
 IN: io.sockets.secure.openssl
 
 GENERIC: ssl-method ( symbol -- method )
@@ -80,10 +80,21 @@ PRIVATE>
     dup length
     f BN_bin2bn ; inline
 
+: add-ctx-flag ( ctx flag -- )
+    [ handle>> ] dip
+    [ [ SSL_CTX_get_options ] dip bitor ]
+    [ drop swap SSL_CTX_set_options ssl-error ] 2bi ;
+
+: clear-ctx-flag ( ctx flag -- )
+    [ handle>> ] dip
+    [ [ SSL_CTX_get_options ] dip bitnot bitand ]
+    [ drop swap SSL_CTX_set_options ssl-error ] 2bi ;
+
 : disable-old-tls ( ctx -- )
-    handle>>
-    SSL_OP_NO_TLSv1 SSL_OP_NO_TLSv1_1 bitor
-    SSL_CTX_set_options ssl-error ;
+    SSL_OP_NO_TLSv1 SSL_OP_NO_TLSv1_1 bitor add-ctx-flag ;
+
+: ignore-unexpected-eof ( ctx -- )
+    SSL_OP_IGNORE_UNEXPECTED_EOF add-ctx-flag ;
 
 : set-session-cache ( ctx -- )
     handle>>
@@ -195,6 +206,7 @@ M: openssl <secure-context>
             [ set-verify-depth ]
             [ load-dh-params ]
             [ set-ecdh-params ]
+            [ os macosx? [ drop ] [ ignore-unexpected-eof ] if ]
             [ ]
         } cleave
     ] with-destructors ;
@@ -329,40 +341,35 @@ PRIVATE>
     dup do-ssl-accept-once
     [ [ dup file>> ] dip wait-for-fd do-ssl-accept ] [ drop ] if* ;
 
-: maybe-handshake ( ssl-handle -- )
-    dup connected>> [ drop ] [
-        dup terminated>> [
-            drop
-        ] [
-            [ [ do-ssl-accept ] with-timeout ]
-            [ t swap connected<< ] bi
-        ] if
-    ] if ;
+: maybe-handshake ( ssl-handle -- ssl-handle )
+    dup [ connected>> ] [ terminated>> ] bi or [
+        [ [ do-ssl-accept ] with-timeout ]
+        [ t >>connected ] bi
+    ] unless ;
 
 ! Input ports
 : do-ssl-read ( buffer ssl-handle -- event/f )
-    2dup handle>> swap [ buffer-end ] [ buffer-capacity ] bi SSL_read
-    [ check-ssl-error ] keep swap [ 2nip ] [
-        dup 0 > [ swap buffer+ ] [ 2drop ] if f
-    ] if* ;
+    2dup handle>> swap [ buffer-end ] [ buffer-capacity ] bi
+    ERR_clear_error SSL_read dup 0 >
+    [ nip swap buffer+ f ] [ check-ssl-error nip ] if ;
 
 : throw-if-terminated ( ssl-handle -- ssl-handle )
     dup terminated>> [ premature-close-error ] when ;
 
 M: ssl-handle refill
     throw-if-terminated
-    dup maybe-handshake [ buffer>> ] dip do-ssl-read ;
+    [ buffer>> ] [ maybe-handshake ] bi* do-ssl-read ;
 
 ! Output ports
 : do-ssl-write ( buffer ssl-handle -- event/f )
-    2dup handle>> swap [ buffer@ ] [ buffer-length ] bi SSL_write
-    [ check-ssl-error ] keep swap [ 2nip ] [
-        dup 0 > [ swap buffer-consume ] [ 2drop ] if f
-    ] if* ;
+    2dup handle>> swap [ buffer@ ] [ buffer-length ] bi
+    ERR_clear_error SSL_write dup 0 > [
+        nip over buffer-consume buffer-empty? f +output+ ?
+    ] [ check-ssl-error nip ] if ;
 
 M: ssl-handle drain
     throw-if-terminated
-    dup maybe-handshake [ buffer>> ] dip do-ssl-write ;
+    [ buffer>> ] [ maybe-handshake ] bi* do-ssl-write ;
 
 ! Connect
 : do-ssl-connect-once ( ssl-handle -- event/f )
@@ -484,11 +491,13 @@ M: openssl check-certificate
 
 M: openssl send-secure-handshake
     input/output-ports
-    [ make-input/output-secure ] keep
-    [ (send-secure-handshake) ] keep
-    remote-address get dup inet? [
-        host>> swap handle>> check-certificate
-    ] [ 2drop ] if ;
+    [ make-input/output-secure ]
+    [ nip (send-secure-handshake) ]
+    [
+        nip remote-address get dup inet? [
+            host>> swap handle>> check-certificate
+        ] [ 2drop ] if
+    ] 2tri ;
 
 M: openssl accept-secure-handshake
     input/output-ports

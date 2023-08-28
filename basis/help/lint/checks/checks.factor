@@ -84,7 +84,6 @@ SYMBOL: vocab-articles
 : contains-funky-elements? ( element -- ? )
     {
         $shuffle
-        $complex-shuffle
         $values-x/y
         $predicate
         $class-description
@@ -154,8 +153,11 @@ SYMBOL: vocab-articles
     ] bi ;
 
 : check-whitespace ( str1 str2 -- )
-    [ " " tail? ] [ " " head? ] bi* or
-    [ "Missing whitespace between strings" simple-lint-error ] unless ;
+    2dup [ ?last " (" member? ] [ ?first " ).,;:" member? ] bi* or
+    [ 2drop ] [
+        "Missing whitespace between strings ``%s'' and ``%s''"
+        sprintf simple-lint-error
+    ] if ;
 
 : check-bogus-nl ( element -- )
     { { $nl } { { $nl } } } [ head? ] with any? [

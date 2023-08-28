@@ -19,8 +19,6 @@ TUPLE: hash-set
 : probe ( array i probe# -- array i probe# )
     1 fixnum+fast [ fixnum+fast over wrap ] keep ; inline
 
-: no-key ( key array -- array n ? ) nip f f ; inline
-
 : (key@) ( key array i probe# -- array n ? )
     [ 3dup swap array-nth ] dip over +empty+ eq?
     [ 4drop no-key ] [
@@ -138,6 +136,9 @@ M: hash-set equal?
 
 M: hash-set set-like
     drop dup hash-set? [ ?members >hash-set ] unless ; inline
+
+: intern ( obj hash-set -- obj' )
+    2dup key@ [ swap nth 2nip ] [ 2drop [ adjoin ] keepd ] if ;
 
 INSTANCE: hash-set set
 

@@ -1,6 +1,7 @@
 ! Copyright (C) 2007 Chris Double.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: help.markup help.syntax kernel quotations strings words ;
+USING: help.markup help.syntax kernel math quotations sequences
+strings words ;
 IN: peg
 
 HELP: parse
@@ -11,18 +12,19 @@ HELP: parse
 }
 { $description
     "Given the input string, parse it using the given parser. The result is the abstract "
-    "syntax tree returned by the parser." }
-{ $see-also compile } ;
+    "syntax tree returned by the parser." } ;
 
-HELP: compile
+HELP: parse-fully
 { $values
+  { "input" string }
   { "parser" parser }
-  { "word" word }
+  { "ast" object }
 }
 { $description
-    "Compile the parser to a word. The word will have stack effect ( -- ast )."
-}
-{ $see-also parse } ;
+    "Given the input string, parse it using the given parser. The result is the abstract "
+    "syntax tree returned by the parser. Throws an exception if the input is not fully consumed." } ;
+
+{ parse parse-fully } related-words
 
 HELP: token
 { $values
@@ -179,12 +181,25 @@ HELP: box
     "The compiled result is memoized for future runs. See " { $link delay } " for a word "
     "that calls the quotation at runtime." } ;
 
+HELP: PARTIAL-PEG:
+{ $syntax "PARTIAL-PEG: word ( stack -- effect ) definition... ;" }
+{ $description "Defines a word that when called will " { $link parse }
+    " a string using the syntax defined by the parser created by the definition."
+    "The definition should have stack effect " { $snippet "( -- parser )" }
+    " and the created word " { $snippet "( string -- ast )" }
+    ". The parser is compiled when first used and then reused for each "
+    "subsequent invocation." }
+{ $notes "If the parsing fails, the word throws an exception." } ;
+
 HELP: PEG:
 { $syntax "PEG: word ( stack -- effect ) definition... ;" }
-{ $description "Defines a word that when called will parse a string using the syntax"
-    "defined by the parser created by the definition. The definition should have stack"
-    "effect " { $snippet "( -- parser )" } " and the created word "
-    { $snippet "( string -- ast )" } ". In contrast to calling the parser resulting from"
-    "the definition with " { $link parse } ", the parser is pre-compiled and not compiled"
-    "for each invocation of " { $link parse } ". If the parsing fails, the word throws an"
-    "exception." } ;
+{ $description "Defines a word that when called will " { $link parse-fully }
+    " a string using the syntax defined by the parser created by the definition."
+    "The definition should have stack effect " { $snippet "( -- parser )" }
+    " and the created word " { $snippet "( string -- ast )" }
+    ". The parser is compiled when first used and then reused for each "
+    "subsequent invocation." }
+{ $notes "If the parsing fails, the word throws an exception."
+    " If the input is not fully consumed, the word throws an exception." } ;
+
+{ POSTPONE: PARTIAL-PEG: POSTPONE: PEG: } related-words

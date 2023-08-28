@@ -4,10 +4,10 @@ USING: accessors alien arrays assocs byte-arrays calendar
 classes classes.error combinators combinators.short-circuit
 continuations effects eval hashtables help.markup interpolate io
 io.directories io.encodings.utf8 io.files io.pathnames
-io.streams.string kernel math math.parser namespaces prettyprint
-quotations sequences sets sorting splitting strings system
-timers unicode urls vocabs vocabs.loader vocabs.metadata words
-words.symbol ;
+io.streams.string kernel math math.parser namespaces parser
+prettyprint prettyprint.config quotations sequences sets sorting
+splitting strings system timers unicode urls vocabs
+vocabs.loader vocabs.metadata words words.symbol ;
 IN: tools.scaffold
 
 SYMBOL: developer-name
@@ -341,11 +341,13 @@ M: word scaffold-docs scaffold-word-docs ;
 : set-scaffold-tests-file ( vocab path -- )
     [ tests-file-string ] dip utf8 set-file-contents ;
 
+: vocab>test-path ( vocab -- string )
+    "-tests.factor" vocab/suffix>path ;
+
 PRIVATE>
 
 : scaffold-tests ( vocab -- )
-    ensure-vocab-exists
-    dup "-tests.factor" vocab/suffix>path
+    ensure-vocab-exists dup vocab>test-path
     scaffolding? [
         set-scaffold-tests-file
     ] [
@@ -407,18 +409,20 @@ ${example-indent}}
     " " glue ;
 
 : run-string ( string -- datastack )
-    parse-string V{ } clone swap with-datastack ; inline
+    [ parse-string ] with-file-vocabs V{ } clone swap with-datastack ;
 
-: scaffold-unit-test ( -- str/f )
-    read-contents dup "" = [
-        drop f
-    ] [
-        [ run-string unparse ] keep
+: read-unit-test ( -- str/f )
+    read-contents [ f ] [
+        [ run-string [ unparse ] without-limits ] keep
         make-unit-test
-    ] if ;
+    ] if-empty ;
 
-: scaffold-unit-tests ( -- str )
-    [ scaffold-unit-test dup ] [ ] produce nip "\n\n" join ;
+: read-unit-tests ( -- str )
+    [ read-unit-test dup ] [ ] produce nip "\n\n" join ;
+
+: scaffold-unit-tests ( vocab -- )
+    [ scaffold-tests read-unit-tests ]
+    [ vocab>test-path utf8 [ write ] with-file-appender ] bi ;
 
 HOOK: scaffold-emacs os ( -- )
 
