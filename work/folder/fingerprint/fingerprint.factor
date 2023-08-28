@@ -5,13 +5,14 @@
 ! Copyright (C) 2017 Dave Carlton.
 ! See http://factorcode.org/license.txt for BSD license.
 
-USING: accessors assocs checksums checksums.adler-32
-checksums.fnv1 file.xattr folder folder.collection io io.files.types
-io.streams.c kernel math math.parser namespaces prettyprint
-random sequences threads words ;
+USING: accessors assocs checksums checksums.adler-32 checksums.fnv1 file.xattr
+ folder folder.collection io io.files.types io.streams.c kernel
+ math math.parser namespaces prettyprint random sequences
+ string threads words  ;
 IN: folder.fingerprint
 
-SYMBOLS: FINGERPRINT-FOLDER fingerprints ;
+SYMBOL: fingerprints
+
 TUPLE: fingerprint checksum date ;
 
 : <fingerprint> ( checksum date -- <fingerprint> )
@@ -107,7 +108,7 @@ IN: folder.fingerprint
 FROM: string => >folder ;
 : (fingerprint) ( path -- )
     >folder
-    HERE"Fingerprinting files:"
+    HERE" Fingerprinting files:"
     deep folder-entries
     HERE" Fingerprinting, showing progress every 100 files"
     [
@@ -128,10 +129,10 @@ FROM: string => >folder ;
     [ "Fingerprint files completed" print ] >>exit-handler ;
 
 : path-fingerprint ( path -- )
-    FINGERPRINT-FOLDER set
+    COLLECTION-FOLDER set
     fingerprints get 
     [ "collection already exists" print ] 
-    [ FINGERPRINT-FOLDER get  dup 
+    [ COLLECTION-FOLDER get  dup 
       [ [ (fingerprint) ] curry "Collect Files" <thread>
         (fingerprint-callback)
         (spawn)

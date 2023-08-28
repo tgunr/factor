@@ -6,18 +6,18 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: accessors folder io.directories io.files io.pathnames kernel
-locals sequences sets variables ;
+locals sequences sets string variables  ;
 
 IN: folder.utilities
 
 VAR: downloads
 
 :: move-to ( folder-entry directory -- )
-    folder-entry path+name
+    folder-entry pathname>>
     downloads path>>  as-directory
     directory append as-directory
     folder-entry name>> append
-    dup parent-directory  exists?
+    dup parent-directory  file-exists?
     [ dup parent-directory make-directory ] unless
     move-file ;
 
@@ -32,8 +32,8 @@ VAR: downloads
     folder-entry ;
     
 : org-folder ( path -- )
-     "~/Downloads" string-to-folder set: downloads
-     string-to-folder
+     "~/Downloads" >folder set: downloads
+     >folder
      [
          { "dmg" "pkg" "mpkg" } "!Disks/" move-to-if
          { "tar" "rar" "zip" "bzip" "bz2" } "!Archives/" move-to-if
@@ -43,7 +43,7 @@ VAR: downloads
          { "h" "c" "sh" "factor" } "!Sources/" move-to-if
          { "exe" } "!Windows" move-to-if
          drop
-     ] with-folder-entries
+     ] with-folder
      ;
 
 : org-downloads ( -- )  "~/Downloads" org-folder ;
