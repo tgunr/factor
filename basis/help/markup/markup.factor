@@ -96,7 +96,7 @@ M: f print-element drop ;
     [
         last-element off
         [ ($code-style) ] dip with-nesting
-    ] ($block) ($blank-line) ; inline
+    ] ($block) ; inline
 
 : $code ( element -- )
     join-lines dup <input> [ write ] ($code) ;
@@ -451,10 +451,6 @@ M: f ($instance) ($link) ;
     "This is a shuffle word, rearranging the top of the datastack as indicated by the word's stack effect" swap
     ?first [ ": " swap "." 4array ] [ "." append ] if*
     $description ;
-
-: $complex-shuffle ( element -- )
-    $shuffle
-    { "The data flow represented by this shuffle word might be more clearly expressed using " { $link "locals" } "." } $deprecated ;
 
 : $low-level-note ( children -- )
     drop

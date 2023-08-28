@@ -18,9 +18,9 @@ GENERIC: pprint-json* ( obj -- )
         <string> write
     ] when ;
 
-M: object pprint-json* json-print ;
-M: string pprint-json* json-print ;
-M: f pprint-json* json-print ;
+M: object pprint-json* write-json ;
+M: string pprint-json* write-json ;
+M: f pprint-json* write-json ;
 
 M: sequence pprint-json*
     [
@@ -33,7 +33,7 @@ M: sequence pprint-json*
         write-spaces "]" write
     ] if-empty ;
 
-M: hashtable pprint-json*
+M: assoc pprint-json*
     dup assoc-empty? [
         drop "{ }" write
     ] [

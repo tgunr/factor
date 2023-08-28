@@ -11,6 +11,7 @@ maybe-init-ssl
         SSL_OP_NO_TLSv1
         SSL_OP_NO_TLSv1_1
         SSL_OP_NO_TLSv1_2
+        SSL_OP_NO_TLSv1_3
     } [ execute( -- x ) ] map ;
 
 : set-opt ( ctx op -- )
@@ -28,12 +29,10 @@ maybe-init-ssl
 : new-ssl ( ctx -- ssl )
     SSL_new &SSL_free ;
 
-{
-    { f f f }
-} [
+{ t } [
     [
         new-tls-ctx tls-opts [ has-opt ] with map
-    ] with-destructors
+    ] with-destructors [ f = ] all?
 ] unit-test
 
 ! Test setting options
@@ -42,7 +41,7 @@ maybe-init-ssl
         new-tls-ctx tls-opts [ [ set-opt ] [ has-opt ] 2bi ] with map
         [ t = ] count
     ] with-destructors
-    ssl-new-api? get-global 0 3 ? =
+    ssl-new-api? get-global 0 4 ? =
 ] unit-test
 
 ! Initial state

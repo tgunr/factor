@@ -65,7 +65,7 @@ M: consult-method reset-word
 GENERIC#: (consult-method-quot) 2 ( consultation quot word -- object )
 
 M: consultation (consult-method-quot)
-    '[ _ call _ execute ] nip ;
+    dup "combination" word-prop make-consult-quot ;
 
 M: broadcast (consult-method-quot)
     '[ _ call [ _ execute ] each ] nip ;
