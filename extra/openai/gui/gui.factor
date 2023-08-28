@@ -86,7 +86,7 @@ TUPLE: gpt-settings < track aimodel key context ;
     close-window ;
 
 : com-save ( gpt-settings -- )
-    .HERE ;
+    .HERE  drop ;
 
 : <gpt-settings-gadget> ( -- gadget )
     vertical gpt-settings new-track
