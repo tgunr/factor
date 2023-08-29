@@ -1,1 +1,0 @@
-Vocabulary to read pcap files created by tcpdump.
