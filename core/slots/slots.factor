@@ -50,16 +50,39 @@ M: object reader-quot
 : define-reader-generic ( name -- )
     reader-word ( object -- value ) define-simple-generic ;
 
+GENERIC#: getter-quot 1 ( class slot-spec -- quot )
+
+M: object getter-quot
+    nip [ offset>> [ slot ] curry  [ dup ] prepose ] [ class>> ] bi
+    dup object bootstrap-word eq?
+    [ drop ] [ 1array [ declare ] curry compose ] if ;
+
+: getter-word ( name -- word )
+    "<<" prepend "accessors" create-word ;
+
+: getter-props ( slot-spec -- assoc )
+    "reading" associate ;
+
+: define-getter-generic ( name -- )
+    getter-word ( object -- value ) define-simple-generic ;
+
+: define-getter ( name -- )
+    dup getter-word dup deferred? [ 
+        swap reader-word 1quotation [ dup ] prepose
+        [ swap ] compose
+        ( object -- value object ) define-inline
+    ] [ 2drop ] if ;
+
 : define-reader ( class slot-spec -- )
     [ nip name>> define-reader-generic ]
-    [
-        {
-            [ drop ]
-            [ nip name>> reader-word ]
-            [ reader-quot ]
-            [ nip reader-props ]
-        } 2cleave define-typecheck
-    ] 2bi ;
+    [ { [ drop ]
+        [ nip name>> reader-word ]
+        [ reader-quot ]
+        [ nip reader-props ]
+      } 2cleave
+      define-typecheck
+    ]
+    2bi ;
 
 : writer-word ( name -- word )
     "<<" append "accessors" create-word
@@ -79,6 +102,7 @@ M: class instance-check-quot
 M: object instance-check-quot
     [ predicate-def [ dup ] prepose ] keep
     [ bad-slot-value ] curry [ unless ] curry compose ;
+
 
 GENERIC#: writer-quot 1 ( class slot-spec -- quot )
 
@@ -126,14 +150,15 @@ M: object writer-quot
 
 : define-slot-methods ( class slot-spec -- )
     [ define-reader ]
-    [
-        dup read-only>> [ 2drop ] [
-            [ name>> define-setter drop ]
-            [ name>> define-changer drop ]
-            [ define-writer ]
-            2tri
-        ] if
-    ] 2bi ;
+    [ name>> define-getter  drop ]
+    [ dup read-only>>
+      [ 2drop ]
+      [ [ name>> define-setter drop ]
+        [ name>> define-changer drop ]
+        [ define-writer ]
+        2tri
+      ] if
+    ] 2tri ;
 
 : define-accessors ( class specs -- )
     [ define-slot-methods ] with each ;
@@ -141,6 +166,7 @@ M: object writer-quot
 : define-protocol-slot ( name -- )
     {
         [ define-reader-generic ]
+        [ define-getter-generic ]
         [ define-writer-generic ]
         [ define-setter ]
         [ define-changer ]
