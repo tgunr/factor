@@ -1,5 +1,5 @@
 ! Copyright (C) 2004, 2010 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors assocs combinators definitions graphs kernel
 make namespaces quotations sequences sets words words.symbol ;
 IN: classes
@@ -92,10 +92,10 @@ M: object predicate-def
 M: predicate flushable? drop t ;
 
 M: predicate forget*
-    [ call-next-method ] [ f "predicating" set-word-prop ] bi ;
+    [ call-next-method ] [ "predicating" remove-word-prop ] bi ;
 
 M: predicate reset-word
-    [ call-next-method ] [ f "predicating" set-word-prop ] bi ;
+    [ call-next-method ] [ "predicating" remove-word-prop ] bi ;
 
 : define-predicate ( class quot -- )
     [ predicate-word ] dip ( object -- ? ) define-declared ;

@@ -1,5 +1,5 @@
 ! Copyright (C) 2008 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data alien.strings arrays
 calendar.unix classes.struct combinators grouping
 io.encodings.utf8 io.files io.files.info io.files.info.unix
@@ -33,10 +33,10 @@ M: macosx file-systems
 M: macosx new-file-system-info macosx-file-system-info new ;
 
 M: macosx file-system-statfs
-    \ statfs64 <struct> [ statfs64-func io-error ] keep ;
+    \ statfs64 new [ statfs64-func io-error ] keep ;
 
 M: macosx file-system-statvfs
-    \ statvfs <struct> [ statvfs-func io-error ] keep ;
+    \ statvfs new [ statvfs-func io-error ] keep ;
 
 M: macosx statfs>file-system-info
     {

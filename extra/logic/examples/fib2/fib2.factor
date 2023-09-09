@@ -1,6 +1,6 @@
 ! Copyright (C) 2020 KUSUMOTO Norio.
-! See http://factorcode.org/license.txt for BSD license.
-USING: logic kernel lists assocs locals math ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: assocs kernel logic math ;
 IN: logic.examples.fib2
 
 LOGIC-PREDS: fibo ;

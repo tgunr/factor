@@ -1,24 +1,26 @@
 ! Copyright (c) 2008 Eric Mertens.
-! See http://factorcode.org/license.txt for BSD license.
-USING: accessors kernel locals math project-euler.common ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: accessors kernel math project-euler.common ;
 IN: project-euler.215
 
-! http://projecteuler.net/index.php?section=problems&id=215
+! https://projecteuler.net/problem=215
 
 ! DESCRIPTION
 ! -----------
 
-! Consider the problem of building a wall out of 2x1 and 3x1 bricks
-! (horizontal x vertical dimensions) such that, for extra strength, the gaps
-! between horizontally-adjacent bricks never line up in consecutive layers,
-! i.e. never form a "running crack".
+! Consider the problem of building a wall out of 2x1 and 3x1
+! bricks (horizontal x vertical dimensions) such that, for extra
+! strength, the gaps between horizontally-adjacent bricks never
+! line up in consecutive layers, i.e. never form a "running
+! crack".
 
-! For example, the following 93 wall is not acceptable due to the running crack
-! shown in red:
+! For example, the following 93 wall is not acceptable due to
+! the running crack shown in red:
 
 !     See problem site for image...
 
-! There are eight ways of forming a crack-free 9x3 wall, written W(9,3) = 8.
+! There are eight ways of forming a crack-free 9x3 wall, written
+! W(9,3) = 8.
 
 ! Calculate W(32,10).
 

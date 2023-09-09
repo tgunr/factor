@@ -1,5 +1,5 @@
 ! Copyright (C) 2003, 2008 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs concurrency.messaging
 continuations debugger effects generalizations io.streams.string
 kernel math.order namespaces parser prettyprint
@@ -46,7 +46,7 @@ ERROR: bad-log-message-parameters msg word level ;
     check-log-message
     log-service get
     2dup [ log? ] [ ] bi* and [
-        [ [ string-lines ] [ name>> ] [ name>> ] tri* ] dip
+        [ [ split-lines ] [ name>> ] [ name>> ] tri* ] dip
         4array "log-message" send-to-log-server
     ] [
         4drop

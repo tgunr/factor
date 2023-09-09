@@ -1,15 +1,15 @@
 ! Copyright (C) 2009 Joe Groff.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.data alien.strings
 arrays assocs byte-arrays classes.mixin classes.parser
-classes.singleton classes.struct combinators combinators.short-circuit
-definitions destructors fry generic.parser gpu gpu.buffers gpu.private
-gpu.state hashtables images io.encodings.ascii io.files io.pathnames
-kernel lexer literals locals math math.parser memoize multiline namespaces
+classes.singleton classes.struct combinators
+combinators.short-circuit definitions destructors generic.parser
+gpu gpu.buffers gpu.private gpu.state hashtables images
+io.encodings.ascii io.files io.pathnames kernel lexer literals
+math math.floats.half math.parser memoize multiline namespaces
 opengl opengl.gl opengl.shaders parser quotations sequences
-specialized-arrays splitting strings tr ui.gadgets.worlds
-variants vectors vocabs vocabs.loader vocabs.parser words
-words.constant math.floats.half typed ;
+specialized-arrays splitting strings tr typed ui.gadgets.worlds
+variants vocabs.loader words words.constant ;
 QUALIFIED-WITH: alien.c-types c
 SPECIALIZED-ARRAY: int
 SPECIALIZED-ARRAY: void*
@@ -311,7 +311,7 @@ SYMBOL: padding-no
     { } <struct-slot-spec> ;
 
 : shader-filename ( shader/program -- filename )
-    dup filename>> [ ] [ name>> where first ] ?if file-name ;
+    [ filename>> ] [ name>> where first ] ?unless file-name ;
 
 : numbered-log-line? ( log-line-components -- ? )
     {
@@ -330,9 +330,9 @@ SYMBOL: padding-no
     ] [ nip ] if ":" join ;
 
 : replace-log-line-numbers ( object log -- log' )
-    "\n" split harvest
+    split-lines harvest
     [ replace-log-line-number ] with map
-    "\n" join ;
+    join-lines ;
 
 : gl-shader-kind ( shader-kind -- shader-kind )
     {
@@ -452,16 +452,16 @@ M: vertex-array-collection vertex-array-buffers
 : vertex-array-buffer ( vertex-array: vertex-array -- vertex-buffer: buffer )
     vertex-array-buffers first ; inline
 
-TUPLE: compile-shader-error shader log ;
-TUPLE: link-program-error program log ;
+ERROR: compile-shader-error shader log ;
+ERROR: link-program-error program log ;
 
 : throw-compile-shader-error ( shader instance -- * )
-    [ dup ] dip [ gl-shader-info-log ] [ glDeleteShader ] bi
-    replace-log-line-numbers compile-shader-error boa throw ;
+    dupd [ gl-shader-info-log ] [ glDeleteShader ] bi
+    replace-log-line-numbers compile-shader-error ;
 
 : throw-link-program-error ( program instance -- * )
-    [ dup ] dip [ gl-program-info-log ] [ delete-gl-program ] bi
-    replace-log-line-numbers link-program-error boa throw ;
+    dupd [ gl-program-info-log ] [ delete-gl-program ] bi
+    replace-log-line-numbers link-program-error ;
 
 DEFER: <shader-instance>
 

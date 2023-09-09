@@ -1,36 +1,39 @@
 ! Copyright (c) 2008 Aaron Schaefer.
-! See http://factorcode.org/license.txt for BSD license.
-USING: kernel math math.ranges project-euler.common sequences ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: kernel math ranges project-euler.common sequences ;
 IN: project-euler.033
 
-! http://projecteuler.net/index.php?section=problems&id=33
+! https://projecteuler.net/problem=33
 
 ! DESCRIPTION
 ! -----------
 
-! The fraction 49/98 is a curious fraction, as an inexperienced mathematician
-! in attempting to simplify it may incorrectly believe that 49/98 = 4/8, which
-! is correct, is obtained by cancelling the 9s.
+! The fraction 49/98 is a curious fraction, as an inexperienced
+! mathematician in attempting to simplify it may incorrectly
+! believe that 49/98 = 4/8, which is correct, is obtained by
+! cancelling the 9s.
 
-! We shall consider fractions like, 30/50 = 3/5, to be trivial examples.
+! We shall consider fractions like, 30/50 = 3/5, to be trivial
+! examples.
 
-! There are exactly four non-trivial examples of this type of fraction, less
-! than one in value, and containing two digits in the numerator and
-! denominator.
+! There are exactly four non-trivial examples of this type of
+! fraction, less than one in value, and containing two digits in
+! the numerator and denominator.
 
-! If the product of these four fractions is given in its lowest common terms,
-! find the value of the denominator.
+! If the product of these four fractions is given in its lowest
+! common terms, find the value of the denominator.
 
 
 ! SOLUTION
 ! --------
 
-! Through analysis, you only need to check fractions fitting the pattern ax/xb
+! Through analysis, you only need to check fractions fitting the
+! pattern ax/xb
 
 <PRIVATE
 
 : source-033 ( -- seq )
-    10 99 [a,b] dup cartesian-product concat [ first2 < ] filter ;
+    10 99 [a..b] dup cartesian-product concat [ first2 < ] filter ;
 
 : safe? ( ax xb -- ? )
     [ 10 /mod ] bi@ [ = ] dip zero? not and nip ;

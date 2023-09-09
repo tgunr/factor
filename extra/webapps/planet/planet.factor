@@ -1,10 +1,10 @@
 ! Copyright (C) 2008, 2010 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors calendar concurrency.combinators db db.tuples
 db.types fry furnace.actions furnace.auth furnace.boilerplate
 furnace.redirection furnace.syndication html.components
 html.forms http.server.dispatchers http.server.static kernel
-locals logging sequences sorting syndication timers urls
+logging sequences sorting syndication timers urls
 validators ;
 IN: webapps.planet
 
@@ -47,11 +47,11 @@ posting "POSTINGS"
 
 : blogroll ( -- seq )
     f <blog> select-tuples
-    [ name>> ] sort-with ;
+    [ name>> ] sort-by ;
 
 : postings ( -- seq )
     posting new select-tuples
-    [ date>> ] inv-sort-with ;
+    [ date>> ] inv-sort-by ;
 
 : <edit-blogroll-action> ( -- action )
     <page-action>
@@ -90,10 +90,10 @@ posting "POSTINGS"
     [ '[ _ <posting> ] map ] 2map concat ;
 
 : sort-entries ( entries -- entries' )
-    [ date>> ] inv-sort-with ;
+    [ date>> ] inv-sort-by ;
 
 : update-cached-postings ( -- )
-    blogroll fetch-blogroll sort-entries 8 short head [
+    blogroll fetch-blogroll sort-entries 8 index-or-length head [
         posting new delete-tuples
         [ insert-tuple ] each
     ] with-transaction ;

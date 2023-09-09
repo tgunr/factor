@@ -1,7 +1,6 @@
 ! Copyright (C) 2008 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
-USING: arrays kernel math strings help.markup help.syntax
-math.order ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: help.markup help.syntax kernel math math.order ;
 IN: calendar
 
 HELP: duration
@@ -51,12 +50,12 @@ HELP: seconds-per-year
 { $description "Returns the number of seconds in a year averaged over 400 years. Used internally for adding an arbitrary real number of seconds to a timestamp." } ;
 
 HELP: julian-day-number
-{ $values { "year" integer } { "month" integer } { "day" integer } { "n" integer } }
+{ $values { "$year" integer } { "$month" integer } { "$day" integer } { "n" integer } }
 { $description "Calculates the Julian day number from a year, month, and day. The difference between two Julian day numbers is the number of days that have elapsed between the two corresponding dates." }
 { $warning "Not valid before year -4800 BCE." } ;
 
 HELP: julian-day-number>date
-{ $values { "n" integer } { "year" integer } { "month" integer } { "day" integer } }
+{ $values { "$n" integer } { "year" integer } { "month" integer } { "day" integer } }
 { $description "Converts from a Julian day number back to a year, month, and day." } ;
 { julian-day-number julian-day-number>date } related-words
 
@@ -352,9 +351,9 @@ HELP: hence
 { $description "Computes a time in the future that is the " { $snippet "duration" } " added to the result of " { $link now } "." }
 { $examples
     { $unchecked-example
-       "USING: calendar prettyprint ;"
-       "10 hours hence ."
-       "T{ timestamp f 2008 9 2 2 47 45+943/1000 T{ duration f 0 0 0 -5 0 0 } }"
+        "USING: calendar prettyprint ;"
+        "10 hours hence ."
+        "T{ timestamp f 2008 9 2 2 47 45+943/1000 T{ duration f 0 0 0 -5 0 0 } }"
     }
 } ;
 
@@ -363,9 +362,9 @@ HELP: ago
 { $description "Computes a time in the past that is the " { $snippet "duration" } " subtracted from the result of " { $link now } "." }
 { $examples
     { $unchecked-example
-       "USING: calendar prettyprint ;"
-       "3 weeks ago ."
-       "T{ timestamp f 2008 8 11 16 49 52+99/500 T{ duration f 0 0 0 -5 0 0 } }"
+        "USING: calendar prettyprint ;"
+        "3 weeks ago ."
+        "T{ timestamp f 2008 8 11 16 49 52+99/500 T{ duration f 0 0 0 -5 0 0 } }"
     }
 } ;
 
@@ -416,7 +415,7 @@ HELP: day-of-year
 
 HELP: week-number
 { $values { "timestamp" timestamp } { "[1,53]" integer } }
-{ $description "Calculates the ISO 8601 week number from 1 to 53 (leap years). See " { $snippet "https://en.wikipedia.org/wiki/ISO_week_date" } }
+{ $description "Calculates the ISO 8601 week number from 1 to 53 (leap years). Weeks start on Monday and end on Sunday. The end of December can sometimes be the first week of the next year and January can be the last week number of the previous year. See " { $snippet "https://en.wikipedia.org/wiki/ISO_week_date" } }
 { $examples
     "Last day of 2018 is already in the first week of 2019."
     { $example "USING: calendar prettyprint ;"
@@ -490,8 +489,8 @@ HELP: time-since-midnight
 
 HELP: since-1970
 { $values
-     { "duration" duration }
-     { "timestamp" timestamp } }
+    { "duration" duration }
+    { "timestamp" timestamp } }
 { $description "Adds the duration to the beginning of Unix time and returns the result as a timestamp." } ;
 
 ARTICLE: "calendar" "Calendar"
@@ -507,7 +506,8 @@ ARTICLE: "calendar" "Calendar"
 "Getting the current timestamp:"
 { $subsections
     now
-    gmt
+    now-gmt
+    now-utc
 }
 "Time zones:"
 { $subsections

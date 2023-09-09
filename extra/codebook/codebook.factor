@@ -1,13 +1,12 @@
 ! Copyright (C) 2010 Joe Groff.
-! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs calendar calendar.format
-combinators combinators.short-circuit fry io io.backend
-io.directories io.encodings.binary io.encodings.detect
-io.encodings.utf8 io.files io.files.info io.files.temp
-io.files.types io.files.unique io.launcher io.pathnames kernel
-locals math math.parser namespaces sequences sorting strings
-system unicode xml.syntax xml.writer xmode.catalog xmode.marker
-xmode.tokens ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: accessors arrays calendar calendar.format combinators
+combinators.short-circuit io io.backend io.directories
+io.encodings.binary io.encodings.detect io.encodings.utf8
+io.files io.files.info io.files.temp io.files.unique io.launcher
+io.pathnames kernel math math.parser namespaces sequences
+sorting strings unicode xml.syntax xml.writer xmode.catalog
+xmode.marker xmode.tokens ;
 IN: codebook
 
 ! Usage: "my/source/tree" codebook
@@ -55,7 +54,7 @@ TUPLE: code-file
         dup detect-file dup binary?
         [ f ] [ 2dup dupd first-line find-mode ] if
         code-file boa
-    ] map [ mode>> ] filter [ name>> ] sort-with ;
+    ] map [ mode>> ] filter [ name>> ] sort-by ;
 
 : html-name-char ( char -- str )
     {
@@ -68,7 +67,7 @@ TUPLE: code-file
     [ html-name-char ] { } map-as concat ".html" append ;
 
 : toc-list ( files -- list )
-    [ name>> ] map natural-sort [
+    [ name>> ] map sort [
         [ file-html-name ] keep
         [XML <li><a href=<->><-></a></li> XML]
     ] map ;

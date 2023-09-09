@@ -1,5 +1,5 @@
 ! Copyright (C) 2017-2020 Alexander Ilin.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: alien.c-types alien.data byte-arrays init io.encodings.ascii
 io.encodings.string io.encodings.utf8 kernel locals math sequences
 sodium.ffi ;
@@ -125,4 +125,4 @@ ERROR: sodium-malloc-error ;
     sodium_bin2base64 0 = [ call-fail ] when b64 ascii decode unclip-last
     CHAR: \0 = [ call-fail ] unless ;
 
-[ sodium-init ] "sodium" add-startup-hook
+STARTUP-HOOK: sodium-init

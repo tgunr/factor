@@ -1,11 +1,11 @@
 ! Copyright (C) 2008, 2010 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.libraries alien.strings arrays
 assocs classes.struct combinators compiler.cfg compiler.cfg.builder
 compiler.cfg.builder.alien.boxing compiler.cfg.builder.alien.params
 compiler.cfg.hats compiler.cfg.instructions compiler.cfg.registers
 compiler.cfg.stacks compiler.cfg.stacks.local compiler.errors
-compiler.tree cpu.architecture fry kernel layouts make math namespaces
+compiler.tree cpu.architecture kernel layouts make math namespaces
 sequences sequences.generalizations words ;
 IN: compiler.cfg.builder.alien
 

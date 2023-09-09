@@ -52,14 +52,15 @@ IN: units.si
 : V ( n -- volt ) { m m kg } { s s s A } <dimensioned> ;
 : F ( n -- farad ) { s s s s A A } { m m kg } <dimensioned> ;
 : ohm ( n -- ohm ) { m m kg } { s s s A A } <dimensioned> ;
+ALIAS: Î© ohm
 : S ( n -- siemens ) { s s s A A } { m m kg } <dimensioned> ;
 : Wb ( n -- weber ) { m m kg } { s s A } <dimensioned> ;
 : T ( n -- tesla ) { kg } { s s A } <dimensioned> ;
 : H ( n -- henry ) { m m kg } { s s A A } <dimensioned> ;
 : deg-C ( n -- Celsius ) 27315/100 + { K } { } <dimensioned> ;
-ALIAS: °C deg-C
+ALIAS: Â°C deg-C
 : lm ( n -- lumen ) { m m cd } { m m } <dimensioned> ;
-: lx ( n -- lux ) { m m cd } { m m m m  } <dimensioned> ;
+: lx ( n -- lux ) { m m cd } { m m m m } <dimensioned> ;
 : Bq ( n -- becquerel ) { } { s } <dimensioned> ;
 : Gy ( n -- gray ) { m m } { s s } <dimensioned> ;
 : Sv ( n -- sievert ) { m m } { s s } <dimensioned> ;
@@ -70,6 +71,7 @@ ALIAS: °C deg-C
 : arc-min ( n -- x ) pi 10800 / * radians ;
 : arc-sec ( n -- x ) pi 648000 / * radians ;
 : L ( n -- liter ) 1/1000 * m^3 ;
+ALIAS: l L
 : tons ( n -- metric-ton ) 1000 * kg ;
 : Np ( n -- neper ) { } { } <dimensioned> ;
 : B ( n -- bel ) 1.151292546497023 * Np ;
@@ -81,6 +83,7 @@ ALIAS: °C deg-C
 
 : a ( n -- are ) 100 * m^2 ;
 : ha ( n -- hectare ) 10000 * m^2 ;
+: km^2 ( n -- dimensioned ) 1000000 * m^2 ;
 : bar ( n -- bar ) 100000 * Pa ;
 : b ( n -- barn ) 1/10000000000000000000000000000 * m^2 ;
 : Ci ( n -- curie ) 37000000000 * Bq ;
@@ -95,27 +98,50 @@ ALIAS: °C deg-C
 : hours ( n -- dimensioned ) 60 * minutes ;
 : days ( n -- dimensioned ) 24 * hours ;
 
-! Y Z E P T G M k h da 1 d c m mu n p f a z y
-: yotta ( n -- x ) 1000000000000000000000000 * ;
-: zetta ( n -- x ) 1000000000000000000000 * ;
-: exa   ( n -- x ) 1000000000000000000 * ;
-: peta  ( n -- x ) 1000000000000000 * ;
-: tera  ( n -- x ) 1000000000000 * ;
-: giga  ( n -- x ) 1000000000 * ;
-: mega  ( n -- x ) 1000000 * ;
-: kilo  ( n -- x ) 1000 * ;
-: hecto ( n -- x ) 100 * ;
-: deca  ( n -- x ) 10 * ;
-: deci  ( n -- x ) 10 / ;
-: centi ( n -- x ) 100 / ;
-: milli ( n -- x ) 1000 / ;
-: micro ( n -- x ) 1000000 / ;
-: nano  ( n -- x ) 1000000000 / ;
-: pico  ( n -- x ) 1000000000000 / ;
-: femto ( n -- x ) 1000000000000000 / ;
-: atto  ( n -- x ) 1000000000000000000 / ;
-: zepto ( n -- x ) 1000000000000000000000 / ;
-: yocto ( n -- x ) 1000000000000000000000000 / ;
+! Q R Y Z E P T G M k h da 1 d c m mu n p f a z y r q
+: quetta ( n -- x ) 1000000000000000000000000000000 * ;
+: ronna  ( n -- x ) 1000000000000000000000000000 * ;
+: yotta  ( n -- x ) 1000000000000000000000000 * ;
+: zetta  ( n -- x ) 1000000000000000000000 * ;
+: exa    ( n -- x ) 1000000000000000000 * ;
+: peta   ( n -- x ) 1000000000000000 * ;
+: tera   ( n -- x ) 1000000000000 * ;
+: giga   ( n -- x ) 1000000000 * ;
+: mega   ( n -- x ) 1000000 * ;
+: kilo   ( n -- x ) 1000 * ;
+: hecto  ( n -- x ) 100 * ;
+: deca   ( n -- x ) 10 * ;
+: deci   ( n -- x ) 10 / ;
+: centi  ( n -- x ) 100 / ;
+: milli  ( n -- x ) 1000 / ;
+: micro  ( n -- x ) 1000000 / ;
+: nano   ( n -- x ) 1000000000 / ;
+: pico   ( n -- x ) 1000000000000 / ;
+: femto  ( n -- x ) 1000000000000000 / ;
+: atto   ( n -- x ) 1000000000000000000 / ;
+: zepto  ( n -- x ) 1000000000000000000000 / ;
+: yocto  ( n -- x ) 1000000000000000000000000 / ;
+: ronto  ( n -- x ) 1000000000000000000000000000 / ;
+: quecto ( n -- x ) 1000000000000000000000000000000 / ;
+
+! Yi Zi Ei Pi Ti Gi Mi Ki
+: yobi ( n -- x ) 1208925819614629174706176 * ;
+: zebi ( n -- x ) 1180591620717411303424 * ;
+: exbi ( n -- x ) 1152921504606846976 * ;
+: pebi ( n -- x ) 1125899906842624 * ;
+: tebi ( n -- x ) 1099511627776 * ;
+: gibi ( n -- x ) 1073741824 * ;
+: mebi ( n -- x ) 1048576 * ;
+: kibi ( n -- x ) 1024 * ;
+
+ALIAS: Yi yobi
+ALIAS: Zi zebi
+ALIAS: Ei exbi
+ALIAS: Pi pebi
+ALIAS: Ti tebi
+ALIAS: Gi gibi
+ALIAS: Mi mebi
+ALIAS: Ki kibi
 
 : km ( n -- dimensioned ) kilo m ;
 : cm ( n -- dimensioned ) centi m ;
@@ -124,3 +150,4 @@ ALIAS: °C deg-C
 : g ( n -- dimensioned ) milli kg ;
 : ms ( n -- dimensioned ) milli s ;
 : angstrom ( n -- dimensioned ) 10 / nm ;
+ALIAS: Ã… angstrom

@@ -1,12 +1,11 @@
 ! Copyright (C) 2021 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
-USING: accessors arrays assocs combinators
-combinators.short-circuit command-loop formatting gemini
-gemini.private io io.directories io.encodings.string
-io.encodings.utf8 io.files io.files.temp io.launcher io.pipes
-kernel math math.parser namespaces present sequences splitting
-system urls webbrowser ;
+USING: accessors arrays combinators.short-circuit command-loop
+environment formatting gemini gemini.private io io.directories
+io.encodings.string io.encodings.utf8 io.files io.files.temp
+io.launcher io.pipes kernel math math.parser namespaces present
+sequences splitting system urls webbrowser ;
 
 IN: gemini.cli
 
@@ -78,7 +77,7 @@ CONSTANT: URL V{ }
 : gemini-print ( url body meta -- )
     f pre [
         PAGE delete-all
-        gemini-charset decode string-lines [
+        gemini-charset decode split-lines [
             { [ pre get not ] [ "=>" ?head ] } 0&& [
                 swap gemini-link present over 2array PAGE push
                 PAGE length swap "[%s] %s\n" printf
@@ -90,7 +89,7 @@ CONSTANT: URL V{ }
     ] with-variable ;
 
 : gemini-get ( args -- )
-    dup URL set-first
+    dup array? [ first ] when dup URL set-first
     >url dup gemini [ drop ] 2dip swap "text/" ?head [
         "gemini.txt" temp-file
         [ utf8 [ gemini-print ] with-file-writer ]
@@ -100,8 +99,8 @@ CONSTANT: URL V{ }
     ] if ;
 
 : gemini-go ( args -- )
-    present [ DEFAULT-URL ] when-empty
-    { [ "://" over subseq? ] [ "gemini://" head? ] } 1||
+    dup array? [ first ] when present [ DEFAULT-URL ] when-empty
+    { [ dup "://" subseq-of? ] [ "gemini://" head? ] } 1||
     [ "gemini://" prepend ] unless
     dup "gemini://" head? [
         [ add-history ] [ add-stack ] [ gemini-get ] tri
@@ -124,11 +123,16 @@ CONSTANT: URL V{ }
     ] when* ;
 
 : gemini-less ( -- )
-    "gemini.txt" temp-file dup exists? [
-        "less" swap 2array try-process
-    ] [ drop ] if ;
+    "gemini.txt" temp-file [
+        utf8 [
+            <process>
+                "PAGER" os-env [ "less" ] unless* >>command
+                input-stream get >>stdin
+            try-process
+        ] with-file-reader
+    ] when-file-exists ;
 
- : gemini-ls ( args -- )
+: gemini-ls ( args -- )
     [ PAGE ] [ "-l" = ] bi* print-links ;
 
 : gemini-quit ( -- )
@@ -141,7 +145,7 @@ CONSTANT: URL V{ }
     URL ?first [ >url "/" >>path gemini-go ] when* ;
 
 : gemini-shell ( args -- )
-    "|" split "gemini.txt" temp-file dup exists? [
+    "|" split "gemini.txt" temp-file dup file-exists? [
         "cat" swap 2array prefix run-pipeline drop
     ] [ 2drop ] if ;
 
@@ -207,6 +211,11 @@ CONSTANT: COMMANDS {
         { help "'cat' the most recent Gemini URL through a shell." }
         { abbrevs { "!" } } }
     T{ command
+        { name "home" }
+        { quot [ drop DEFAULT-URL gemini-go ] }
+        { help "Go to the default Gemini URL" }
+        { abbrevs f } }
+    T{ command
         { name "quit" }
         { quot [ drop gemini-quit ] }
         { help "Quit the program." }
@@ -217,9 +226,7 @@ TUPLE: gemini-command-loop < command-loop ;
 
 M: gemini-command-loop missing-command
     over string>number [ 1 - LINKS ?nth ] [ f ] if* [
-        [ add-history ]
-        [ add-stack ]
-        [ dup array? [ first ] when gemini-get 3drop ] tri
+        gemini-go 3drop
     ] [
         call-next-method
     ] if* ;

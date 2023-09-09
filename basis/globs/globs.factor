@@ -1,7 +1,7 @@
 ! Copyright (C) 2007, 2009 Slava Pestov, Daniel Ehrenberg.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors arrays combinators combinators.short-circuit
-io.directories io.files io.files.info io.pathnames kernel locals
+io.directories io.files io.files.info io.pathnames kernel
 make peg.ebnf regexp regexp.combinators sequences strings system
 unicode multiline ;
 IN: globs
@@ -123,11 +123,9 @@ DEFER: glob%
 :: glob-literal% ( root globs -- )
     globs unclip :> ( remaining glob )
 
-    root glob append-path dup exists? [
+    root glob append-path [
         remaining over file-info ?glob%
-    ] [
-        drop
-    ] if ;
+    ] when-file-exists ;
 
 : glob% ( root globs -- )
     dup ?first {

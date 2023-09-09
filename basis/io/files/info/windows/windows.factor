@@ -1,5 +1,5 @@
 ! Copyright (C) 2008 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data alien.strings ascii
 calendar classes.struct combinators combinators.short-circuit
 continuations destructors fry io.backend io.files.info
@@ -41,7 +41,7 @@ TUPLE: windows-file-info < file-info-tuple attributes ;
     } cleave ;
 
 : find-first-file-stat ( path -- WIN32_FIND_DATA )
-    WIN32_FIND_DATA <struct> [
+    WIN32_FIND_DATA new [
         FindFirstFile check-invalid-handle
         FindClose win32-error=0/f
     ] keep ;
@@ -68,7 +68,7 @@ TUPLE: windows-file-info < file-info-tuple attributes ;
 
 : get-file-information ( handle -- BY_HANDLE_FILE_INFORMATION )
     [
-        BY_HANDLE_FILE_INFORMATION <struct>
+        BY_HANDLE_FILE_INFORMATION new
         [ GetFileInformationByHandle win32-error=0/f ] keep
     ] keep CloseHandle win32-error=0/f ;
 

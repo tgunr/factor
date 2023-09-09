@@ -1,5 +1,5 @@
 ! Copyright (C) 2004, 2008 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data alien.syntax classes
 classes.struct combinators destructors destructors.private fry
 io.backend io.backend.unix.multiplexers io.buffers io.files
@@ -62,7 +62,7 @@ M: unix can-seek-handle?
     fd>> SEEK_CUR 0 lseek -1 = not ;
 
 M: unix handle-length
-    fd>> \ stat <struct> [ fstat -1 = not ] keep
+    fd>> \ stat new [ fstat -1 = not ] keep
     swap [ st_size>> ] [ drop f ] if ;
 
 ERROR: io-timeout ;
@@ -77,9 +77,6 @@ M: unix wait-for-fd
         } case
         "I/O" suspend [ io-timeout ] when
     ] if ;
-
-: wait-for-port ( port event -- )
-    '[ handle>> _ wait-for-fd ] with-timeout ;
 
 ! Some general stuff
 
@@ -112,6 +109,7 @@ M: fd drain
         errno {
             { EINTR [ 2drop +retry+ ] }
             { EAGAIN [ 2drop +output+ ] }
+            { ENOBUFS [ 2drop +output+ ] }
             [ (throw-errno) ]
         } case
     ] if ;

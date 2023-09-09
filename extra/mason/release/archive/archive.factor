@@ -1,8 +1,8 @@
 ! Copyright (C) 2008 Eduardo Cavazos, Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators io.directories
-io.files io.pathnames kernel literals locals make mason.common
-mason.config mason.platform namespaces sequences system words ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: accessors combinators io.directories io.pathnames kernel
+make mason.common mason.config mason.platform namespaces
+sequences system words ;
 IN: mason.release.archive
 
 : base-name ( -- string )
@@ -39,7 +39,7 @@ IN: mason.release.archive
     "dmg-root" delete-tree ;
 
 :: make-unix-archive ( archive-name -- )
-    { "tar" "-cvzf" archive-name "factor" } short-running-process ;
+    { "tar" "-cvz" "--no-xattrs" "-f" archive-name "factor" } short-running-process ;
 
 : make-archive ( archive-name -- )
     target-os get {

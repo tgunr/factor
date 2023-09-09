@@ -1,7 +1,7 @@
 ;;; fuel-refactor.el -- code refactoring support -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009 Jose Antonio Ortega Ruiz
-;; See http://factorcode.org/license.txt for BSD license.
+;; See https://factorcode.org/license.txt for BSD license.
 
 ;; Author: Jose Antonio Ortega Ruiz <jao@gnu.org>
 ;; Keywords: languages, fuel, factor
@@ -221,7 +221,7 @@ The word's body is put in a new method for the generic."
   "Rename globally the word whose definition point is at.
 With prefix argument, use word at point instead."
   (interactive "P")
-  (let* ((from (if arg (factor-symbol-at-point) (fuel-refactor--def-word)))
+  (let* ((from (if arg (fuel-refactor--def-word) (factor-symbol-at-point)))
          (from (read-string "Rename word: " from))
          (to (read-string (format "Rename '%s' to: " from))))
     (fuel-refactor--rename-word from to (buffer-file-name))))

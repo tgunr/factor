@@ -1,7 +1,7 @@
-USING: alien alien.c-types help.syntax help.markup libc
-kernel.private byte-arrays math strings hashtables alien.syntax
-alien.strings sequences io.encodings.string debugger destructors
-vocabs.loader classes.struct quotations kernel ;
+USING: alien alien.c-types alien.strings alien.syntax
+byte-arrays classes.struct destructors help.markup help.syntax
+io.encodings.string kernel libc math quotations sequences
+strings ;
 IN: alien.data
 
 HELP: >c-array
@@ -159,8 +159,8 @@ ARTICLE: "c-boxes" "C value boxes"
   "FUNCTION: int do_foo ( int* a )"
 }
 "and writes to the pointer 'a', then it can be called like this:"
-{  $code
-   "1234 int <ref> [ do_foo ] keep int deref"
+{ $code
+    "1234 int <ref> [ do_foo ] keep int deref"
 }
 "The stack will then contain the two integers emitted by the 'do_foo' function." ;
 

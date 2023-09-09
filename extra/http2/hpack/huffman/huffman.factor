@@ -1,6 +1,5 @@
-USING: accessors arrays assocs bit-arrays http2.hpack
-io.encodings.string io.encodings.utf8 kernel literals locals
-make math sequences ;
+USING: accessors arrays assocs bit-arrays io.encodings.string
+io.encodings.utf8 kernel literals make math sequences ;
 
 IN: http2.hpack.huffman
 
@@ -285,7 +284,7 @@ CONSTANT: bit-reverse-table $[
 ]
 
 : reverse-bits ( byte-array -- byte-array' )
-    [ bit-reverse-table nth ] B{ } map-as ;
+    bit-reverse-table nths ;
 
 : byte-array>bit-array ( byte-array -- bit-array )
     [ length 8 * ] [ bit-array boa ] bi ;
@@ -327,7 +326,6 @@ ERROR: hpack-huffman-error message ;
     byte-vector utf8 decode ;
 
 : huffman-encode ( string -- bytes )
-    [ huffman-encode-table nth ] { } map-as concat
+    huffman-encode-table nths concat
     EOS huffman-encode-table nth over length neg 8 rem head
     append bits-to-bytes ;
-

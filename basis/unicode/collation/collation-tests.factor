@@ -1,7 +1,7 @@
-USING: arrays assocs compression.zlib fry grouping hash-sets
+USING: arrays assocs grouping hash-sets http.client
 io.encodings.binary io.encodings.string io.encodings.utf8
-io.files kernel math math.order math.parser sequences sets
-splitting strings tools.test unicode ;
+io.files io.files.temp kernel math math.order math.parser
+sequences sets splitting strings tools.test unicode ;
 IN: unicode.collation.tests
 
 : test-equality ( str1 str2 -- ? ? ? ? )
@@ -18,25 +18,25 @@ IN: unicode.collation.tests
 [ { "HELLO" "goodbye" "good bye" "hello" } sort-strings ] unit-test
 
 : collation-test-lines ( -- lines )
-    "vocab:unicode/UCA/CollationTest_SHIFTED.txt.zip"
-    binary file-contents uncompress utf8 decode string-lines
-    [ "#" head? ] reject harvest ;
+    "https://downloads.factorcode.org/misc/UCA/CollationTest_SHIFTED.txt"
+    "CollationTest_SHIFTED.txt" cache-file [ ?download-to ] keep
+    utf8 file-lines [ "#" head? ] reject harvest ;
 
 : parse-collation-test-shifted ( -- lines )
     collation-test-lines
-    [ ";" split first " " split [ hex> ] "" map-as ] map ;
+    [ ";" split first split-words [ hex> ] "" map-as ] map ;
 
 : tail-from-last ( string char -- string' )
     '[ _ = ] dupd find-last drop 1 + tail ; inline
 
 : line>test-weights ( string -- pair )
     ";" split1 [
-        " " split [ hex> ] map
+        split-words [ hex> ] map
     ] [
         "#" split1 nip CHAR: [ tail-from-last
         "]" split1 drop
         "|" split 4 head
-        [ " " split harvest [ hex> ] map ] map
+        [ split-words harvest [ hex> ] map ] map
     ] bi* 2array ;
 
 ! These tests actually would pass if I didn't fix up

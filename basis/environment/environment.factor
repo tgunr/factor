@@ -1,6 +1,6 @@
 ! Copyright (C) 2008 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
-USING: assocs combinators continuations init kernel sequences
+! See https://factorcode.org/license.txt for BSD license.
+USING: assocs combinators continuations kernel sequences
 splitting system vocabs vocabs.loader ;
 IN: environment
 
@@ -34,10 +34,9 @@ HOOK: set-os-envs-pointer os ( malloc -- )
     { [ os windows? ] [ "environment.windows" require ] }
 } cond
 
-[
-    "FACTOR_ROOTS" os-env
-    [
+STARTUP-HOOK: [
+    "FACTOR_ROOTS" os-env [
         os windows? ";" ":" ? split
         [ add-vocab-root ] each
     ] when*
-] "environment" add-startup-hook
+]

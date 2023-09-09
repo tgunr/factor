@@ -1,5 +1,5 @@
-USING: help.syntax help.markup kernel sequences quotations
-math arrays combinators ;
+USING: combinators help.markup help.syntax kernel math
+quotations ;
 IN: generalizations
 
 HELP: nsum
@@ -260,8 +260,8 @@ HELP: nweave
 
 HELP: n*quot
 { $values
-     { "n" integer } { "quot" quotation }
-     { "quotquot" quotation }
+    { "n" integer } { "quot" quotation }
+    { "quotquot" quotation }
 }
 { $examples
     { $example "USING: generalizations prettyprint math ;"

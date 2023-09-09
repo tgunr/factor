@@ -1,11 +1,10 @@
 ! Copyright (C) 2005, 2009 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors assocs cache colors combinators
 combinators.short-circuit concurrency.promises continuations
-destructors fry kernel literals math models namespaces opengl
-opengl.capabilities opengl.gl opengl.textures sequences strings
-ui.backend ui.gadgets ui.gadgets.tracks ui.gestures ui.pixel-formats
-ui.render ;
+destructors kernel literals math models namespaces opengl
+sequences strings ui.backend ui.gadgets ui.gadgets.tracks
+ui.gestures ui.pixel-formats ui.render ;
 IN: ui.gadgets.worlds
 
 SYMBOLS:
@@ -157,7 +156,7 @@ M: world layout*
     [ call-next-method ]
     [ dup layers>> [ as-big-as-possible ] with each ] bi ;
 
-M: world focusable-child* children>> [ t ] [ first ] if-empty ;
+M: world focusable-child* children>> ?first ;
 
 M: world children-on nip children>> ;
 

@@ -1,5 +1,5 @@
 ! Copyright (C) 2016 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
 USING: accessors calendar combinators combinators.short-circuit
 command-line formatting io io.directories io.encodings.binary
@@ -64,7 +64,7 @@ TUPLE: gopher-server < threaded-server
     path [
         [ name>> "." head? ] reject
         [ { [ directory? ] [ regular-file? ] } 1|| ] filter
-        [ name>> ] sort-with
+        [ name>> ] sort-by
         [
             [ gopher-type ] [ name>> ] [ directory? [ "/" append ] when ] tri
             [
@@ -83,13 +83,13 @@ TUPLE: gopher-server < threaded-server
     ] with-directory-entries ;
 
 : send-directory ( server path -- )
-    dup ".gophermap" append-path dup exists? [
+    dup ".gophermap" append-path [
         send-file 2drop
     ] [
         drop dup ".gopherhead" append-path
-        dup exists? [ send-file ] [ drop ] if
+        [ send-file ] when-file-exists
         list-directory
-    ] if ;
+    ] if-file-exists ;
 
 : read-gopher-path ( -- path )
     readln dup [ "\t\r\n" member? ] find drop [ head ] when*

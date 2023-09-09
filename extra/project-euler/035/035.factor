@@ -1,16 +1,16 @@
 ! Copyright (c) 2008 Aaron Schaefer.
-! See http://factorcode.org/license.txt for BSD license.
-USING: kernel math math.combinatorics math.parser math.primes
-    project-euler.common sequences ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: kernel math math.primes project-euler.common sequences ;
 IN: project-euler.035
 
-! http://projecteuler.net/index.php?section=problems&id=35
+! https://projecteuler.net/problem=35
 
 ! DESCRIPTION
 ! -----------
 
-! The number, 197, is called a circular prime because all rotations of the
-! digits: 197, 971, and 719, are themselves prime.
+! The number, 197, is called a circular prime because all
+! rotations of the digits: 197, 971, and 719, are themselves
+! prime.
 
 ! There are thirteen such primes below 100:
 !     2, 3, 5, 7, 11, 13, 17, 31, 37, 71, 73, 79, and 97.
@@ -56,6 +56,6 @@ PRIVATE>
 ! 538 ms ave run time - 17.16 SD (100 trials)
 
 ! TODO: try using bit arrays or other methods outlined here:
-!     http://home.comcast.net/~babdulbaki/Circular_Primes.html
+!     https://home.comcast.net/~babdulbaki/Circular_Primes.html
 
 SOLUTION: euler035

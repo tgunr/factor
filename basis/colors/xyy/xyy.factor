@@ -1,13 +1,15 @@
 ! Copyright (C) 2014 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
-USING: accessors colors colors.xyz kernel locals math ;
+USING: accessors colors colors.xyz kernel math ;
 
 IN: colors.xyy
 
 TUPLE: xyYa x y Y alpha ;
 
 C: <xyYa> xyYa
+
+INSTANCE: xyYa color
 
 M: xyYa >rgba
     >xyza >rgba ;

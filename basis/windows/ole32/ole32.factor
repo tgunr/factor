@@ -24,17 +24,31 @@ TYPEDEF: REFGUID LPCGUID
 TYPEDEF: REFGUID REFIID
 TYPEDEF: REFGUID REFCLSID
 
+FUNCTION: HRESULT CoInitialize ( LPVOID pvReserved )
+FUNCTION: void CoUninitialize ( )
+
 FUNCTION: HRESULT CoCreateInstance ( REFGUID rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, REFGUID riid, LPUNKNOWN out_ppv )
 FUNCTION: HRESULT CoCreateGuid ( GUID* pguid )
 FUNCTION: BOOL IsEqualGUID ( REFGUID rguid1, REFGUID rguid2 )
 FUNCTION: int StringFromGUID2 ( REFGUID rguid, LPOLESTR lpsz, int cchMax )
 FUNCTION: HRESULT CLSIDFromString ( LPOLESTR lpsz, REFGUID out_rguid )
 
+FUNCTION: LPVOID CoTaskMemAlloc ( SIZE_T cb )
+FUNCTION: LPVOID CoTaskMemRealloc ( LPVOID pv, SIZE_T cb )
+FUNCTION: void CoTaskMemFree ( LPVOID pv )
+FUNCTION: HRESULT CreateStreamOnHGlobal ( HGLOBAL hGlobal, BOOL fDeleteOnRelease, LPVOID* ppstm )
+FUNCTION: HRESULT CoGetClassObject ( REFCLSID rclsid, DWORD dwClsContext, LPVOID pvReserved, REFIID riid, LPVOID *ppv )
+
 CONSTANT: S_OK 0
 CONSTANT: S_FALSE 1
 CONSTANT: DRAGDROP_S_DROP 0x00040100
 CONSTANT: DRAGDROP_S_CANCEL 0x00040101
 CONSTANT: DRAGDROP_S_USEDEFAULTCURSORS 0x00040102
+
+ERROR: hresult-error n ;
+
+: check-hresult ( n -- )
+    dup S_OK = [ drop ] [ hresult-error ] if ;
 
 <<
 : >long ( integer -- long )
@@ -168,13 +182,13 @@ CONSTANT: GUID-STRING-LENGTH
     $[ "{01234567-89ab-cdef-0123-456789abcdef}" length ]
 
 : create-guid ( -- GUID )
-    GUID <struct> dup CoCreateGuid check-ole32-error ;
+    GUID new dup CoCreateGuid check-ole32-error ;
 
 : string>guid ( string -- guid )
     "{-}" split harvest
     [ first3 [ hex> ] tri@ ]
     [ 3 tail concat 2 group [ hex> ] B{ } map-as ] bi
-    GUID <struct-boa> ;
+    GUID boa ;
 
 : guid>string ( guid -- string )
     [

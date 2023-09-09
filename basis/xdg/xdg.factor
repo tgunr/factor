@@ -1,11 +1,11 @@
 ! Copyright (C) 2015 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
 USING: environment sequences splitting ;
 
 IN: xdg
 
-! http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+! https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 : xdg-data-home ( -- path )
     "XDG_DATA_HOME" os-env [ "~/.local/share" ] when-empty ;
@@ -27,3 +27,6 @@ IN: xdg
 : xdg-runtime-dir ( -- path/f )
     "XDG_RUNTIME_DIR" os-env ;
     ! TODO: check runtime secure permissions
+
+: xdg-state-dir ( -- path )
+    "XDG_STATE_HOME" os-env [ "~/.local/state" ] when-empty ;

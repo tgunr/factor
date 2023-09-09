@@ -1,5 +1,5 @@
 ! Copyright (c) 2009, 2020 Samuel Tardieu, Alexander Ilin.
-! See See http://factorcode.org/license.txt for BSD license.
+! See See https://factorcode.org/license.txt for BSD license.
 USING: help.markup help.syntax kernel quotations sequences ;
 IN: backtrack
 
@@ -21,7 +21,7 @@ $nl
         "    [ + 30 = ] [ 4 * swap 2 * + 74 = ] 2bi and ;"
         ""
         "["
-        "    1 30 [a,b] amb 1 30 [a,b] amb"
+        "    1 30 [a..b] amb 1 30 [a..b] amb"
         "    [ check must-be-true ] [ 2array ] 2bi"
         "] bag-of ."
         "V{ { 23 7 } }"
@@ -32,14 +32,14 @@ $nl
         "    [ + 30 = ] [ 4 * swap 2 * + 74 = ] 2bi and ;"
         ""
         "["
-        "    1 30 [a,b] amb 1 30 [a,b] amb"
+        "    1 30 [a..b] amb 1 30 [a..b] amb"
         "    2dup check must-be-true"
         "    \"%d chickens, %d cows\\n\" printf"
         "    t"
         "] [ \"No solution.\" print ] if-amb drop"
         "23 chickens, 7 cows"
     }
-    "See more examples here: " { $url "https://re-factor.blogspot.com/search?q=backtrack" }
+    "See more examples here: " { $url "https://re.factorcode.org/tags/backtrack.html" }
 } ;
 
 HELP: fail

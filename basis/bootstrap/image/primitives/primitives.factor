@@ -1,5 +1,5 @@
 USING: alien alien.strings arrays assocs byte-arrays
-io.encodings.ascii kernel kernel.private locals math quotations
+io.encodings.ascii kernel kernel.private math quotations
 sequences sequences.generalizations sequences.private strings words ;
 IN: bootstrap.image.primitives
 
@@ -220,7 +220,7 @@ CONSTANT: all-primitives {
     {
         "io.files.private"
         {
-            { "(exists?)" ( path -- ? ) "existsp" { string } { object } f }
+            { "(file-exists?)" ( path -- ? ) "existsp" { string } { object } f }
         }
     }
     {
@@ -813,9 +813,6 @@ CONSTANT: all-primitives {
 
 : primitive-word ( name vocab -- word )
     create-word dup t "primitive" set-word-prop ;
-
-: set-extra-props ( word extra-props -- )
-    [ rot set-word-prop ] with assoc-each ;
 
 :: create-primitive ( vocab word effect vm-func inputs outputs extra-word -- )
     word vocab primitive-word :> word

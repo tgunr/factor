@@ -1,33 +1,36 @@
 ! Copyright (c) 2008 Aaron Schaefer.
-! See http://factorcode.org/license.txt for BSD license.
-USING: arrays kernel math math.primes math.primes.factors
-    math.ranges namespaces sequences project-euler.common ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: arrays kernel math math.primes math.primes.factors ranges
+namespaces sequences project-euler.common ;
 IN: project-euler.047
 
-! http://projecteuler.net/index.php?section=problems&id=47
+! https://projecteuler.net/problem=47
 
 ! DESCRIPTION
 ! -----------
 
-! The first two consecutive numbers to have two distinct prime factors are:
+! The first two consecutive numbers to have two distinct prime
+! factors are:
 
 !     14 = 2 * 7
 !     15 = 3 * 5
 
-! The first three consecutive numbers to have three distinct prime factors are:
+! The first three consecutive numbers to have three distinct
+! prime factors are:
 
 !     644 = 2² * 7 * 23
 !     645 = 3 * 5 * 43
 !     646 = 2 * 17 * 19.
 
-! Find the first four consecutive integers to have four distinct primes
-! factors. What is the first of these numbers?
+! Find the first four consecutive integers to have four distinct
+! primes factors. What is the first of these numbers?
 
 
 ! SOLUTION
 ! --------
 
-! Brute force, not sure why it's incredibly slow compared to other languages
+! Brute force, not sure why it's incredibly slow compared to
+! other languages
 
 <PRIVATE
 
@@ -72,20 +75,20 @@ SYMBOL: sieve
     sieve get length 1 - over <range> ;
 
 : increment-counts ( n -- )
-     multiples [ sieve get [ 1 + ] change-nth ] each ;
+    multiples [ sieve get [ 1 + ] change-nth ] each ;
 
 : prime-tau-upto ( limit -- seq )
-    dup initialize-sieve 2 swap [a,b) [
+    dup initialize-sieve 2 swap [a..b) [
         dup is-prime? [ increment-counts ] [ drop ] if
     ] each sieve get ;
 
-: consecutive-under ( m limit -- n/f )
-    prime-tau-upto [ dup <repetition> ] dip subseq-start ;
+: consecutive-under ( limit m -- n/f )
+    [ prime-tau-upto ] [ dup <repetition> ] bi* subseq-index ;
 
 PRIVATE>
 
 : euler047a ( -- answer )
-    4 200000 consecutive-under ;
+    200000 4 consecutive-under ;
 
 ! [ euler047a ] 100 ave-time
 ! 331 ms ave run time - 19.14 SD (100 trials)

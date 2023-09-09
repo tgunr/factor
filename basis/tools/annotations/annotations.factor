@@ -1,5 +1,5 @@
 ! Copyright (C) 2005, 2010 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators.short-circuit compiler.units effects
 generalizations generic inspector io kernel math namespaces prettyprint
 quotations sequences sequences.deep sequences.generalizations sorting summary
@@ -17,13 +17,16 @@ M: generic (reset)
 
 M: word (reset)
     dup "unannotated-def" word-prop [
-        dup dup "unannotated-def" word-prop define
-        f "unannotated-def" set-word-prop
-    ] [ drop ] if ;
+        dupd define "unannotated-def" remove-word-prop
+    ] [ drop ] if* ;
 
 PRIVATE>
+: breaklist- ( word -- )
+    "breaklist" get-global  remove
+    "breaklist" set-global ;
 
 : reset ( word -- )
+    dup breaklist-
     [ (reset) ] with-compilation-unit ;
 
 ERROR: cannot-annotate-twice word ;
@@ -149,6 +152,6 @@ PRIVATE>
 
 : word-timing. ( -- )
     word-timing get >alist
-    [ second first ] sort-with
+    [ second first ] sort-by
     [ first2 first2 [ 1,000,000,000 /f ] dip 3array ] map
     simple-table. ;

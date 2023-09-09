@@ -1,35 +1,35 @@
 ! Copyright (C) 2009 Jon Harper.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
+USING: assocs kernel math math.combinatorics math.functions
+math.order math.parser math.primes ranges namespaces
+project-euler.common sequences sets ;
+IN: project-euler.051
 
-! http://projecteuler.net/index.php?section=problems&id=1
+! https://projecteuler.net/problem=51
 
 ! DESCRIPTION
 ! -----------
 
-
-! By replacing the first digit of *3, it turns out that
-! six of the nine possible values:
-! 13, 23, 43, 53, 73, and 83, are all prime.
-! By replacing the third and fourth digits of 56**3 with the same digit,
-! this 5-digit number is the first example having seven primes among
-! the ten generated numbers, yielding the family:
-! 56003, 56113, 56333, 56443, 56663, 56773, and 56993.
-! Consequently 56003, being the first member of this family,
-! is the smallest prime with this property.
+! By replacing the first digit of *3, it turns out that six of
+! the nine possible values: 13, 23, 43, 53, 73, and 83, are all
+! prime. By replacing the third and fourth digits of 56**3 with
+! the same digit, this 5-digit number is the first example
+! having seven primes among the ten generated numbers, yielding
+! the family: 56003, 56113, 56333, 56443, 56663, 56773, and
+! 56993. Consequently 56003, being the first member of this
+! family, is the smallest prime with this property.
 !
 ! Find the smallest prime which, by replacing part of the number
-! (not necessarily adjacent digits) with the same digit,
-! is part of an eight prime value family.
+! (not necessarily adjacent digits) with the same digit, is part
+! of an eight prime value family.
 
 ! SOLUTION
 ! --------
 
-! for each prime number, count the families it belongs to. When one reaches count of 8, stop, and get the smallest number by replacing * with ones.
+! for each prime number, count the families it belongs to. When
+! one reaches count of 8, stop, and get the smallest number by
+! replacing * with ones.
 
-USING: assocs fry kernel math math.combinatorics math.functions
-math.order math.parser math.primes math.ranges namespaces
-project-euler.common sequences sets ;
-IN: project-euler.051
 <PRIVATE
 SYMBOL: family-count
 SYMBOL: large-families
@@ -45,7 +45,7 @@ SYMBOL: large-families
 : replace-positions-with-* ( str positions -- str )
     [ *-if-index ] curry map-index ;
 : all-positions-combinations ( seq -- combinations )
-    dup length [1,b] [ all-combinations ] with map concat ;
+    dup length [1..b] [ all-combinations ] with map concat ;
 
 : families ( stra -- seq )
     dup digits-positions values
@@ -54,7 +54,7 @@ SYMBOL: large-families
 : save-family ( family -- )
     dup family-count get at 8 = [ large-families get adjoin ] [ drop ] if ;
 : increment-family ( family -- )
-   family-count get inc-at ;
+    family-count get inc-at ;
 : handle-family ( family -- )
     [ increment-family ] [ save-family ] bi ;
 

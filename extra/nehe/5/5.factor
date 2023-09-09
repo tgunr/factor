@@ -1,6 +1,6 @@
-USING: arrays kernel math opengl opengl.gl opengl.glu
-opengl.demo-support ui ui.gadgets ui.render ui.pixel-formats
-threads accessors calendar literals ;
+USING: accessors calendar kernel literals math
+opengl.demo-support opengl.gl opengl.glu threads ui ui.gadgets
+ui.pixel-formats ui.render ;
 IN: nehe.5
 
 TUPLE: nehe5-gadget < gadget rtri rquad thread quit? ;
@@ -8,7 +8,7 @@ CONSTANT: width 256
 CONSTANT: height 256
 : redraw-interval ( -- dt ) 10 milliseconds ;
 
-: <nehe5-gadget> (  -- gadget )
+: <nehe5-gadget> ( -- gadget )
     nehe5-gadget new
     0.0 >>rtri
     0.0 >>rquad ;

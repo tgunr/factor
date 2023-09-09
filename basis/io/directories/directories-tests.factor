@@ -1,8 +1,8 @@
 USING: arrays combinators destructors grouping io io.directories
-io.encodings.ascii io.encodings.utf8 io.files io.files.info
-io.files.unique io.launcher io.pathnames kernel math namespaces
-sequences sorting splitting splitting.monotonic strings system
-tools.test ;
+io.encodings.ascii io.encodings.binary io.encodings.utf8
+io.files io.files.info io.files.unique io.launcher io.pathnames
+kernel math namespaces sequences sorting splitting
+splitting.monotonic strings system tools.test ;
 
 { { "kernel" } } [
     "core" resource-path [
@@ -25,10 +25,10 @@ tools.test ;
 [
     { t t f } [
         "blahblah" make-directory
-        "blahblah" exists?
+        "blahblah" file-exists?
         "blahblah" file-info directory?
         "blahblah" delete-directory
-        "blahblah" exists?
+        "blahblah" file-exists?
     ] unit-test
 
     { "file1 contents" } [
@@ -84,8 +84,8 @@ tools.test ;
     { } [ "test-foo.txt" delete-file ] unit-test
     { } [ "test-bar.txt" delete-file ] unit-test
 
-    { f } [ "test-foo.txt" exists? ] unit-test
-    { f } [ "test-bar.txt" exists? ] unit-test
+    { f } [ "test-foo.txt" file-exists? ] unit-test
+    { f } [ "test-bar.txt" file-exists? ] unit-test
 
     { } [ "test-blah" make-directory ] unit-test
 
@@ -94,13 +94,13 @@ tools.test ;
     ] unit-test
 
     { t } [
-        "test-blah/fooz" exists?
+        "test-blah/fooz" file-exists?
     ] unit-test
 
     { } [ "test-blah/fooz" delete-file ] unit-test
     { } [ "test-blah" delete-directory ] unit-test
 
-    { f } [ "test-blah" exists? ] unit-test
+    { f } [ "test-blah" file-exists? ] unit-test
 
     { } [ "delete-tree-test/a/b/c" make-directories ] unit-test
 
@@ -164,14 +164,14 @@ tools.test ;
     { f t } [
         "foo" [ make-directories ] keep
         [
-            "bar" exists?
+            "bar" file-exists?
             vm-path "-e=USE: io.directories \"bar\" touch-file" 2array try-output-process
-            "bar" exists?
+            "bar" file-exists?
         ] with-directory
     ] unit-test
 
     { t } [
-        "one/two/three" make-parent-directories parent-directory exists?
+        "one/two/three" make-parent-directories parent-directory file-exists?
     ] unit-test
 
 ] with-test-directory
@@ -179,7 +179,7 @@ tools.test ;
 { t } [
     [
         10 [ "io.paths.test" "gogogo" unique-file ] replicate
-        "." [ ] find-files [ absolute-path ] map [ natural-sort ] same?
+        "." [ ] find-files [ absolute-path ] map [ sort ] same?
     ] with-test-directory
 ] unit-test
 
@@ -279,8 +279,8 @@ tools.test ;
 
             ! preserve file traversal order, but sort
             ! alphabetically for cross-platform testing
-            dup length 3 / group natural-sort
-            [ natural-sort ] map concat
+            dup length 3 / group sort
+            [ sort ] map concat
         ] with-variable
 
         +breadth-first+ traversal-method [
@@ -289,8 +289,29 @@ tools.test ;
 
             ! preserve file traversal order, but sort
             ! alphabetically for cross-platform testing
-            [ [ length ] bi@ = ] monotonic-split
-            [ natural-sort ] map concat
+            [ 2length = ] monotonic-split
+            [ sort ] map concat
         ] with-variable
     ] with-test-directory
+] unit-test
+
+! test P"" pathnames
+[ "resource:extra/math" recursive-directory-files drop ] must-not-fail
+
+{ "/foo/bar" } [ P"/foo" P"./bar" append-path ] unit-test
+{ "/bar/foo" } [ P"./foo" P"/bar" prepend-path ] unit-test
+
+[ "resource:asdljkfasldkjfasdljfk" 0 truncate-file ] must-fail
+
+{ f 16 8 } [
+    [
+        {
+            [ touch-file ]
+            [ binary [ input-stream get stream-length ] with-file-reader ]
+            [ 16 truncate-file ]
+            [ binary [ input-stream get stream-length ] with-file-reader ]
+            [ 8 truncate-file ]
+            [ binary [ input-stream get stream-length ] with-file-reader ]
+        } cleave
+    ] with-test-file
 ] unit-test

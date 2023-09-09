@@ -5,7 +5,7 @@ math.parser namespaces sequences sorting splitting tools.test ;
 IN: db.sqlite.tests
 
 : normalize ( str -- str' )
-    " \n" split harvest " " join ;
+    " \n" split harvest join-words ;
 
 ! delete-trigger-restrict
 ${
@@ -137,7 +137,7 @@ things "THINGS" {
         1 1 things boa insert-tuple
         1 0 things boa insert-tuple
         f f things boa select-tuples
-        [ [ one>> ] [ two>> ] bi 2array ] map natural-sort
+        [ [ one>> ] [ two>> ] bi 2array ] map sort
        things drop-table
     ] with-db
 ] unit-test

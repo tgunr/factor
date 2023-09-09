@@ -1,6 +1,6 @@
-USING: accessors arrays byte-arrays byte-vectors combinators fry
-http2.hpack.huffman io.encodings.string io.encodings.utf8 locals
-kernel math math.functions math.bitwise multiline sequences ;
+USING: accessors arrays byte-arrays byte-vectors combinators
+http2.hpack.huffman io.encodings.string io.encodings.utf8 kernel
+math math.bitwise multiline sequences ;
 
 IN: http2.hpack
 
@@ -154,7 +154,7 @@ CONSTANT: static-table {
 : encode-integer ( first-byte int prefix-length -- bytes )
     2^ 1 - 2dup < 
     [ drop bitor 1byte-array ]
-    [ swap over [ bitor 1byte-array >byte-vector ] [ - ] 2bi* 
+    [ tuck [ bitor 1byte-array >byte-vector ] [ - ] 2bi*
       [ dup 128 >= ] [ [ 128 mod 128 + over push ] [ 128 /i ] bi ]
       while over push >byte-array
     ] if ;

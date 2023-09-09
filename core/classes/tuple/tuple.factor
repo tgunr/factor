@@ -1,5 +1,5 @@
 ! Copyright (C) 2005, 2010 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 IN: classes.tuple
 ! for classes.union mutual dependency
 DEFER: tuple-class?
@@ -84,7 +84,7 @@ M: tuple class-of layout-of 2 slot { word } declare ; inline
     ] if-bootstrapping ; inline
 
 : pad-slots ( seq class -- seq' class )
-    [ all-slots ] keep 2over [ length ] bi@ 2dup > [
+    [ all-slots ] keep 2over 2length 2dup > [
         [ nip swap ] 2dip too-many-slots
     ] [
         drop [
@@ -227,7 +227,9 @@ SYMBOL: outdated-tuples
     compute-slot-permutation
     apply-slot-permutation ;
 
-: update-tuple ( tuple -- newtuple )
+GENERIC: update-tuple ( tuple -- newtuple )
+
+M: tuple update-tuple
     [ tuple-slots ] [ layout-of ] bi
     [ permute-slots ] [ first ] bi
     slots>tuple ;
@@ -239,7 +241,7 @@ SYMBOL: outdated-tuples
 
 : update-tuples ( outdated-tuples -- )
     dup assoc-empty? [ drop ] [
-        [ [ tuple? ] instances ] dip [ outdated-tuple? ] curry filter
+        '[ dup tuple? [ _ outdated-tuple? ] [ drop f ] if ] instances
         dup [ update-tuple ] map become
     ] if ;
 
@@ -300,7 +302,7 @@ GENERIC#: (define-tuple-class) 2 ( class superclass slots -- )
 
 : reset-final ( class -- )
     dup final-class? [
-        [ f "final" set-word-prop ]
+        [ "final" remove-word-prop ]
         [ changed-conditionally ]
         bi
     ] [ drop ] if ;
@@ -327,7 +329,9 @@ M: tuple-class (define-tuple-class)
     3dup tuple-class-unchanged?
     [ 2drop ?define-symbol ] [ redefine-tuple-class ] if ;
 
-: boa-effect ( class -- effect )
+GENERIC: boa-effect ( class -- effect )
+
+M: tuple-class boa-effect
     [ all-slots [ name>> ] map ] [ name>> 1array ] bi <effect> ;
 
 : define-boa-word ( word class -- )
@@ -386,7 +390,7 @@ M: tuple equal? over tuple? [ tuple= ] [ 2drop f ] if ;
 M: tuple hashcode* [ tuple-hashcode ] recursive-hashcode ;
 
 M: tuple-class new
-    dup "prototype" word-prop [ (clone) ] [ tuple-layout <tuple> ] ?if ;
+    [ "prototype" word-prop ] [ (clone) ] [ tuple-layout <tuple> ] ?if ;
 
 M: tuple-class boa
     [ "boa-check" word-prop [ call ] when* ]

@@ -1,5 +1,5 @@
 ! Copyright (C) 2008 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data alien.strings arrays
 calendar.unix classes.struct combinators grouping
 io.encodings.utf8 io.files io.files.info io.files.info.unix
@@ -33,10 +33,10 @@ M: freebsd file-systems
 M: freebsd new-file-system-info freebsd-file-system-info new ;
 
 M: freebsd file-system-statfs
-    \ statfs <struct> [ statfs-func io-error ] keep ;
+    \ statfs new [ statfs-func io-error ] keep ;
 
 M: freebsd file-system-statvfs
-    \ statvfs <struct> [ statvfs-func io-error ] keep ;
+    \ statvfs new [ statvfs-func io-error ] keep ;
 
 M: freebsd statfs>file-system-info
     {

@@ -1,15 +1,15 @@
 ! Copyright (c) 2008 Aaron Schaefer.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: kernel math project-euler.common ;
 IN: project-euler.031
 
-! http://projecteuler.net/index.php?section=problems&id=31
+! https://projecteuler.net/problem=31
 
 ! DESCRIPTION
 ! -----------
 
-! In England the currency is made up of pound, £, and pence, p, and there are
-! eight coins in general circulation:
+! In England the currency is made up of pound, £, and pence, p,
+! and there are eight coins in general circulation:
 
 !     1p, 2p, 5p, 10p, 20p, 50p, £1 (100p) and £2 (200p).
 
@@ -17,7 +17,8 @@ IN: project-euler.031
 
 !     1×£1 + 1×50p + 2×20p + 1×5p + 1×2p + 3×1p
 
-! How many different ways can £2 be made using any number of coins?
+! How many different ways can £2 be made using any number of
+! coins?
 
 
 

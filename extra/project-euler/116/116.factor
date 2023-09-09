@@ -1,34 +1,35 @@
 ! Copyright (c) 2008 Eric Mertens.
-! See http://factorcode.org/license.txt for BSD license.
-USING: kernel math math.ranges sequences project-euler.common ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: kernel math ranges sequences project-euler.common ;
 IN: project-euler.116
 
-! http://projecteuler.net/index.php?section=problems&id=116
+! https://projecteuler.net/problem=116
 
 ! DESCRIPTION
 ! -----------
 
-! A row of five black square tiles is to have a number of its tiles replaced
-! with coloured oblong tiles chosen from red (length two), green (length
-! three), or blue (length four).
+! A row of five black square tiles is to have a number of its
+! tiles replaced with colored oblong tiles chosen from red
+! (length two), green (length three), or blue (length four).
 
-! If red tiles are chosen there are exactly seven ways this can be done.
-! If green tiles are chosen there are three ways.
-! And if blue tiles are chosen there are two ways.
+! If red tiles are chosen there are exactly seven ways this can
+! be done. If green tiles are chosen there are three ways. And
+! if blue tiles are chosen there are two ways.
 
-! Assuming that colours cannot be mixed there are 7 + 3 + 2 = 12 ways of
-! replacing the black tiles in a row measuring five units in length.
+! Assuming that colors cannot be mixed there are 7 + 3 + 2 = 12
+! ways of replacing the black tiles in a row measuring five
+! units in length.
 
-! How many different ways can the black tiles in a row measuring fifty units in
-! length be replaced if colours cannot be mixed and at least one coloured tile
-! must be used?
+! How many different ways can the black tiles in a row measuring
+! fifty units in length be replaced if colors cannot be mixed
+! and at least one colored tile must be used?
 
 
 ! SOLUTION
 ! --------
 
-! This solution uses a simple dynamic programming approach using the
-! following recurence relation
+! This solution uses a simple dynamic programming approach using
+! the following recurence relation
 
 ! ways(n,_) = 0   | n < 0
 ! ways(0,_) = 1
@@ -41,13 +42,13 @@ IN: project-euler.116
     [ length swap - 1 - ] keep ?nth 0 or ;
 
 : next ( colortile seq -- )
-     [ nth* ] [ last + ] [ push ] tri ;
+    [ nth* ] [ last + ] [ push ] tri ;
 
 : ways ( length colortile -- permutations )
     V{ 1 } clone [ [ next ] 2curry times ] keep last 1 - ;
 
 : (euler116) ( length -- permutations )
-    3 [1,b] [ ways ] with map-sum ;
+    3 [1..b] [ ways ] with map-sum ;
 
 PRIVATE>
 

@@ -1,15 +1,15 @@
 ! Copyright (c) 2007 Aaron Schaefer.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: kernel math math.combinatorics project-euler.common ;
 IN: project-euler.015
 
-! http://projecteuler.net/index.php?section=problems&id=15
+! https://projecteuler.net/problem=15
 
 ! DESCRIPTION
 ! -----------
 
-! Starting in the top left corner of a 2x2 grid, there are 6 routes (without
-! backtracking) to the bottom right corner.
+! Starting in the top left corner of a 2x2 grid, there are 6
+! routes (without backtracking) to the bottom right corner.
 
 ! How many routes are there through a 20x20 grid?
 

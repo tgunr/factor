@@ -1,6 +1,5 @@
 USING: accessors calendar calendar.format io io.encodings.utf8
-io.files kernel multiline parser sequences sorting splitting
-vocabs ;
+io.files kernel multiline sequences sorting splitting vocabs ;
 IN: editors.vim.generate-syntax
 
 <PRIVATE
@@ -54,7 +53,7 @@ CONSTANT: highlighted-vocabs {
 
 : write-keywords ( vocab -- )
     lookup-vocab
-    [ name>> ] [ vocab-words [ name>> ] map ] bi natural-sort [
+    [ name>> ] [ vocab-words [ name>> ] map ] bi sort [
         [ vocab-name>syntax-group-name
             [ "SynKeywordFactorWord " write write " | " write ] keep
         ] dip

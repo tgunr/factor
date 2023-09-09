@@ -1,12 +1,11 @@
-USING: help.markup help.syntax io.streams.string quotations
-strings calendar serialize furnace.db words words.symbol
-kernel ;
+USING: calendar furnace.db help.markup help.syntax kernel
+words.symbol ;
 IN: furnace.sessions
 
 HELP: <sessions>
 { $values
-     { "responder" "a responder" }
-     { "responder'" "a new responder" }
+    { "responder" "a responder" }
+    { "responder'" "a new responder" }
 }
 { $description "Wraps a responder in a session manager responder." } ;
 

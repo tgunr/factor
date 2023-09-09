@@ -1,13 +1,13 @@
 ! Copyright (C) 2021 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
 USING: accessors calendar calendar.format io io.encodings.utf8
-io.sockets io.streams.byte-array io.streams.string literals math
-math.parser namespaces sequences ;
+io.sockets io.streams.byte-array literals math math.parser
+namespaces sequences ;
 
 IN: syslog
 
-! RFC 3164 (http://www.faqs.org/rfcs/rfc3164.html)
+! RFC 3164 (https://www.faqs.org/rfcs/rfc3164.html)
 
 ! The first part is called the PRI, the second part is the
 ! HEADER, and the third part is the MSG.  The total length of
@@ -65,7 +65,7 @@ PRIVATE>
 
 : syslog ( message level -- )
     utf8 [ write-syslog ] with-byte-writer
-    1024 short head
+    1024 index-or-length head
     syslog-server get-global
     $[ f 0 <inet4> <datagram> ]
     send ;

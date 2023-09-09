@@ -1,12 +1,12 @@
 ! Copyright (C) 2008, 2010 Eduardo Cavazos, Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors assocs benchmark bootstrap.stage2 calendar
-command-line compiler.errors continuations debugger fry generic
-help.html help.lint io io.directories io.encodings.utf8 io.files
-io.styles kernel locals mason.common math memory namespaces
-parser.notes sequences sets sorting source-files.errors system
-threads tools.errors tools.test tools.time vocabs
-vocabs.hierarchy.private vocabs.loader vocabs.refresh words ;
+command-line compiler.errors continuations debugger help.html
+help.lint io io.directories io.encodings.utf8 io.files io.styles
+kernel mason.common math memory namespaces parser.notes
+sequences sets sorting source-files.errors system threads
+tools.errors tools.test tools.time vocabs
+vocabs.hierarchy.private vocabs.loader vocabs.refresh ;
 IN: mason.test
 
 : vocab-heading. ( vocab -- )
@@ -21,14 +21,12 @@ IN: mason.test
 : load-failures. ( failures -- ) [ load-error. nl ] each ;
 
 : require-all-no-restarts ( vocabs -- failures )
-    V{ } clone errorlist [
-        V{ } clone [
-            '[
-                [ require ]
-                [ swap vocab-name _ set-at ] recover
-            ] each
-        ] keep
-    ] with-variable ;
+    V{ } clone [
+        '[
+            [ require ]
+            [ swap vocab-name _ set-at ] recover
+        ] each
+    ] keep ;
 
 : load-from-root-no-restarts ( root prefix -- failures )
     vocabs-to-load require-all-no-restarts ;
@@ -49,12 +47,18 @@ IN: mason.test
 :: do-step ( errors summary-file details-file -- )
     errors
     [ error-type +linkage-error+ eq? ] reject
-    [ path>> ] map members natural-sort summary-file to-file
+    [ path>> ] map members sort summary-file to-file
     errors details-file utf8 [ errors. ] with-file-writer ;
 
 : do-tests ( -- )
     forget-tests? on
-    test-all test-failures get
+    cpu x86.32? [
+        "resource:core" test-root
+        "resource:basis" test-root
+    ] [
+        test-all
+    ] if
+    test-failures get
     test-all-vocabs-file
     test-all-errors-file
     do-step ;

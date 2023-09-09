@@ -1,5 +1,5 @@
 ! Copyright (C) 2010 Joe Groff, Erik Charlebois.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types arrays assocs classes.singleton
 combinators delegate kernel math parser sequences words ;
 IN: alien.enums
@@ -28,7 +28,7 @@ M: enum-c-type c-type-boxed-class drop object ;
 M: enum-c-type c-type-boxer-quot members>> enum-boxer ;
 M: enum-c-type c-type-unboxer-quot drop [ enum>number ] ;
 M: enum-c-type c-type-setter
-   [ enum>number ] swap base-type>> c-type-setter '[ _ 2dip @ ] ;
+    [ enum>number ] swap base-type>> c-type-setter '[ _ 2dip @ ] ;
 
 : define-enum-value ( class value -- )
     enum>number "enum-value" set-word-prop ;
@@ -61,3 +61,7 @@ PREDICATE: enum-c-type-word < c-type-word
 
 : enum>keys ( enum -- seq )
     "c-type" word-prop members>> keys [ name>> ] map ;
+
+: values>enum ( values enum -- seq )
+    '[ _ number>enum ] map ; inline
+

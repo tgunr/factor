@@ -1,6 +1,6 @@
 ! Copyright (C) 2006 Chris Double, Daniel Ehrenberg.
 ! Portions copyright (C) 2008, 2009 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors byte-arrays calendar.format calendar.parser
 combinators combinators.short-circuit continuations http.client
 kernel present sequences strings urls xml xml.data
@@ -35,7 +35,7 @@ TUPLE: entry title url description date ;
         [ "link" tag-named children>string >url >>url ]
         [ "description" tag-named children>string >>description ]
         [
-            f "date" "http://purl.org/dc/elements/1.1/" <name>
+            f "date" "https://purl.org/dc/elements/1.1/" <name>
             tag-named dup [ children>string try-parsing-timestamp ] when
             >>date
         ]

@@ -1,5 +1,5 @@
 ! Copyright (C) 2021 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: alien.c-types alien.data alien.syntax classes.struct kernel math
 specialized-arrays system-info windows.errors windows.types
 windows.user32 ;
@@ -310,7 +310,7 @@ ERROR: win32-powrprof-error n ;
     dup 0 = [ drop ] [ win32-powrprof-error ] if ;
 
 : get-power-capabilities ( -- struct )
-    SYSTEM_POWER_CAPABILITIES <struct>
+    SYSTEM_POWER_CAPABILITIES new
     [ GetPwrCapabilities win32-error=0/f ] keep ;
 
 : get-processor-power-information ( -- structs )

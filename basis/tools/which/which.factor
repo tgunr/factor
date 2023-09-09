@@ -1,5 +1,5 @@
 ! Copyright (C) 2012 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
 USING: arrays assocs combinators.short-circuit command-line
 environment io io.backend io.files io.files.info io.pathnames
@@ -11,7 +11,7 @@ IN: tools.which
 
 : executable? ( path -- ? )
     {
-        [ exists? ]
+        [ file-exists? ]
         [ file-executable? ]
         [ file-info directory? not ]
     } 1&& ;

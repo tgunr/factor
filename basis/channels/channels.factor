@@ -1,9 +1,8 @@
 ! Copyright (C) 2007 Chris Double. All Rights Reserved.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 !
 ! Channels - based on ideas from newsqueak
-USING: kernel sequences threads continuations
-random math accessors ;
+USING: accessors kernel random sequences threads ;
 IN: channels
 
 TUPLE: channel receivers senders ;

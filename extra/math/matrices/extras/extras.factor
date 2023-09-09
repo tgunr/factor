@@ -1,9 +1,9 @@
 ! Copyright (C) 2005, 2010, 2018 Slava Pestov, Joe Groff, and Cat Stevens.
-! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays combinators formatting fry kernel locals
-math math.bits math.functions math.matrices
-math.matrices.private math.order math.statistics math.text.english
-math.vectors random sequences sequences.deep summary ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: accessors arrays combinators formatting kernel math
+math.bits math.functions math.matrices math.order
+math.statistics math.text.english math.vectors random sequences
+sequences.deep summary ;
 IN: math.matrices.extras
 
 ! this is a questionable implementation
@@ -31,7 +31,7 @@ DEFER: alternating-sign
 PRIVATE>
 
 : <random-integer-matrix> ( m n max -- matrix )
-    '[ _ _ 1 + random-integers ] replicate
+    '[ _ _ 1 + randoms ] replicate
     finish-randomizing-matrix ; inline
 
 : <random-unit-matrix> ( m n max -- matrix )

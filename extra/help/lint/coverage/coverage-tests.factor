@@ -19,8 +19,8 @@ PRIVATE>
 { f } [ \ a-defined-word empty-examples? ] unit-test
 { f } [ \ keep empty-examples? ] unit-test
 
-{ { $description $values } } [ \ an-empty-word-with-a-unique-name missing-sections natural-sort ] unit-test
-{ { $description $values } } [ \ a-defined-word missing-sections natural-sort ] unit-test
+{ { $description $values } } [ \ an-empty-word-with-a-unique-name missing-sections sort ] unit-test
+{ { $description $values } } [ \ a-defined-word missing-sections sort ] unit-test
 { { } } [ \ keep missing-sections ] unit-test
 
 { { "a.b" "a.b.c" } } [ { "a.b" "a.b.private" "a.b.c.private" "a.b.c" } filter-private ] unit-test
@@ -36,6 +36,10 @@ PRIVATE>
 { { $values $contract $examples } } [ \ <word-help-coverage> word-defines-sections ] unit-test
 
 { an-empty-word-with-a-unique-name } [ "an-empty-word-with-a-unique-name" find-word ] unit-test
+
+{ { } } [ \ zero-matrix? missing-sections ] unit-test
+{ t } [ \ word-help-coverage? <word-help-coverage> 100%-coverage?>> ] unit-test
+{ t } [ \ zero-matrix? <word-help-coverage> 100%-coverage?>> ] unit-test
 
 {
   V{ "[" { $[ "math" dup lookup-vocab ] } "] " { "zero?" zero? } ": " }
@@ -65,8 +69,7 @@ PRIVATE>
 ] unit-test
 
 ! make sure this doesn't throw an error (would signify an issue with ignored-words)
-! the contents of all-words is not important
-{ } [ all-words [ <word-help-coverage> ] map drop ] unit-test
+[ { $io-error $prettyprinting-note $nl } [ <word-help-coverage> ] map ] must-not-fail
 
 
 ! Lint system is written weirdly, there's no way to invoke it and get the output

@@ -1,5 +1,5 @@
 ! Copyright (C) 2008 Doug Coleman, Eduardo Cavazos.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors assocs combinators combinators.short-circuit
 io.files io.files.types io.pathnames kernel math strings system
 vocabs ;
@@ -12,12 +12,12 @@ accessed ;
 HOOK: file-info os ( path -- info )
 
 : ?file-info ( path -- info/f )
-    dup exists? [ file-info ] [ drop f ] if ;
+    dup file-exists? [ file-info ] [ drop f ] if ;
 
 HOOK: link-info os ( path -- info )
 
 : ?link-info ( path -- info/f )
-    dup exists? [ link-info ] [ drop f ] if ;
+    dup file-exists? [ link-info ] [ drop f ] if ;
 
 <PRIVATE
 

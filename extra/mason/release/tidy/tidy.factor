@@ -1,5 +1,5 @@
 ! Copyright (C) 2008, 2011 Eduardo Cavazos, Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: bootstrap.image io.directories io.files kernel namespaces
 sequences system ;
 FROM: mason.config => target-os ;
@@ -34,6 +34,6 @@ CONSTANT: cleanup-list {
 : tidy ( -- )
     "factor" [
         useless-files
-        [ exists? ] filter
+        [ file-exists? ] filter
         [ delete-tree ] each
     ] with-directory ;

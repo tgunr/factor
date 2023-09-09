@@ -25,7 +25,7 @@ vm_parameters::vm_parameters() {
   callstack_size = 128 * sizeof(cell);
 #endif
 
-  code_size = 64;
+  code_size = 96;
   young_size = sizeof(cell) / 4;
   aging_size = sizeof(cell) / 2;
   tenured_size = 24 * sizeof(cell);
@@ -255,6 +255,8 @@ void factor_vm::load_image(vm_parameters* p) {
   if (h.version != image_version)
     fatal_error("Bad image: version number check failed", h.version);
 
+  if (!h.version4_escape) h.data_size=h.escaped_data_size, h.escaped_data_size=0;
+
   load_data_heap(file, &h, p);
   load_code_heap(file, &h, p);
 
@@ -273,7 +275,7 @@ void factor_vm::load_image(vm_parameters* p) {
 // so. Instead we signal failure by returning false.
 bool factor_vm::save_image(const vm_char* saving_filename,
                            const vm_char* filename) {
-  image_header h;
+  image_header h = {};
 
   h.magic = image_magic;
   h.version = image_version;

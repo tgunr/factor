@@ -1,5 +1,5 @@
 ! Copyright (C) 2009, 2010 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors assocs combinators combinators.short-circuit
 compiler.cfg.def-use compiler.cfg.instructions
 compiler.cfg.predecessors compiler.cfg.registers
@@ -124,7 +124,7 @@ M: insn visit-insn 2drop ;
 : compute-live-out ( basic-block -- live-out )
     [ successors>> [ live-in ] map ]
     [ dup successors>> [ edge-live-in ] with map ] bi
-    append assoc-combine ;
+    append assoc-union-all ;
 
 : update-live-out ( basic-block -- changed? )
     [ compute-live-out ] keep

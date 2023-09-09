@@ -1,5 +1,5 @@
 ! Copyright (C) 2004, 2009 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: threads kernel namespaces continuations combinators
 sequences math namespaces.private continuations.private
 concurrency.messaging quotations kernel.private words
@@ -158,11 +158,24 @@ SYMBOL: +stopped+
     "Walker on " self name>> append spawn
     [ associate-thread ] keep ;
 
+: breaklist+ ( word -- ) 
+    "breaklist" get-global swap suffix "breaklist" set-global ;
+
 : breakpoint ( word -- )
+    dup breaklist+
     [ add-breakpoint ] annotate ;
 
-: breakpoint-if ( word quot -- )
+: breakpoint-if ( word quot: ( ... -- ... ? ) -- )
+    over breaklist+
     '[ [ _ [ [ break ] when ] ] dip 3append ] annotate ;
+
+: breakpoint-after ( word n -- )
+    0 1array swap '[
+        [
+            0 _ [ 1 + dup ] change-nth-unsafe
+            _ >= [ break ] when
+        ] prepend
+    ] annotate ;
 
 ! For convenience
 IN: syntax

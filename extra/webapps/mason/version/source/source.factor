@@ -1,5 +1,5 @@
 ! Copyright (C) 2010 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: bootstrap.image bootstrap.image.download io
 io.directories io.files.temp io.files.unique io.launcher
 io.pathnames kernel namespaces sequences mason.common
@@ -7,7 +7,7 @@ mason.config webapps.mason.version.files ;
 IN: webapps.mason.version.source
 
 : clone-factor ( -- )
-    { "git" "clone" "git://factorcode.org/git/factor.git" } try-process ;
+    { "git" "clone" "https://github.com/factor/factor.git" } try-process ;
 
 : git-reset ( git-id -- )
     { "git" "reset" "--hard" } swap suffix try-process ;

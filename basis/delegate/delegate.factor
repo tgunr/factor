@@ -1,6 +1,6 @@
 ! Copyright (C) 2007, 2008 Daniel Ehrenberg
 ! Portions copyright (C) 2009, 2010 Slava Pestov, Joe Groff
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs classes classes.tuple
 compiler.units definitions effects fry generic generic.standard
 hashtables kernel lexer make math parser sequences sets slots
@@ -60,12 +60,12 @@ PREDICATE: consult-method < method
     "consultation" word-prop >boolean ;
 
 M: consult-method reset-word
-    [ call-next-method ] [ f "consultation" set-word-prop ] bi ;
+    [ call-next-method ] [ "consultation" remove-word-prop ] bi ;
 
 GENERIC#: (consult-method-quot) 2 ( consultation quot word -- object )
 
 M: consultation (consult-method-quot)
-    '[ _ call _ execute ] nip ;
+    dup "combination" word-prop make-consult-quot ;
 
 M: broadcast (consult-method-quot)
     '[ _ call [ _ execute ] each ] nip ;

@@ -1,12 +1,12 @@
 ! Copyright (C) 2012 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
 USING: accessors combinators colors colors.gray kernel math
 math.order ;
 
 IN: colors.cmyk
 
-TUPLE: cmyka < color
+TUPLE: cmyka
 { cyan read-only }
 { magenta read-only }
 { yellow read-only }
@@ -14,6 +14,8 @@ TUPLE: cmyka < color
 { alpha read-only } ;
 
 C: <cmyka> cmyka
+
+INSTANCE: cmyka color
 
 M: cmyka >rgba
     [ [ cyan>> ] [ black>> ] bi + ]

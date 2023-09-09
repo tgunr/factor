@@ -1,5 +1,5 @@
 ! Copyright (C) 2021 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: alien alien.c-types alien.data alien.syntax byte-arrays
 classes.struct combinators continuations io.encodings.string
 io.encodings.utf8 kernel libc math math.vectors sequences
@@ -160,7 +160,7 @@ CONSTANT: IOC_DIRSHIFT 30  ! SIZESHIFT + SIZEBITS
 : ctype-ioctl-inout ( handle id bytes type -- out )
     [ call-ioctl-out ] dip deref ; inline
 : struct-ioctl ( handle id struct-class -- out )
-    <struct> call-ioctl-out ; inline
+    new call-ioctl-out ; inline
 
 ! EV IOC G/S - evdev ioctl get/set
 ! EVIOCGVERSION EVIOCGID EVIOCGREP EVIOCSREP

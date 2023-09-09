@@ -1,12 +1,12 @@
 ! Copyright (C) 2004, 2009 Slava Pestov, Daniel Ehrenberg.
-! See http://factorcode.org/license.txt for BSD license.
-USING: alien.strings init io io.backend io.encodings
+! See https://factorcode.org/license.txt for BSD license.
+USING: alien.strings io io.backend io.encodings
 io.pathnames kernel kernel.private namespaces sequences
 splitting system ;
 IN: io.files
 
 <PRIVATE
-PRIMITIVE: (exists?) ( path -- ? )
+PRIMITIVE: (file-exists?) ( path -- ? )
 PRIVATE>
 
 SYMBOL: +retry+ ! just try the operation again without blocking
@@ -57,21 +57,28 @@ HOOK: (file-appender) io-backend ( path -- stream )
     [ [ print ] each ] with-file-writer ;
 
 : change-file-lines ( ..a path encoding quot: ( ..a seq -- ..b seq' ) -- ..b )
-    [ [ file-lines ] dip call ]
-    [ drop set-file-lines ] 3bi ; inline
+    '[ file-lines @ ] [ set-file-lines ] 2bi ; inline
 
 : set-file-contents ( seq path encoding -- )
     [ write ] with-file-writer ;
 
 : change-file-contents ( ..a path encoding quot: ( ..a seq -- ..b seq' ) -- ..b )
-    [ [ file-contents ] dip call ]
-    [ drop set-file-contents ] 3bi ; inline
+    '[ file-contents @ ] [ set-file-contents ] 2bi ; inline
 
 : with-file-appender ( path encoding quot -- )
     [ <file-appender> ] dip with-output-stream ; inline
 
-: exists? ( path -- ? )
-    normalize-path native-string>alien (exists?) ;
+: file-exists? ( path -- ? )
+    normalize-path native-string>alien (file-exists?) ;
+
+: if-file-exists ( ..a path true: ( ..a path -- ..b ) false: ( ..a path -- ..b ) -- ..b )
+    [ dup file-exists? ] 2dip if ; inline
+
+: when-file-exists ( ... path quot: ( ... path -- ... ) -- ... )
+    [ drop ] if-file-exists ; inline
+
+: unless-file-exists ( ... path quot: ( ... path -- ... ) -- ... )
+    [ drop ] swap if-file-exists ; inline
 
 ! Current directory
 <PRIVATE
@@ -90,9 +97,9 @@ PRIVATE>
     ] map-find drop
     [ image-path parent-directory ] unless* "resource-path" set-global ;
 
-[
+STARTUP-HOOK: [
     cwd current-directory set-global
     OBJ-IMAGE special-object alien>native-string \ image-path set-global
     OBJ-EXECUTABLE special-object alien>native-string \ vm-path set-global
     init-resource-path
-] "io.files" add-startup-hook
+]

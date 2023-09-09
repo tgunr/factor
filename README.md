@@ -1,6 +1,6 @@
 # Factor
 
-[![](https://api.travis-ci.org/factor/factor.svg)](https://travis-ci.org/factor/factor)
+![Build](https://github.com/factor/factor/actions/workflows/build.yml/badge.svg)
 
 Factor is a [concatenative](https://www.concatenative.org), stack-based
 programming language with [high-level
@@ -30,7 +30,7 @@ a boot image stored on factorcode.org.
 
 To check out Factor:
 
-* `git clone git://github.com/factor/factor.git`
+* git clone https://github.com/factor/factor.git
 * `cd factor`
 
 To build the latest complete Factor system from git, either use the
@@ -41,7 +41,7 @@ build script:
 * M1 macOS: `arch -x86_64 ./build.sh update`
 
 or download the correct boot image for your system from
-http://downloads.factorcode.org/images/master/, put it in the `factor`
+https://downloads.factorcode.org/images/master/, put it in the `factor`
 directory and run:
 
 * Unix: `make` and then `./factor -i=boot.unix-x86.64.image`
@@ -50,7 +50,7 @@ directory and run:
 Now you should have a complete Factor system ready to run.
 
 Factor does not yet work on arm64 cpus. There is an arm64 assembler
-in `cpu.arm.assembler` and we are working on a port and also looking for
+in `cpu.arm.64.assembler` and we are working on a port and also looking for
 contributors.
 
 More information on [building factor](https://concatenative.org/wiki/view/Factor/Building%20Factor)
@@ -67,10 +67,24 @@ The nightly builds are usually a better experience than the point releases.
 
 ### Learning Factor
 
-A tutorial is available that can be accessed from the Factor environment:
+A [tutorial](https://docs.factorcode.org/content/article-first-program.html)
+is available that can be accessed from the Factor environment:
 
 ```factor
 "first-program" help
+```
+
+Take a look at a [guided
+tour](https://docs.factorcode.org/content/article-tour.html) of Factor:
+
+```factor
+"tour" help
+```
+
+Some demos that are included in the distribution to show off various features:
+
+```factor
+"demos" run
 ```
 
 Some other simple things you can try in the listener:
@@ -80,7 +94,7 @@ Some other simple things you can try in the listener:
 
 { 4 8 15 16 23 42 } [ 2 * ] map .
 
-1000 [1,b] sum .
+1000 [1..b] sum .
 
 4 <iota> [
     "Happy Birthday " write
@@ -112,6 +126,7 @@ Common arguments:
         -run=listener    run terminal listener
         -run=ui.tools    run Factor development UI
     -e=<code>        evaluate <code>
+    -ea=<code>       evaluate <code> with auto-use
     -no-user-init    suppress loading of .factor-rc
     -roots=<paths>   a list of path-delimited extra vocab roots
 
@@ -155,13 +170,12 @@ Then subsequent fetches will automatically update any replace objects.
 
 ## Community
 
-Factor developers meet in the `#concatenative` channel on
-[irc.freenode.net](http://freenode.net). Drop by if you want to discuss
-anything related to Factor or language design in general.
+Factor developers are quite active in [the Factor Discord server](https://discord.gg/QxJYZx3QDf).
+Drop by if you want to discuss anything related to Factor or language design in general.
 
 * [Factor homepage](https://factorcode.org)
 * [Concatenative languages wiki](https://concatenative.org)
-* [Mailing list](factor-talk@lists.sourceforge.net)
+* [Join the mailing list](https://concatenative.org/wiki/view/Factor/Mailing%20list)
 * Search for "factorcode" on [Gitter](https://gitter.im/)
 
 Have fun!

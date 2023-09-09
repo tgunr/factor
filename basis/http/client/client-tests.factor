@@ -1,5 +1,6 @@
 USING: accessors http http.client http.client.private
-io.streams.string kernel namespaces sequences tools.test urls ;
+io.streams.string kernel namespaces sequences splitting
+tools.test urls ;
 IN: http.client.tests
 
 { "foo.txt" } [ "http://www.paulgraham.com/foo.txt" download-name ] unit-test
@@ -47,8 +48,8 @@ IN: http.client.tests
 ! hit the velox.ch website.
 ! { t } [
     ! "https://alice.sni.velox.ch" http-get nip
-    ! [ "Great!" swap subseq? ]
-    ! [ "TLS SNI Test Site: alice.sni.velox.ch" swap subseq? ] bi and
+    ! [ "Great!" subseq-of? ]
+    ! [ "TLS SNI Test Site: alice.sni.velox.ch" subseq-of? ] bi and
 ! ] unit-test
 
 { t } [
@@ -58,7 +59,7 @@ IN: http.client.tests
         "content-type: text/html; charset=UTF-8"
         "date: Wed, 12 Oct 2011 18:57:49 GMT"
         "server: Factor http.server"
-    } [ "\n" join ] [ "\r\n" join ] bi
+    } [ join-lines ] [ "\r\n" join ] bi
     [ [ read-response ] with-string-reader ] same?
 ] unit-test
 
@@ -98,7 +99,7 @@ IN: http.client.tests
     "https://www.apple.com/index.html"
     "CONNECT" <client-request>
         f >>proxy-url
-     request-uri
+    request-uri
 ] unit-test
 
 { f } [
@@ -228,10 +229,10 @@ CONSTANT: classic-proxy-settings H{
 
 ! This url is misparsed bu request-url can fix it
 { T{ url
-   { protocol "http" }
-   { host "www.google.com" }
-   { path "/" }
-   { port 80 }
+    { protocol "http" }
+    { host "www.google.com" }
+    { path "/" }
+    { port 80 }
 } } [ "www.google.com" request-url ] unit-test
 
 ! This one is not fixable, leave it as it is

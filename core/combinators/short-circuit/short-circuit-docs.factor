@@ -1,7 +1,6 @@
 ! Copyright (C) 2008 Doug Coleman.
-! See http://factorcode.org/license.txt for BSD license.
-USING: help.markup help.syntax io.streams.string quotations
-math kernel ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: help.markup help.syntax kernel math quotations ;
 IN: combinators.short-circuit
 
 HELP: 0&&
@@ -38,14 +37,14 @@ HELP: 3||
 
 HELP: n&&
 { $values
-     { "quots" "a sequence of quotations" } { "n" integer }
-     { "quot" quotation } }
+    { "quots" "a sequence of quotations" } { "n" integer }
+    { "quot" quotation } }
 { $description "A macro that rewrites the code to pass " { $snippet "n" } " parameters from the stack to each quotation, evaluating the result in the same manner as " { $link 0&& } "." } ;
 
 HELP: n||
 { $values
-     { "quots" "a sequence of quotations" } { "n" integer }
-     { "quot" quotation } }
+    { "quots" "a sequence of quotations" } { "n" integer }
+    { "quot" quotation } }
 { $description "A macro that rewrites the code to pass " { $snippet "n" } " parameters from the stack to each OR quotation." } ;
 
 ARTICLE: "combinators.short-circuit" "Short-circuit combinators"

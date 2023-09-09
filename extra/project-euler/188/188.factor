@@ -1,15 +1,16 @@
 ! Copyright (c) 2009 Guillaume Nargeot.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: kernel math math.functions project-euler.common ;
 IN: project-euler.188
 
-! http://projecteuler.net/index.php?section=problems&id=188
+! https://projecteuler.net/problem=188
 
 ! DESCRIPTION
 ! -----------
 
-! The hyperexponentiation or tetration of a number a by a positive integer b,
-! denoted by a↑↑b or ^(b)a, is recursively defined by:
+! The hyperexponentiation or tetration of a number a by a
+! positive integer b, denoted by a↑↑b or ^(b)a, is recursively
+! defined by:
 
 ! a↑↑1 = a,
 ! a↑↑(k+1) = a^(a↑↑k).
@@ -25,7 +26,7 @@ IN: project-euler.188
 ! --------
 
 ! Using modular exponentiation.
-! http://en.wikipedia.org/wiki/Modular_exponentiation
+! https://en.wikipedia.org/wiki/Modular_exponentiation
 
 <PRIVATE
 

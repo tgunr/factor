@@ -1,5 +1,5 @@
 ! Copyright (C) 2005, 2010 Eduardo Cavazos, Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data alien.syntax arrays ascii
 assocs classes.struct combinators combinators.short-circuit
 environment io.encodings.ascii io.encodings.string io.encodings.utf8
@@ -254,7 +254,7 @@ M: x11-ui-backend set-title
     [ dpy get ] 2dip [ set-title-old ] [ set-title-new ] 3bi ;
 
 : make-fullscreen-msg ( window ? -- msg )
-    XClientMessageEvent <struct>
+    XClientMessageEvent new
         ClientMessage >>type
         dpy get >>display
         XA_NET_WM_STATE >>message_type
@@ -286,7 +286,7 @@ M: x11-ui-backend (open-window)
     tri ;
 
 : make-raise-window-msg ( window -- msg )
-    XClientMessageEvent <struct>
+    XClientMessageEvent new
         ClientMessage >>type
         1 >>send_event
         dpy get >>display
@@ -341,7 +341,7 @@ PRIVATE>
 M: x11-ui-backend system-alert
     "\n\n" glue xmessage ;
 
-: black ( -- xcolor ) 0 0 0 0 0 0 XColor <struct-boa> ; inline
+: black ( -- xcolor ) 0 0 0 0 0 0 XColor boa ; inline
 
 M:: x11-ui-backend (grab-input) ( handle -- )
     handle window>>                                                  :> wnd

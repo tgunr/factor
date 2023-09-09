@@ -1,9 +1,9 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! Copyright (C) 2018 Alexander Ilin.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data byte-arrays
 classes.struct continuations io.encodings.string
-io.encodings.utf16n kernel literals locals math sequences sets
+io.encodings.utf16 kernel literals locals math sequences sets
 splitting windows windows.advapi32 windows.errors
 windows.kernel32 windows.time windows.types ;
 IN: windows.registry
@@ -132,7 +132,7 @@ TUPLE: registry-enum-key ;
     0 DWORD <ref> dup :> max-value
     0 DWORD <ref> dup :> max-value-data
     0 DWORD <ref> dup :> security-descriptor
-    FILETIME <struct> dup :> last-write-time
+    FILETIME new dup :> last-write-time
     RegQueryInfoKey :> ret
     ret ERROR_SUCCESS = [
         key
@@ -217,4 +217,11 @@ TUPLE: registry-enum-key ;
         ] when
         [ hkey value-name type DWORD deref ] dip dup length
         set-reg-key
+    ] with-open-registry-key ;
+
+:: query-registry ( key subkey value-name -- value )
+    key subkey KEY_READ [
+        value-name f 0 DWORD <ref> dup :> ptype MAX_PATH <byte-array> reg-query-value-ex
+        ptype DWORD deref dup :> type ${ REG_SZ REG_EXPAND_SZ REG_MULTI_SZ } in?
+        [ utf16n decode type REG_MULTI_SZ = [ "\0" split 2 ] [ 1 ] if head* ] when
     ] with-open-registry-key ;

@@ -1,8 +1,8 @@
 ! Copyright (C) 2019 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
 USING: accessors arrays assocs base64 byte-arrays calendar
-calendar.format calendar.parser combinators io io.binary
+calendar.format calendar.parser combinators endian io
 io.encodings.binary io.encodings.string io.encodings.utf8
 io.streams.byte-array io.streams.string kernel math math.bitwise
 math.floats.half present sequences strings urls ;

@@ -1,8 +1,10 @@
 ! Copyright (C) 2007 Chris Double.
-! See http://factorcode.org/license.txt for BSD license.
-!
-USING: continuations kernel tools.test strings namespaces make arrays
-sequences peg peg.private peg.parsers words math accessors ;
+! See https://factorcode.org/license.txt for BSD license.
+
+USING: accessors arrays compiler concurrency.futures
+continuations kernel make math namespaces peg peg.parsers
+peg.private sequences strings tools.test words ;
+
 IN: peg.tests
 
 { } [ reset-pegs ] unit-test
@@ -184,7 +186,7 @@ IN: peg.tests
     ! Ensure a circular parser doesn't loop infinitely
     [ f , "a" token , ] seq*
     dup peg>> parsers>>
-    dupd 0 swap set-nth compile word?
+    dupd 0 swap set-nth compile-parser word?
 ] unit-test
 
 [
@@ -196,8 +198,6 @@ IN: peg.tests
 ] unit-test
 
 { f } [ \ + T{ parser f f f } equal? ] unit-test
-
-USE: compiler
 
 { } [ disable-optimizer ] unit-test
 
@@ -215,4 +215,11 @@ USE: compiler
     }
 } [
     [ "fbcd" "a" token "b" token 2array choice parse ] [ ] recover
+] unit-test
+
+PEG: foo ( x -- x ) "abc" token ;
+
+{ t } [
+    2,000 [ [ "abc" foo ] future ] replicate
+    [ ?future "abc" = ] all?
 ] unit-test

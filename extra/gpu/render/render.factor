@@ -1,11 +1,11 @@
 ! Copyright (C) 2009 Joe Groff.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.data arrays assocs
 classes classes.parser classes.struct classes.tuple
-classes.tuple.private combinators combinators.tuple fry generic
+classes.tuple.private combinators combinators.tuple generic
 generic.parser gpu.buffers gpu.framebuffers
 gpu.framebuffers.private gpu.shaders gpu.shaders.private
-gpu.textures gpu.textures.private kernel lexer locals math
+gpu.textures gpu.textures.private kernel lexer math
 math.parser math.vectors.simd opengl.gl parser quotations
 sequences slots sorting specialized-arrays strings variants words ;
 FROM: math => float ;
@@ -310,12 +310,12 @@ M: object >uniform-vec-array '[ _ head ] map float-array{ } concat-as ; inline
 M: binary-data >uniform-vec-array drop ; inline
 
 M:: object >uniform-matrix ( sequence cols rows -- c-array )
-     sequence flip cols head-slice
-     [ rows head-slice c:float >c-array ] { } map-as concat ; inline
+    sequence flip cols head-slice
+    [ rows head-slice c:float >c-array ] { } map-as concat ; inline
 M: binary-data >uniform-matrix 2drop ; inline
 
 M: object >uniform-matrix-array
-     '[ _ _ >uniform-matrix ] map concat ; inline
+    '[ _ _ >uniform-matrix ] map concat ; inline
 M: binary-data >uniform-matrix-array 2drop ; inline
 
 M: object bind-uniform-bvec2 ( index sequence -- )
@@ -547,7 +547,7 @@ SYNTAX: UNIFORM-TUPLE:
     [ [ length ] [ c:int >c-array ] bi glDrawBuffers ] if ;
 
 : bind-named-output-attachments ( program-instance framebuffer attachments -- )
-    rot '[ first _ swap output-index ] sort-with values
+    rot '[ first _ swap output-index ] sort-by values
     bind-unnamed-output-attachments ;
 
 : bind-output-attachments ( program-instance framebuffer attachments -- )

@@ -3,7 +3,7 @@ hints interval-maps kernel math math.order sequences sorting
 strings unicode.breaks.private unicode.case.private
 unicode.categories unicode.collation unicode.collation.private
 unicode.data unicode.data.private unicode.normalize.private
-unicode.script locals math.ranges ;
+unicode.script ranges ;
 IN: unicode
 
 CATEGORY: blank Zs Zl Zp | "\r\n\t" member? ;
@@ -46,7 +46,7 @@ CATEGORY: math Sm | "Other_Math" property? ;
     entire-str length :> str-len
     0 pos 1 + entire-str <slice> grapheme-class
     pos 1 + str-len 1 - min pos!
-    pos str-len 1 - [a,b] [
+    pos str-len 1 - [a..b] [
         1 + 0 swap entire-str <slice> grapheme-class
         dup rot swap grapheme-break?
     ] find drop nip
@@ -60,14 +60,14 @@ CATEGORY: math Sm | "Other_Math" property? ;
     pos 0 = [ 0 ] [
         str grapheme-class
         pos 1 - 0 max pos!
-        0 pos [a,b] [
+        0 pos [a..b] [
             0 swap 1 + str <slice> grapheme-class
             dup rot grapheme-break?
         ] find-last drop ?1+ nip
     ] if ;
 
 : last-grapheme-from ( end str -- i )
-     swap head-slice last-grapheme ;
+    swap head-slice last-grapheme ;
 
 <PRIVATE
 
@@ -212,7 +212,7 @@ PRIVATE>
     0 insensitive= ;
 
 : sort-strings ( strings -- sorted )
-    [ collation-key/nfd 2array ] map natural-sort values ;
+    [ collation-key/nfd 2array ] map sort values ;
 
 : string<=> ( str1 str2 -- <=> )
     [ collation-key/nfd 2array ] compare ;
@@ -229,4 +229,4 @@ CONSTANT: unicode-unsupported {
     "bidi"
 }
 
-CONSTANT: unicode-version "13.0"
+CONSTANT: unicode-version "14.0.0"

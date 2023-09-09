@@ -1,7 +1,7 @@
 ! Copyright (C) 2007, 2009 Eduardo Cavazos, Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs definitions kernel namespaces
-sequences sorting splitting strings ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: accessors assocs definitions kernel namespaces sequences
+sets sorting splitting strings ;
 IN: vocabs
 
 SYMBOL: dictionary
@@ -11,10 +11,8 @@ name words
 main help
 source-loaded? docs-loaded? ;
 
-! sources-loaded? slot is one of these three
-SYMBOL: +parsing+
-SYMBOL: +running+
-SYMBOL: +done+
+! sources-loaded? and docs-loaded? slots could be
+SYMBOLS: +parsing+ +done+ ;
 
 : <vocab> ( name -- vocab )
     vocab new
@@ -25,13 +23,15 @@ ERROR: bad-vocab-name name ;
 
 : check-vocab-name ( name -- name )
     dup string? [ bad-vocab-name ] unless
-    dup [ ":/\\ " member? ] any? [ bad-vocab-name ] when ;
+    dup [ ":/\\ \"" member? ] any? [ bad-vocab-name ] when ;
 
 TUPLE: vocab-link name ;
 
 C: <vocab-link> vocab-link
 
 UNION: vocab-spec vocab vocab-link ;
+
+INSTANCE: vocab-spec definition-mixin
 
 GENERIC: vocab-name ( vocab-spec -- name )
 
@@ -50,7 +50,7 @@ M: object lookup-vocab vocab-name dictionary get at ;
 ERROR: no-vocab-named name ;
 
 : ?lookup-vocab ( vocab-spec -- vocab )
-    dup lookup-vocab [ nip ] [ no-vocab-named ] if* ;
+    [ lookup-vocab ] [ no-vocab-named ] ?unless ;
 
 GENERIC: vocab-words-assoc ( vocab-spec -- assoc/f )
 
@@ -76,6 +76,9 @@ M: object vocab-main lookup-vocab vocab-main ;
 
 M: f vocab-main ;
 
+PREDICATE: runnable-vocab < vocab
+    vocab-main >boolean ;
+
 SYMBOL: vocab-observers
 
 GENERIC: vocab-changed ( vocab obj -- )
@@ -96,7 +99,7 @@ GENERIC: vocab-changed ( vocab obj -- )
 ERROR: no-vocab name ;
 
 : loaded-vocab-names ( -- seq )
-    dictionary get keys natural-sort ;
+    dictionary get keys sort ;
 
 : vocab-words ( vocab-spec -- seq )
     vocab-words-assoc values ;
@@ -128,7 +131,7 @@ GENERIC: >vocab-link ( name -- vocab )
 
 M: vocab-spec >vocab-link ;
 
-M: object >vocab-link dup lookup-vocab [ ] [ <vocab-link> ] ?if ;
+M: object >vocab-link [ lookup-vocab ] [ <vocab-link> ] ?unless ;
 
 <PRIVATE
 
@@ -150,10 +153,18 @@ M: vocab-spec forget* forget-vocab ;
 
 SYMBOL: require-hook
 
-PREDICATE: runnable-vocab < vocab
-    vocab-main >boolean ;
+<PRIVATE
 
-INSTANCE: vocab-spec definition-mixin
+SYMBOL: requiring
+
+: with-requiring ( quot -- )
+    requiring get [
+        swap call
+    ] [
+        HS{ } clone dup requiring [ swap call ] with-variable
+    ] if* ; inline
+
+PRIVATE>
 
 GENERIC: require ( object -- )
 
@@ -167,8 +178,15 @@ M: vocab-link require name>> require ;
 ! that contain primitives, and loading the public vocabs would
 ! cause circularity issues.
 M: string require
-    [ ".private" ?tail ] keep swap [ lookup-vocab not ] when
-    [ require-hook get call( name -- ) ] [ drop ] if ;
+    [ ".private" ?tail ] keep swap [ lookup-vocab not ] when [
+        [
+            dupd ?adjoin
+            [ require-hook get call( name -- ) ] [ drop ] if
+        ] with-requiring
+    ] [ drop ] if ;
+
+: require-all ( vocabs -- )
+    [ require ] each ;
 
 : load-vocab ( name -- vocab )
     [ require ] [ lookup-vocab ] bi ;

@@ -1,5 +1,5 @@
 ! Copyright (C) 2021 John Benediktsson
-! See http://factorcode.org/license.txt for BSD license
+! See https://factorcode.org/license.txt for BSD license
 
 USING: accessors calendar combinators combinators.short-circuit
 command-line formatting io io.directories io.encodings.binary
@@ -58,7 +58,7 @@ TUPLE: gemini-server < threaded-server
     path [
         [ name>> "." head? ] reject
         [ { [ directory? ] [ regular-file? ] } 1|| ] filter
-        [ name>> ] sort-with
+        [ name>> ] sort-by
         [
             [ name>> ] [ directory? [ "/" append ] when ] bi
             [
@@ -73,13 +73,13 @@ TUPLE: gemini-server < threaded-server
     ] with-directory-entries ;
 
 : send-directory ( server path -- )
-    dup ".geminimap" append-path dup exists? [
+    dup ".geminimap" append-path [
         send-file 2drop
     ] [
         drop dup ".geminihead" append-path
-        dup exists? [ send-file ] [ drop ] if
+        [ send-file ] when-file-exists
         list-directory
-    ] if ;
+    ] if-file-exists ;
 
 : read-gemini-path ( -- path )
     readln utf8 decode "\r" ?tail drop >url path>> ;

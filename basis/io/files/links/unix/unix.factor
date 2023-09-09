@@ -1,5 +1,5 @@
 ! Copyright (C) 2008 Slava Pestov.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: io.backend io.files io.files.links io.pathnames kernel
 sequences system unix unix.ffi ;
 IN: io.files.links.unix
@@ -15,4 +15,4 @@ M: unix read-link
 
 M: unix resolve-symlinks
     path-components "/"
-    [ append-path dup exists? [ follow-links ] when ] reduce ;
+    [ append-path dup file-exists? [ follow-links ] when ] reduce ;

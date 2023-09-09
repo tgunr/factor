@@ -1,9 +1,8 @@
 ! Copyright (C) 2007, 2008 Alex Chapman
-! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays colors combinators fry jamshred.oint
-kernel literals locals math math.constants math.matrices
-math.order math.quadratic math.ranges math.vectors random
-sequences specialized-arrays vectors ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: accessors alien.c-types colors combinators jamshred.oint
+kernel literals math math.constants math.order math.quadratic
+math.vectors random sequences specialized-arrays vectors ;
 FROM: jamshred.oint => distance ;
 FROM: alien.c-types => float ;
 SPECIALIZED-ARRAY: float
@@ -87,14 +86,14 @@ CONSTANT: default-segment-radius 1
     next current half-way-between-oints :> h
     cf h vdot cf location vdot - cf heading vdot / ;
 
-: vector-to-centre ( seg loc -- v )
+: vector-to-center ( seg loc -- v )
     over location>> swap v- swap forward>> proj-perp ;
 
-: distance-from-centre ( seg loc -- distance )
-    vector-to-centre norm ;
+: distance-from-center ( seg loc -- distance )
+    vector-to-center norm ;
 
 : wall-normal ( seg oint -- n )
-    location>> vector-to-centre normalize ;
+    location>> vector-to-center normalize ;
 
 CONSTANT: distant 1000
 

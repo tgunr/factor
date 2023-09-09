@@ -1,9 +1,7 @@
-USING: definitions io.launcher kernel math math.parser parser
-namespaces prettyprint editors make ;
+USING: editors kernel make namespaces ;
 IN: editors.xcode
 
 SINGLETON: xcode
-xcode editor-class set-global
 
 M: xcode editor-command
     drop

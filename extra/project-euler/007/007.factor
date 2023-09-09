@@ -1,15 +1,15 @@
 ! Copyright (c) 2007 Aaron Schaefer.
-! See http://factorcode.org/license.txt for BSD license.
-USING: lists math math.primes.lists project-euler.common ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: project-euler.common ;
 IN: project-euler.007
 
-! http://projecteuler.net/index.php?section=problems&id=7
+! https://projecteuler.net/problem=7
 
 ! DESCRIPTION
 ! -----------
 
-! By listing the first six prime numbers: 2, 3, 5, 7, 11, and 13, we can see
-! that the 6th prime is 13.
+! By listing the first six prime numbers: 2, 3, 5, 7, 11, and
+! 13, we can see that the 6th prime is 13.
 
 ! What is the 10001st prime number?
 

@@ -1,7 +1,7 @@
 ! Copyright (C) 2007, 2010 Slava Pestov, Daniel Ehrenberg.
-! See http://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs definitions effects kernel
-kernel.private math sequences sequences.private words ;
+! See https://factorcode.org/license.txt for BSD license.
+USING: accessors arrays assocs definitions effects hashtables
+kernel kernel.private math sequences sequences.private words ;
 IN: memoize
 
 <PRIVATE
@@ -44,8 +44,11 @@ IN: memoize
 : make/0 ( table quot effect -- quot )
     out>> [
         packer '[
-            _ dup first-unsafe
-            [ ] [ @ @ [ 0 rot set-nth-unsafe ] keep ] ?if
+            _ dup first-unsafe [ second-unsafe ] [
+                @ @ [
+                    1 pick set-nth-unsafe t 0 rot set-nth-unsafe
+                ] keep
+            ] if
         ]
     ] keep unpacker compose ;
 
@@ -61,16 +64,18 @@ PRIVATE>
     3tri ;
 
 : define-memoized ( word quot effect -- )
-    dup in>> length zero? [ f 1array ] [ H{ } clone ] if
+    dup in>> length zero? [ f f 2array ] [ H{ } clone ] if
     (define-memoized) ;
 
 : define-identity-memoized ( word quot effect -- )
-    dup in>> length zero? [ f 1array ] [ IH{ } clone ] if
+    dup in>> length zero? [ f f 2array ] [ IH{ } clone ] if
     (define-memoized) ;
 
 PREDICATE: memoized < word "memoize" word-prop >boolean ;
 
-M: memoized definer drop \ MEMO: \ ; ;
+M: memoized definer
+    def>> 3 from-tail swap ?nth hashtable?
+    \ MEMO: \ IDENTITY-MEMO: ? \ ; ;
 
 M: memoized definition "memo-quot" word-prop ;
 
@@ -80,7 +85,7 @@ M: memoized reset-word
     bi ;
 
 : memoize-quot ( quot effect -- memo-quot )
-    dup in>> length zero? [ f 1array ] [ H{ } clone ] if
+    dup in>> length zero? [ f f 2array ] [ H{ } clone ] if
     -rot make-memoizer ;
 
 : reset-memoized ( word -- )

@@ -1,8 +1,8 @@
 ! Copyright (C) 2019 John Benediktsson.
-! See http://factorcode.org/license.txt for BSD license.
+! See https://factorcode.org/license.txt for BSD license.
 USING: base64.private byte-arrays combinators io
 io.encodings.binary io.streams.byte-array kernel kernel.private
-literals locals math namespaces sequences ;
+literals math namespaces sequences ;
 IN: base16
 
 ERROR: malformed-base16 ;

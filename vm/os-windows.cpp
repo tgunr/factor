@@ -107,9 +107,7 @@ segment::segment(cell size_, bool executable_p) {
 }
 
 segment::~segment() {
-  SYSTEM_INFO si;
-  GetSystemInfo(&si);
-  if (!VirtualFree((void*)(start - si.dwPageSize), 0, MEM_RELEASE))
+  if (!VirtualFree((void*)(start - getpagesize()), 0, MEM_RELEASE))
     fatal_error("Segment deallocation failed", 0);
 }
 
@@ -122,7 +120,6 @@ long getpagesize() {
   }
   return g_pagesize;
 }
-
 
 bool move_file(const vm_char* path1, const vm_char* path2) {
   // MoveFileEx returns FALSE on fail.
@@ -247,8 +244,6 @@ VM_C_API LONG exception_handler(PEXCEPTION_RECORD e, void* frame, PCONTEXT c,
 // cancellation requests to unblock the thread.
 VOID CALLBACK dummy_cb(ULONG_PTR dwParam) { (void)dwParam; }
 
-// CancelSynchronousIo is not in Windows XP
-#if _WIN32_WINNT >= 0x0600
 static void wake_up_thread(HANDLE thread) {
   if (!CancelSynchronousIo(thread)) {
     DWORD err = GetLastError();
@@ -263,9 +258,6 @@ static void wake_up_thread(HANDLE thread) {
     }
   }
 }
-#else
-static void wake_up_thread(HANDLE thread) { (void)thread; }
-#endif
 
 static BOOL WINAPI ctrl_handler(DWORD dwCtrlType) {
   switch (dwCtrlType) {
