@@ -229,12 +229,14 @@ ARTICLE: "ui-backend-windows" "UI backend window management"
 { $subsections close-window } ;
 
 ARTICLE: "ui-layouts" "Gadget hierarchy and layouts"
-"A layout gadget is a gadget whose sole purpose is to contain other gadgets. Layout gadgets position and resize children according to a certain policy, taking the preferred size of the children into account. Gadget hierarchies are constructed by building up nested layouts."
+"A layout gadget is a gadget whose sole purpose is to contain other gadgets. Layout gadgets position and resize children according to a certain policy, taking the preferred size of the children into account. Gadget hierarchies are constructed by building up nested layouts. Typically, a top-level window contains a single layout track gadget, which in turn contains other layout gadgets, and so on.
+"
+
 { $subsections "ui-layout-basics" }
 "Common layout gadgets:"
 { $subsections
-    "ui-pack-layout"
     "ui-track-layout"
+    "ui-pack-layout"
     "ui-grid-layout"
     "ui-frame-layout"
     "ui-book-layout"
@@ -253,6 +255,7 @@ ARTICLE: "ui-layout-basics" "Layout basics"
 $nl
 "Managing the gadget hierarchy:"
 { $subsections
+    track-add
     add-gadget
     unparent
     add-gadgets
