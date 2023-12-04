@@ -2,7 +2,7 @@ USING: classes colors debugger fonts help.markup help.syntax kernel
 math.rectangles namespaces quotations sequences strings ui.backend
 ui.gadgets ui.gadgets.books ui.gadgets.grids ui.gadgets.packs
 ui.gadgets.private ui.gadgets.tracks ui.gadgets.worlds ui.private ui.text
-vocabs.loader ;
+vocabs.loader help.tutorial.ui ;
 IN: ui
 
 HELP: close-window
@@ -11,7 +11,14 @@ HELP: close-window
 
 HELP: open-window
 { $values { "gadget" gadget } { "title/attributes" { "a " { $link string } " or a " { $link world-attributes } " tuple" } } }
-{ $description "Opens a native window containing " { $snippet "gadget" } " with the specified attributes. If a string is provided, it is used as the window title; otherwise, the window attributes are specified in a " { $link world-attributes } " tuple." } ;
+{ $description "Opens a native window containing " { $snippet "gadget" } " with the specified attributes. If a string is provided, it is used as the window title; otherwise, the window attributes are specified in a " { $link world-attributes } " tuple." } 
+$nl
+"In the following example, a blank window is opened. You probably won't see anything, because the window is empty. Use the Window menu to close the window."
+$nl
+{ $example 
+"[ tool new <world-attributes> open-window ] with-ui" "" }
+{ $notes 
+"The " { $link tool } " word is used to create a " { $link world } " instance. The " { $link world-attributes } " creates control attributes for the window. The " { $link with-ui } " combinator ensures that the UI is started if necessary, and that the window is closed when the quotation returns." } ;
 
 HELP: resize-window
 { $values { "world" world } { "dim" "a pair of integers: width and height" } }
@@ -128,14 +135,15 @@ ARTICLE: "building-ui" "Building user interfaces"
 "A gadget is a graphical element which responds to user input. Gadgets are implemented as tuples which (directly or indirectly) inherit from " { $link gadget } ", which in turn inherits from " { $link rect } "."
 { $subsections gadget }
 "Gadgets are arranged in a hierarchy, and all visible gadgets except for instances of " { $link world } " are contained in a parent gadget, stored in the " { $snippet "parent" } " slot."
+$nl
 { $subsections
+    "ui-worlds"
     "ui-geometry"
     "ui-layouts"
     "gadgets"
-    "ui-worlds"
     "ui.gadgets.status-bar"
 }
-{ $see-also "models" } ;
+{ $see-also "models" "UI-tutorial" } ;
 
 ARTICLE: "gadgets" "Pre-made UI gadgets"
 { $subsections
@@ -167,6 +175,10 @@ ARTICLE: "ui-geometry" "Gadget geometry"
 } ;
 
 ARTICLE: "ui-worlds" "Top-level windows"
+{ $description "A top-level window is a native window which contains a " { $link world } " instance. Top-level windows are created by either calling " { $link open-window } 
+" or defining a window with " { $link POSTPONE: WINDOW: } 
+" or " { $link POSTPONE: MAIN-WINDOW: } "."
+$nl }
 "Opening a top-level window:"
 { $subsections open-window }
 "Finding top-level windows:"
@@ -229,12 +241,13 @@ ARTICLE: "ui-backend-windows" "UI backend window management"
 { $subsections close-window } ;
 
 ARTICLE: "ui-layouts" "Gadget hierarchy and layouts"
-"A layout gadget is a gadget whose sole purpose is to contain other gadgets. Layout gadgets position and resize children according to a certain policy, taking the preferred size of the children into account. Gadget hierarchies are constructed by building up nested layouts."
+"A layout gadget is a gadget whose sole purpose is to contain other gadgets. Layout gadgets position and resize children according to a certain policy, taking the preferred size of the children into account. Gadget hierarchies are constructed by building up nested layouts. Typically, the root of the hierarchy is a " { $link world } " instance, which is a layout gadget that fills the entire window." $nl "The children of the root are all the visible gadgets of the window. The root is itself a layout gadget. This is the only layout gadget that can be moved or resized by the user." $nl
+
 { $subsections "ui-layout-basics" }
 "Common layout gadgets:"
 { $subsections
-    "ui-pack-layout"
     "ui-track-layout"
+    "ui-pack-layout"
     "ui-grid-layout"
     "ui-frame-layout"
     "ui-book-layout"
@@ -253,6 +266,7 @@ ARTICLE: "ui-layout-basics" "Layout basics"
 $nl
 "Managing the gadget hierarchy:"
 { $subsections
+    track-add
     add-gadget
     unparent
     add-gadgets
@@ -372,7 +386,9 @@ HELP: WINDOW:
 IN: hello-ui
 
 WINDOW: hello { { title \"Hi\" } }
-    \"Hello world\" <label> >>gadgets ;"
+    \"Hello world\" <label> >>gadgets ;
+
+hello"
 } } ;
 
 HELP: MAIN-WINDOW:
@@ -386,7 +402,9 @@ HELP: MAIN-WINDOW:
 IN: hello-ui
 
 MAIN-WINDOW: hello { { title \"Hi\" } }
-    \"Hello world\" <label> >>gadgets ;"
+    \"Hello world\" <label> >>gadgets ;
+
+hello"
 } } ;
 
 { POSTPONE: WINDOW: POSTPONE: MAIN-WINDOW: } related-words
