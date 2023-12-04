@@ -1,8 +1,7 @@
-USING: classes colors debugger fonts help.markup help.syntax kernel
-math.rectangles namespaces quotations sequences strings ui.backend
-ui.gadgets ui.gadgets.books ui.gadgets.grids ui.gadgets.packs
-ui.gadgets.private ui.gadgets.tracks ui.gadgets.worlds ui.private ui.text
-vocabs.loader help.tutorial.ui ;
+USING: classes colors fonts help.markup help.syntax kernel
+math.rectangles quotations sequences strings ui.backend ui.gadgets
+ui.gadgets.grids ui.gadgets.private ui.gadgets.tracks
+ui.gadgets.worlds ui.private ui.tools.common vocabs.loader ;
 IN: ui
 
 HELP: close-window
@@ -143,7 +142,7 @@ $nl
     "gadgets"
     "ui.gadgets.status-bar"
 }
-{ $see-also "models" "UI-tutorial" } ;
+{ $see-also "models" "ui-tutorial" } ;
 
 ARTICLE: "gadgets" "Pre-made UI gadgets"
 { $subsections

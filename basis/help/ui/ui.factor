@@ -1,7 +1,6 @@
 ! Copyright (C) 2023 Dave Carlton.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: ui.gadgets.panes
-ui.tools.deploy ;
+USING: help.markup help.syntax ;
 IN: help.ui
 
 ARTICLE: "ui.tour" "Guided tour of Factor User Interface"
@@ -11,7 +10,7 @@ The tour is divided into sections. Each section will describe a particular topic
 
 { $heading "UI Tour" }
 { $subsections 
-   "ui-window" 
-	"ui-gadget" 
-	"ui-pane" 
+  "ui-window" 
+  "ui-gadget" 
+  "ui-pane" 
 }
