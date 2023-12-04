@@ -339,7 +339,7 @@ HELP: $warning
 
 HELP: $link
 { $values { "element" "a markup element of the form " { $snippet "{ topic }" } } }
-{ $description "Prints a link to a help article or word." }
+{ $description "Prints a link to a help article or word. The link to an article should be a string otherwise link must be to a word." }
 { $examples
     { $markup-example { $link "dlists" } }
     { $markup-example { $link + } }

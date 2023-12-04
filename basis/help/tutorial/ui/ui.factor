@@ -21,16 +21,16 @@ IN: help.tutorial.ui
 : (window) ( -- world )
     (world) ;
 
-! create a window with a title
+! define a window with a title
 : window-titled ( title -- window )
     (window) swap >>title ;
 
-: window1-gadget ( -- world )
-    "Layout 1" window-titled ;
+: window-plain ( -- world )
+    "Layout" window-titled ;
 
 ! create a window with a title and a preferred dimension
-: window2-gadget ( -- world )
-    (window) "Layout 2" >>title
+: window-sized ( -- world )
+    (window) "Layout" >>title
     { 640 480 } >>pref-dim ;
 
 ! create a vertical track
@@ -42,39 +42,39 @@ IN: help.tutorial.ui
     horizontal <track> ;
 
 ! create a layout with two labels in a vertical track
-: l2 ( -- layout )
+: layout1 ( -- layout )
     vtrack  
     "Label 1" <label> f track-add
     "Label 2" <label> f track-add
     ;
 
 ! create a layout with two labels in a horizontal track
-: l3 ( -- layout )
+: layout2 ( -- layout )
     htrack  
     "Label 1" <label> f track-add
     "Label 2" <label> f track-add
     ;
 
 ! add a border to a layout
-: l4 ( -- layout )
+: layout3 ( -- layout )
     vtrack
     "Label 1" <label> { 2 2 } <border> f track-add
     "Label 2" <label> { 2 2 } <border> f track-add
     ;
 
 ! add colored border
-: l5 ( -- layout )
+: layout4 ( -- layout )
     vtrack
     "Label 1" <label> { 2 2 } "red" named-color <colored-border> f track-add
     "Label 2" <label> { 2 2 } "blue" named-color <colored-border> f track-add
     ;
 
+! add a layout to a window and open it
 : set-gadgets ( layout window -- )
     swap f track-add  open-world-window ;
 
-: use-layout1 ( layout -- )
-    window1-gadget set-gadgets ;
+! create a window with a layout
+: layout-window ( layout -- )
+    window-sized set-gadgets ;
     
-: use-layout2 ( layout -- )
-    window2-gadget set-gadgets ;
 
