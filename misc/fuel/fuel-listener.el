@@ -189,7 +189,7 @@ remote listener you need to issue the words
 'fuel-start-remote-listener*' or 'port
 fuel-start-remote-listener', from the fuel vocabulary."
   (interactive "P")
-  (let ((port (if (not arg) 9000 (read-number "Port: "))))
+  (let ((port (if (not arg) 9001 (read-number "Port: "))))
     (fuel-listener--connect-process port)
     (add-hook 'factor-mode-hook 'fuel-mode)))
 

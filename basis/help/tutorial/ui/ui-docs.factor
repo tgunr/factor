@@ -2,7 +2,7 @@
 ! See https://factorcode.org/license.txt for BSD license.
 USING: help.markup help.syntax math.rectangles strings
 ui.baseline-alignment ui.gadgets ui.gadgets.borders ui.gadgets.labels
-ui.gadgets.tracks ui.gadgets.worlds ;
+ui.gadgets.packs ui.gadgets.tracks ui.gadgets.worlds ;
 IN: help.tutorial.ui
 
 ABOUT: "ui-tutorial"
@@ -92,6 +92,7 @@ The Hello World Application
   "ui-window"
   "ui-gadgets"
   "ui-layout"
+  "ui-layout1"
   ! "ui-appearance"
   ! "ui-menus"
   ! "ui-events"
@@ -196,5 +197,81 @@ And open the window.
 " } 
 $nl
 
-;
+The label should now have a nice 8X8 border around it.
+
+{ $heading "More Layouts" }
+We have been using the word { $link <track> } to contain a bunch of UI elements. There are several other words that can be used to create different types of layouts. You can see them listed at { $link "ui-layouts" }   
+$nl
+
+There is another similar word { $link <pack> } which can beused to add objects to a layout. For now, we will focus on the { $link <track> } word and the use of { $link pack } wprds to organize a layout.  
+$nl
+
+To learn more about different types of layouts, take a look at the following words:
+
+{ $list 
+  { $link "ui-grid" }
+  { $link "ui-frame" }
+  { $link "ui-book" }  
+}
+    ;
+
+ARTICLE: "ui-layout1" "UI Layout Example"
+Now that we have the fundamental concepts of UI Layouts, lets see how we can add some UI elements to our window. Lets create a layout with 3 rows and 2 columns. To do so we will need both vertical tracks and horizontal tracks. There are two words that can be used to create these. We will use the word { $link vtrack } for vertical and { $link htrack } for horizontal.
+$nl
+
+Lets create a window world to hold our layout.
+{ $code "
+ \"Rows\" window-titled { 200 200 } >>pref-dim 
+" } 
+
+Now create a vertical track with the word { $link vtrack } that contains a horizontal track with the word { $link htrack } that contains a label with the word { $link <label> } .
+
+{ $code "
+ vtrack
+ htrack
+ \"label 1\" <label> { 8 8 } <border> f track-add
+ \"label 2\" <label> { 8 8 } <border> f track-add
+" }
+$nl
+
+On the stack we now have our window world and two tracks. The first is a vertical track and currently empty. The second is a horizontal track that contains two labels.
+Lets put them in the vertical track.
+{ $code "
+ f track-add
+" }
+$nl
+
+Now for thee second row we will create another horizontal track with 2 labels.
+{ $code "
+ htrack
+ \"label 3\" <label> { 8 8 } <border> f track-add
+ \"label 4\" <label> { 8 8 } <border> f track-add
+" }
+$nl
+
+Add it to the first row vertical track.
+{ $code "
+ f track-add
+" }
+$nl
+
+Add the track to the window and open the window.
+{ $code "
+ f track-add
+ open-world-window 
+" } 
+
+    ;
+
+ARTICLE: "ui-grid" "UI Grids"
+    ;
+
+ARTICLE: "ui-frame" "UI Frame"
+    ;
+
+ARTICLE: "ui-book" "UI Book"
+    ;
+
+
+
 

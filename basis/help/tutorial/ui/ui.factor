@@ -41,32 +41,45 @@ IN: help.tutorial.ui
 : htrack ( -- track )
     horizontal <track> ;
 
-! create a layout with two labels in a vertical track
+! create a layout with a label in a vertical track
 : layout1 ( -- layout )
+    ! vtrack  
+    "Label 1" <label> ! f track-add
+    ;
+
+! create a layout with two labels in a verical track
+: layout2-v ( -- layout )
     vtrack  
     "Label 1" <label> f track-add
     "Label 2" <label> f track-add
     ;
 
 ! create a layout with two labels in a horizontal track
-: layout2 ( -- layout )
+: layout2-h ( -- layout )
     htrack  
     "Label 1" <label> f track-add
     "Label 2" <label> f track-add
     ;
 
 ! add a border to a layout
-: layout3 ( -- layout )
+: layout2-v-border ( -- layout )
     vtrack
-    "Label 1" <label> { 2 2 } <border> f track-add
-    "Label 2" <label> { 2 2 } <border> f track-add
+    "Label 1" <label> { 8 8 } <border> f track-add
+    "Label 2" <label> { 8 8 } <border> f track-add
+    ;
+
+! add a border to a layout
+: layout2-h-border ( -- layout )
+    vtrack
+    "Label 1" <label> { 8 8 } <border> f track-add
+    "Label 2" <label> { 8 8 } <border> f track-add
     ;
 
 ! add colored border
-: layout4 ( -- layout )
+: layout2-v-color ( -- layout )
     vtrack
-    "Label 1" <label> { 2 2 } "red" named-color <colored-border> f track-add
-    "Label 2" <label> { 2 2 } "blue" named-color <colored-border> f track-add
+    "Label 1" <label> { 8 8 } "red" named-color <colored-border> f track-add
+    "Label 2" <label> { 8 8 } "blue" named-color <colored-border> f track-add
     ;
 
 ! add a layout to a window and open it
@@ -76,5 +89,16 @@ IN: help.tutorial.ui
 ! create a window with a layout
 : layout-window ( layout -- )
     window-sized set-gadgets ;
+
+: rows-example ( -- )
+    "Rows" window-titled
+    vtrack
+    htrack
+    "Label 1" <label> { 8 8 } <border> f track-add
+    "Label 2" <label> { 8 8 } <border> f track-add
+    f track-add
+    open-world-window
+    ;
+
     
 
