@@ -309,6 +309,7 @@ IN: tools.deploy.shaker
     [ loaded-child-vocab-names [ vocab-words ] map concat ] map concat
     swap [ first2 lookup-word ] map sift diff ;
 
+FROM: vocabs.loader.private => require-when-vocabs require-when-table ;
 : stripped-globals ( -- seq )
     [
         "inspector-hook" "inspector" lookup-word ,

@@ -1,8 +1,8 @@
-USING: accessors arrays combinators.short-circuit fry grouping
-kernel lists lists.lazy locals math math.functions math.parser
-models.combinators models.product monads random ranges sequences
-sets shuffle ui ui.gadgets.alerts ui.gadgets.controls
-ui.gadgets.labels ui.gadgets.layout vectors ;
+USING: accessors arrays combinators.short-circuit fry grouping kernel
+ lists lists.lazy locals math math.functions math.parser
+ models.combinators models.product monads random ranges sequences
+ sets shuffle ui ui.gadgets.alerts ui.gadgets.controls ui.gadgets.labels
+ ui.gadgets.layout ui.tools.common vectors  ;
 IN: sudokus
 
 : row ( index -- row ) 1 + 9 / ceiling ;
@@ -59,7 +59,7 @@ IN: sudokus
                 [ [ [ number>string ] [ "" ] if* ] map ] fmap
            ] bind
         ] with-self ,
-    ] <vbox> { 280 220 } >>pref-dim ;
+    ] <vbox> { 280 220 } >>pref-dim  white-interior ;
 
 MAIN-WINDOW: sudoku-main
     { { title "Sudoku Sleuth" } }
