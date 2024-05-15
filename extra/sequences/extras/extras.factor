@@ -579,7 +579,7 @@ PRIVATE>
 : 2map-index ( ... seq1 seq2 quot: ( ... elt1 elt2 index -- ... newelt ) -- ... newseq )
     pick [ 2sequence-index-iterator ] dip map-integers-as ; inline
 
-TUPLE: evens { seq read-only } ;
+TUPLE: evens < sequence-view ;
 
 C: <evens> evens
 
@@ -587,21 +587,13 @@ M: evens length seq>> length 1 + 2/ ; inline
 
 M: evens virtual@ [ 2 * ] [ seq>> ] bi* ; inline
 
-M: evens virtual-exemplar seq>> ; inline
-
-INSTANCE: evens virtual-sequence
-
-TUPLE: odds { seq read-only } ;
+TUPLE: odds < sequence-view ;
 
 C: <odds> odds
 
 M: odds length seq>> length 2/ ; inline
 
 M: odds virtual@ [ 2 * 1 + ] [ seq>> ] bi* ; inline
-
-M: odds virtual-exemplar seq>> ; inline
-
-INSTANCE: odds virtual-sequence
 
 : until-empty ( seq quot -- )
     [ dup empty? ] swap until drop ; inline
@@ -898,33 +890,42 @@ ERROR: slice-error-of from to seq ;
 
 PRIVATE>
 
-: supremum-by* ( ... seq quot: ( ... elt -- ... x ) -- ... i elt )
+: maximum-by* ( ... seq quot: ( ... elt -- ... x ) -- ... i elt )
     [ after? ] select-by* ; inline
 
-: infimum-by* ( ... seq quot: ( ... elt -- ... x ) -- ... i elt )
+: minimum-by* ( ... seq quot: ( ... elt -- ... x ) -- ... i elt )
     [ before? ] select-by* ; inline
 
+ALIAS: supremum-by* maximum-by* deprecated
+ALIAS: infimum-by* minimum-by* deprecated
+
 : arg-max ( seq -- n )
-    [ ] supremum-by* drop ;
+    [ ] maximum-by* drop ;
 
 : arg-min ( seq -- n )
-    [ ] infimum-by* drop ;
+    [ ] minimum-by* drop ;
 
-: ?supremum ( seq/f -- elt/f )
+: ?maximum ( seq/f -- elt/f )
     [ f ] [
         [ ] [ 2dup and [ max ] [ dupd ? ] if ] map-reduce
     ] if-empty ;
 
-: ?infimum ( seq/f -- elt/f )
+: ?minimum ( seq/f -- elt/f )
     [ f ] [
         [ ] [ 2dup and [ min ] [ dupd ? ] if ] map-reduce
     ] if-empty ;
 
-: map-infimum ( seq quot: ( ... elt -- ... elt' ) -- elt' )
+ALIAS: ?supremum ?maximum deprecated
+ALIAS: ?infimum ?minimum deprecated
+
+: map-minimum ( seq quot: ( ... elt -- ... elt' ) -- elt' )
     [ min ] map-reduce ; inline
 
-: map-supremum ( seq quot: ( ... elt -- ... elt' ) -- elt' )
+: map-maximum ( seq quot: ( ... elt -- ... elt' ) -- elt' )
     [ max ] map-reduce ; inline
+
+ALIAS: map-supremum map-maximum deprecated
+ALIAS: map-infimum map-minimum deprecated
 
 : change-last ( seq quot -- )
     [ index-of-last ] [ change-nth ] bi* ; inline
@@ -1054,8 +1055,6 @@ TUPLE: step-slice
     seq dup slice? [ collapse-slice ] when
     step step-slice boa ;
 
-M: step-slice virtual-exemplar seq>> ; inline
-
 M: step-slice virtual@
     [ step>> * ] [ from>> + ] [ seq>> ] tri ; inline
 
@@ -1064,7 +1063,7 @@ M: step-slice length
     dup 0 < [ [ neg 0 max ] dip neg ] when /mod
     zero? [ 1 + ] unless ; inline
 
-INSTANCE: step-slice virtual-sequence
+INSTANCE: step-slice wrapped-sequence
 
 : 2nested-each* ( seq1 seq-quot: ( n -- seq ) quot: ( a b -- ) -- )
     '[

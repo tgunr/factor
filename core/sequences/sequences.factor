@@ -209,16 +209,22 @@ M: virtual-sequence new-sequence virtual-exemplar new-sequence ; inline
 
 INSTANCE: virtual-sequence sequence
 
+! all wrapped-sequence instances need to define a slot `seq` that is a sequence
+MIXIN: wrapped-sequence
+M: wrapped-sequence virtual-exemplar seq>> ; inline
+M: wrapped-sequence virtual@ seq>> ; inline
+M: wrapped-sequence length seq>> length ; inline
+INSTANCE: wrapped-sequence virtual-sequence
+
+TUPLE: sequence-view { seq sequence read-only } ;
+INSTANCE: sequence-view wrapped-sequence
+
 ! A reversal of an underlying sequence.
-TUPLE: reversed { seq read-only } ;
+TUPLE: reversed < sequence-view ;
 
 C: <reversed> reversed
 
-M: reversed virtual-exemplar seq>> ; inline
 M: reversed virtual@ seq>> [ length swap - 1 - ] keep ; inline
-M: reversed length seq>> length ; inline
-
-INSTANCE: reversed virtual-sequence
 
 ! A slice of another sequence.
 TUPLE: slice
@@ -249,8 +255,6 @@ PRIVATE>
 : <slice> ( from to seq -- slice )
     check-slice <slice-unsafe> ; inline
 
-M: slice virtual-exemplar seq>> ; inline
-
 M: slice virtual@ [ from>> + ] [ seq>> ] bi ; inline
 
 M: slice length [ to>> ] [ from>> ] bi - ; inline
@@ -267,7 +271,7 @@ M: slice length [ to>> ] [ from>> ] bi - ; inline
 
 : but-last-slice ( seq -- slice ) 1 head-slice* ; inline
 
-INSTANCE: slice virtual-sequence
+INSTANCE: slice wrapped-sequence
 
 ! One element repeated many times
 TUPLE: repetition
@@ -1138,15 +1142,20 @@ M: repetition sum [ elt>> ] [ length>> ] bi * ; inline
 
 : product ( seq -- n ) 1 [ * ] binary-reduce ;
 
-GENERIC: infimum ( seq -- elt )
-M: object infimum [ ] [ min ] map-reduce ;
-M: iota infimum first ;
-M: reversed infimum seq>> infimum ;
+GENERIC: minimum ( seq -- elt )
+M: sequence minimum [ ] [ min ] map-reduce ; inline
+M: iota minimum drop 0 ; inline
+M: reversed minimum seq>> minimum ; inline
+M: repetition minimum elt>> ; inline
 
-GENERIC: supremum ( seq -- elt )
-M: object supremum [ ] [ max ] map-reduce ;
-M: iota supremum last ;
-M: reversed supremum seq>> supremum ;
+GENERIC: maximum ( seq -- elt )
+M: sequence maximum [ ] [ max ] map-reduce ; inline
+M: iota maximum n>> 1 - ; inline
+M: reversed maximum seq>> maximum ; inline
+M: repetition maximum elt>> ; inline
+
+ALIAS: infimum minimum deprecated
+ALIAS: supremum maximum deprecated
 
 : map-sum ( ... seq quot: ( ... elt -- ... n ) -- ... n )
     [ 0 ] 2dip [ dip + ] curry [ swap ] prepose each ; inline
@@ -1181,15 +1190,18 @@ M: reversed supremum seq>> supremum ;
 
 PRIVATE>
 
-: supremum-by ( ... seq quot: ( ... elt -- ... x ) -- ... elt )
+: maximum-by ( ... seq quot: ( ... elt -- ... x ) -- ... elt )
     [ after? ] select-by ; inline
 
-: infimum-by ( ... seq quot: ( ... elt -- ... x ) -- ... elt )
+: minimum-by ( ... seq quot: ( ... elt -- ... x ) -- ... elt )
     [ before? ] select-by ; inline
 
-: shortest ( seqs -- elt ) [ length ] infimum-by ;
+ALIAS: supremum-by maximum-by deprecated
+ALIAS: infimum-by minimum-by deprecated
 
-: longest ( seqs -- elt ) [ length ] supremum-by ;
+: shortest ( seqs -- elt ) [ length ] minimum-by ;
+
+: longest ( seqs -- elt ) [ length ] maximum-by ;
 
 ! We hand-optimize flip to such a degree because type hints
 ! cannot express that an array is an array of arrays yet, and
