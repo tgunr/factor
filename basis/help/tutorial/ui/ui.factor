@@ -96,9 +96,51 @@ IN: help.tutorial.ui
     htrack
     "Label 1" <label> { 8 8 } <border> f track-add
     "Label 2" <label> { 8 8 } <border> f track-add
-    f track-add
-    open-world-window
+    f track-add ! first row
+    htrack
+    "Label 3" <label> { 8 8 } <border> f track-add
+    "Label 4" <label> { 8 8 } <border> f track-add
+    f track-add ! second row
+    f track-add ! add the rows track to the window
+    white-interior open-world-window
     ;
 
+: rows-example-1 ( -- )
+    "Rows" window-titled
+    vtrack
+    htrack
+    "Label 1" <label> { 8 8 } "red" named-color <colored-border> f track-add
+    "Label 2" <label> { 8 8 } "blue" named-color <colored-border> f track-add
+    f track-add ! first row
+    htrack
+    "Label 3" <label> { 8 8 } "green" named-color <colored-border> f track-add
+    "Label 4" <label> { 8 8 } "yellow" named-color <colored-border> f track-add
+    f track-add ! second row
+    f track-add ! add the rows track to the window
+    white-interior open-world-window
+    ;
+
+
+: rows-example-2 ( -- )
+    "Rows" window-titled
+    vtrack
+    htrack
+    "Label 1" <label> { 8 8 } "red" named-color <colored-border> 1/8 track-add
+    "Label 2" <label> { 8 8 } "blue" named-color <colored-border> 1/2 track-add
+    "Label 3" <label> { 8 8 } "red" named-color <colored-border> 1/2 track-add
+    1/2 track-add ! first row
+    htrack
+    "Label 4" <label> { 8 8 } "green" named-color <colored-border> f track-add
+    "Label 5" <label> { 8 8 } "yellow" named-color <colored-border> f track-add
+    "Label 6" <label> { 8 8 } "green" named-color <colored-border> f track-add
+    f track-add ! second row
+    htrack
+    "Label 7" <label> { 8 8 } "magenta" named-color <colored-border> 1/3 track-add
+    "Label 8" <label> { 8 8 } "cyan" named-color <colored-border> 1/2 track-add
+    "Label 9" <label> { 8 8 } "magenta" named-color <colored-border> 1/8 track-add
+    1/2 track-add ! first row
+    1/2 track-add ! add the rows track to the window
+    white-interior open-world-window
+    ;
     
 

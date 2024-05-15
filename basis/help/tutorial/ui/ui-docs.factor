@@ -93,6 +93,7 @@ The Hello World Application
   "ui-gadgets"
   "ui-layout"
   "ui-layout1"
+  "ui-constraints"
   ! "ui-appearance"
   ! "ui-menus"
   ! "ui-events"
@@ -223,11 +224,18 @@ Lets create a window world to hold our layout.
 { $code "
  \"Rows\" window-titled { 200 200 } >>pref-dim 
 " } 
+$nl
 
-Now create a vertical track with the word { $link vtrack } that contains a horizontal track with the word { $link htrack } that contains a label with the word { $link <label> } .
+Now create a vertical track with the word { $link vtrack } that will contain two horizontal tracks.
 
 { $code "
- vtrack
+ vtrack 
+" } 
+$nl
+
+Now we create a horizontal track with the word { $link htrack } that contains two { $link <label> } gadgets.
+
+{ $code "
  htrack
  \"label 1\" <label> { 8 8 } <border> f track-add
  \"label 2\" <label> { 8 8 } <border> f track-add
@@ -241,7 +249,7 @@ Lets put them in the vertical track.
 " }
 $nl
 
-Now for thee second row we will create another horizontal track with 2 labels.
+Now for the second row we will create another horizontal track with two label gadgets.
 { $code "
  htrack
  \"label 3\" <label> { 8 8 } <border> f track-add
@@ -249,18 +257,83 @@ Now for thee second row we will create another horizontal track with 2 labels.
 " }
 $nl
 
-Add it to the first row vertical track.
+Add it to the first vertical track creating a second row.
 { $code "
  f track-add
 " }
 $nl
 
-Add the track to the window and open the window.
+Finally, add the rows track to the window and open the window.
 { $code "
  f track-add
  open-world-window 
 " } 
+$nl
 
+    ;
+
+ARTICLE: "ui-constraints" "UI Constraints" 
+
+So far we have been using the word { $link track-add } with the word { $snippet "f" } as a constraint. Lets modify our code to see the effect of different constraints. Take a look at { $link rows-example } which contains the code from { $link "ui-layout1" }
+$nl
+
+Lets modify the code a bit so you can see the effeft of different constraints by coloring the labels.
+
+{ $code "
+: rows-example-1 ( -- )
+    \"Rows\" window-titled
+    vtrack
+    htrack
+    \"Label 1\" <label> { 8 8 } \"red\" named-color <colored-border> f track-add
+    \"Label 2\" <label> { 8 8 } \"blue\" named-color <colored-border> f track-add
+    f track-add ! first row
+    htrack
+    \"Label 3\" <label> { 8 8 } \"green\" named-color <colored-border> f track-add
+    \"Label 4\" <label> { 8 8 } \"yellow\" named-color <colored-border> f track-add
+    f track-add ! second row
+    f track-add ! add the rows track to the window
+    white-interior open-world-window
+    ;
+ rows-example-1
+" } 
+
+Now try to grow the window and you will see the label gadgets remain in place. This is because we added the gadgets to the track using { $snippet "f track-add" } which causes the children of the track to occupy their preferred dimensions.
+$nl
+
+We can change the behavior of the track by specifying a value which represents the fractional amount of the preferred dimensions that should be used.
+$nl
+
+Lets add an additional row and label gadget to better see the effect of the constraints. We change the code and specify amount of space for each gadget in the track.
+
+{ $code "
+  
+
+: rows-example-2 ( -- )
+    \"Rows\" window-titled
+    vtrack
+    htrack
+    \"Label 1\" <label> { 8 8 } \"red\" named-color <colored-border> 1/8 track-add
+    \"Label 2\" <label> { 8 8 } \"blue\" named-color <colored-border> 1/2 track-add
+    \"Label 3\" <label> { 8 8 } \"red\" named-color <colored-border> 1/2 track-add
+    1/2 track-add ! first row
+    htrack
+    \"Label 4\" <label> { 8 8 } \"green\" named-color <colored-border> f track-add
+    \"Label 5\" <label> { 8 8 } \"yellow\" named-color <colored-border> f track-add
+    \"Label 6\" <label> { 8 8 } \"green\" named-color <colored-border> f track-add
+    f track-add ! second row
+    htrack
+    \"Label 7\" <label> { 8 8 } \"magenta\" named-color <colored-border> 1/3 track-add
+    \"Label 8\" <label> { 8 8 } \"cyan\" named-color <colored-border> 1/2 track-add
+    \"Label 9\" <label> { 8 8 } \"magenta\" named-color <colored-border> 1/8 track-add
+    1/2 track-add ! first row
+    1/2 track-add ! add the rows track to the window
+    white-interior open-world-window
+    ;
+ rows-example-2
+" } 
+
+
+ 
     ;
 
 ARTICLE: "ui-grid" "UI Grids"
