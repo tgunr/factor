@@ -783,7 +783,7 @@ HELP: remove-nth
 
 HELP: move
 { $values { "to" "an index in " { $snippet "seq" } } { "from" "an index in " { $snippet "seq" } } { "seq" "a mutable sequence" } }
-{ $description "Sets the element with index " { $snippet "m" } " to the element with index " { $snippet "n" } "." }
+{ $description "Sets the element with index " { $snippet "to" } " to the element with index " { $snippet "from" } "." }
 { $side-effects "seq" } ;
 
 HELP: remove!
@@ -909,6 +909,11 @@ HELP: last
 { $description "Outputs the last element of a sequence." }
 { $errors "Throws an error if the sequence is empty." } ;
 
+HELP: last2
+{ $values { "seq" sequence } { "penultimate" object } { "ultimate" object } }
+{ $description "Outputs the last two elements of a sequence." }
+{ $errors "Throws an error if the sequence has fewer than two elements." } ;
+
 HELP: pop*
 { $values { "seq" "a resizable mutable sequence" } }
 { $description "Removes the last element and shortens the sequence." }
@@ -1003,7 +1008,7 @@ $nl
 
 HELP: check-slice
 { $values { "from" "a non-negative integer" } { "to" "a non-negative integer" } { "seq" sequence } }
-{ $description "Ensures that " { $snippet "m" } " is less than or equal to " { $snippet "m" } ", and that both indices are within bounds for " { $snippet "seq" } "." }
+{ $description "Ensures that " { $snippet "from" } " is less than or equal to " { $snippet "to" } ", and that both indices are within bounds for " { $snippet "seq" } "." }
 { $errors "Throws a " { $link slice-error } " if the preconditions are not met." } ;
 
 HELP: collapse-slice
@@ -1325,7 +1330,7 @@ HELP: tail*
 { head head* head-slice head-slice* } related-words
 { cut cut* cut-slice cut-slice* } related-words
 { unclip unclip-slice unclip-last unclip-last-slice } related-words
-{ first last but-last but-last-slice rest rest-slice } related-words
+{ first first2 last last2 but-last but-last-slice rest rest-slice } related-words
 
 HELP: shorter?
 { $values { "seq1" sequence } { "seq2" sequence } { "?" boolean } }
@@ -1373,7 +1378,7 @@ HELP: subseq-starts-at?
 
 HELP: subseq-index
 { $values { "seq" sequence } { "subseq" sequence } { "i/f" "a start index or " { $snippet "f" } } }
-{ $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ", starting the search from the " { $snippet "n" } "th element. If no matching subsequence is found, outputs " { $link f } "." } ;
+{ $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ". If no matching subsequence is found, outputs " { $link f } "." } ;
 
 HELP: subseq-index-from
 { $values { "n" "a start index" } { "seq" sequence } { "subseq" sequence } { "i/f" "a start index or " { $snippet "f" } } }
@@ -1384,11 +1389,11 @@ HELP: subseq-start-from
     { "subseq" object } { "seq" sequence } { "n" integer }
     { "i/f" { $maybe integer } }
 }
-{ $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ", or " { $link f } " if no matching subsequence is found starting from " { $snippet "n" } "." } ;
+{ $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ", starting the search from the " { $snippet "n" } "th element. If no matching subsequence is found, outputs " { $link f } "." } ;
 
 HELP: subseq-start
 { $values { "subseq" sequence } { "seq" sequence } { "i/f" "a start index or " { $snippet "f" } } }
-{ $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ", or " { $link f } " if no matching subsequence is found." } ;
+{ $description "Outputs the start index of the first contiguous subsequence equal to " { $snippet "subseq" } ". If no matching subsequence is found, outputs " { $link f } "." } ;
 
 HELP: subseq?
 { $values { "subseq" sequence } { "seq" sequence } { "?" boolean } }
@@ -2051,7 +2056,7 @@ ARTICLE: "sequences-access" "Accessing sequence elements"
 "Extracting the last element:"
 { $subsections last ?last }
 "Unpacking sequences:"
-{ $subsections first2 first3 first4 }
+{ $subsections first2 first3 first4 last2 }
 { $see-also nth } ;
 
 ARTICLE: "sequences-add-remove" "Adding and removing sequence elements"

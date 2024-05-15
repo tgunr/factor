@@ -350,13 +350,13 @@ PRIVATE>
 : progressive-index ( seq1 seq2 -- hash seq' )
     [ ] progressive-index-by ; inline
 
-: 0reduce ( seq quot: ( prev elt -- next ) -- result )
+: 0reduce ( seq quot: ( ..a prev elt -- ..a next ) -- result )
     [ 0 ] dip reduce ; inline
 
 : ?unclip ( seq -- rest/f first/f )
     [ f f ] [ unclip ] if-empty ;
 
-: 1reduce ( seq quot: ( prev elt -- next ) -- result )
+: 1reduce ( seq quot: ( ..a prev elt -- ..a next ) -- result )
     [ f ] swap '[ [ ] _ map-reduce ] if-empty ; inline
 
 <PRIVATE
@@ -871,6 +871,8 @@ ERROR: slice-error-of from to seq ;
     [ find drop ] keepd swap
     [ cut ] [ f over like ] if* ; inline
 
+: ?cut ( seq n -- before after ) [ index-or-length head ] [ index-or-length tail ] 2bi ;
+
 : nth* ( n seq -- elt )
     [ length 1 - swap - ] [ nth ] bi ; inline
 
@@ -1031,8 +1033,8 @@ ALIAS: map-infimum map-minimum deprecated
 ! https://en.wikipedia.org/wiki/Maximum_subarray_problem
 ! Kadane's algorithm O(n) largest sum in subarray
 : max-subarray-sum ( seq -- sum )
-    [ -1/0. 0 ] dip
-    [ [ + ] keep max [ max ] keep ] each drop ;
+    [ -1/0. ] dip
+    [ [ + ] keep max [ max ] keep ] 0reduce drop ;
 
 TUPLE: step-slice
     { from integer read-only initial: 0 }
@@ -1207,3 +1209,11 @@ INSTANCE: virtual-zip-index immutable-sequence
         2dup _ exchange-unsafe
         [ 1 - ] [ 1 + ] [ 1 + ] tri*
     ] [ pick 0 > ] swap while 3drop ;
+
+: sequence-cartesian-product ( seqs -- seqs' )
+    dup length 1 <= [
+        [ [ 1array ] map ] map concat
+    ] [
+        2 cut [ first2 cartesian-product concat ] dip swap
+        [ [ suffix ] cartesian-map concat ] reduce
+    ] if ;

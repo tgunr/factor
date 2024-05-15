@@ -2,8 +2,8 @@
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors calendar calendar.english combinators
 formatting grouping io io.streams.string kernel make math
-math.order math.parser math.parser.private ranges present
-quotations sequences splitting strings words ;
+math.order math.parser present quotations ranges sequences
+splitting strings words ;
 IN: calendar.format
 
 MACRO: formatted ( spec -- quot )
@@ -29,10 +29,7 @@ MACRO: formatted ( spec -- quot )
 
 : ss ( timestamp -- ) second>> >integer write-00 ;
 
-! Should be enough for anyone, allows to not do a fancy
-! algorithm to detect infinite decimals (e.g 1/3)
-: ss.SSSSSS ( timestamp -- )
-    second>> >float "0" 9 6 "f" "C" format-float write ;
+: ss.SSSSSS ( timestamp -- ) second>> "%09.6f" printf ;
 
 : hhmm ( timestamp -- ) [ hh ] [ mm ] bi ;
 
@@ -208,20 +205,43 @@ M: timestamp present timestamp>string ;
 
 : duration>human-readable ( duration -- string )
     [
-        [
-            duration>years >integer
+        {
             [
-                [ number>string write ]
-                [ 1 > " years, " " year, " ? write ] bi
-            ] unless-zero
-        ] [
-            duration>days >integer 365 mod
-            [
-                [ number>string write ]
-                [ 1 > " days, " " day, " ? write ] bi
-            ] unless-zero
-        ] [ duration>hms write ] tri
-    ] with-string-writer ;
+                duration>years >integer
+                [
+                    [ number>string ]
+                    [ 1 > " years" " year" ? append , ] bi
+                ] unless-zero
+            ] [
+                duration>days >integer 365 mod
+                [
+                    [ number>string ]
+                    [ 1 > " days" " day" ? append , ] bi
+                ] unless-zero
+            ] [
+                duration>hours >integer 24 mod
+                [
+                    [ number>string ]
+                    [ 1 > " hours" " hour" ? append , ] bi
+                ] unless-zero
+            ] [
+                duration>minutes >integer 60 mod
+                [
+                    [ number>string ]
+                    [ 1 > " minutes" " minute" ? append , ] bi
+                ] unless-zero
+            ] [
+                duration>seconds >integer 60 mod
+                [
+                    number>string " seconds" append ,
+                ] unless-zero
+            ]
+        } cleave
+    ] { } make [ "0 seconds" ] [
+        unclip-last-slice over empty? [ nip ] [
+            [ ", " join ] [ " and " glue ] bi*
+        ] if
+    ] if-empty ;
 
 GENERIC: elapsed-time ( seconds -- string )
 
@@ -249,7 +269,6 @@ M: duration elapsed-time
 M: timestamp elapsed-time
     ago elapsed-time ;
 
-! XXX: Anything up to 2 hours is "about an hour"
 : relative-time-offset ( seconds -- string )
     abs {
         { [ dup 1 < ] [ drop "just now" ] }

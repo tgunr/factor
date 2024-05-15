@@ -1,7 +1,7 @@
 ! Copyright (C) 2006, 2008 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors assocs help.markup kernel make quotations
-sequences splitting tr ui.gestures unicode words ;
+USING: accessors assocs combinators help.markup kernel make
+quotations sequences splitting tr ui.gestures unicode words ;
 IN: ui.commands
 
 SYMBOL: +nullary+
@@ -50,7 +50,7 @@ TR: convert-command-name "-" " " ;
 : command-map. ( alist -- )
     [ command-map-row ] { } assoc>map
     { "Shortcut" "Command" "Word" "Notes" }
-    [ \ $strong swap ] { } map>assoc prefix
+    [ \ $strong swap ] map>alist prefix
     $table ;
 
 : $command-map ( element -- )
@@ -81,6 +81,14 @@ TR: convert-command-name "-" " " ;
     <command-map>
     swap pick commands set-at
     update-gestures ;
+
+: update-command-map ( class group pairs -- )
+    pick {
+        [ commands ]
+        [ of ]
+        [ '[ _ assoc-union ] change-commands drop ]
+        [ update-gestures ]
+    } spread ;
 
 M: word command-name
     name>>

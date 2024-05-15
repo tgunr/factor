@@ -9,6 +9,8 @@
 *.exp
 *.gch*
 *.image
+factor.image.*
+boot.*.image.*
 *.lib
 *.o
 *.obj
@@ -36,3 +38,4 @@ factor.image.fresh
 xcuserdata
 bin
 git-id
+tags

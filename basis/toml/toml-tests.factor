@@ -141,6 +141,17 @@ hosts = [
     temp_targets = { case = 72.0 }" toml>
 ] unit-test
 
+{
+    H{ { "foo" H{ { "qux" 456 } { "bar" H{ { "baz" 123 } } } } } }
+} [
+[=[
+[foo.bar]
+baz = 123
+[foo]
+qux = 456
+]=] toml>
+] unit-test
+
 ! TESTS FROM 1.0.0 SPEC
 
 ! Comments
@@ -348,7 +359,7 @@ bin1 = 0b11010110
         { "flt1" "1.0" }
         { "flt2" "3.1415" }
         { "flt3" "-0.01" }
-        { "flt4" "5.0e+22" }
+        { "flt4" "5e+22" }
         { "flt5" "1000000.0" }
         { "flt6" "-0.02" }
         { "flt7" "6.626e-34" }

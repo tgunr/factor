@@ -3,7 +3,7 @@
 USING: accessors arrays assocs combinators.short-circuit fry
 io.directories io.files io.files.info io.pathnames kernel make
 memoize namespaces sequences sets sorting splitting vocabs
-vocabs.loader vocabs.metadata ;
+vocabs.private vocabs.loader vocabs.metadata ;
 IN: vocabs.hierarchy
 
 TUPLE: vocab-prefix name ;
@@ -15,7 +15,11 @@ M: vocab-prefix vocab-name name>> ;
 <PRIVATE
 
 : visible-dir? ( entry -- ? )
-    { [ directory? ] [ name>> "." head? not ] } 1&& ;
+    {
+        [ directory? ]
+        [ name>> "." head? not ]
+        [ name>> valid-vocab-name? ]
+    } 1&& ;
 
 : visible-dirs ( seq -- seq' )
     [ visible-dir? ] filter [ name>> ] sort-by ;
@@ -81,7 +85,7 @@ PRIVATE>
     no-roots no-prefixes members ;
 
 : disk-vocabs-for-prefix ( prefix -- assoc )
-    [ [ vocab-roots get ] dip '[ dup _ (disk-vocabs) ] { } map>assoc ]
+    [ [ vocab-roots get ] dip '[ dup _ (disk-vocabs) ] map>alist ]
     [ unrooted-disk-vocabs [ lookup-vocab ] map! f swap 2array ]
     bi suffix ;
 
@@ -89,7 +93,7 @@ PRIVATE>
     "" disk-vocabs-for-prefix ;
 
 : disk-vocabs-recursive-for-prefix ( prefix -- assoc )
-    [ [ vocab-roots get ] dip '[ dup _ (disk-vocabs-recursive) ] { } map>assoc ]
+    [ [ vocab-roots get ] dip '[ dup _ (disk-vocabs-recursive) ] map>alist ]
     [ unrooted-disk-vocabs-recursive [ lookup-vocab ] map! f swap 2array ]
     bi suffix ;
 

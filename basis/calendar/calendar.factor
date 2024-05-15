@@ -1,9 +1,9 @@
 ! Copyright (C) 2007 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors arrays classes.tuple combinators
-combinators.short-circuit kernel literals math math.functions
-math.intervals math.order math.statistics sequences slots.syntax
-system vocabs vocabs.loader ;
+combinators.short-circuit kernel literals math math.constants
+math.functions math.intervals math.order math.statistics
+sequences system vocabs vocabs.loader ;
 FROM: ranges => [a..b) ;
 IN: calendar
 
@@ -42,6 +42,7 @@ TUPLE: timestamp
     { gmt-offset duration } ;
 
 <PRIVATE
+
 <<
 CONSTANT: day-counts { 0 31 28 31 30 31 30 31 31 30 31 30 31 }
 >>
@@ -352,10 +353,16 @@ M: timestamp <=> [ >gmt tuple-slots ] compare ;
     month>> 3 /mod [ drop 1 + ] unless-zero ; inline
 
 : same-quarter? ( ts1 ts2 -- ? )
-    [ [ year>> ] [ quarter ] bi 2array ] same? ;
+    {
+        [ [ year>> ] same? ]
+        [ [ quarter ] same? ]
+    } 2&& ;
 
 : same-month? ( ts1 ts2 -- ? )
-    [ slots{ year month } ] same? ;
+    {
+        [ [ year>> ] same? ]
+        [ [ month>> ] same? ]
+    } 2&& ;
 
 :: (day-of-year) ( $year $month $day -- n )
     $month cumulative-day-counts nth $day + {
@@ -367,10 +374,17 @@ M: timestamp <=> [ >gmt tuple-slots ] compare ;
     >date< (day-of-year) ;
 
 : same-day? ( ts1 ts2 -- ? )
-    [ slots{ year month day } ] same? ;
+    {
+        [ [ year>> ] same? ]
+        [ [ month>> ] same? ]
+        [ [ day>> ] same? ]
+    } 2&& ;
 
 : same-day-of-year? ( ts1 ts2 -- ? )
-    [ slots{ month day } ] same? ;
+    {
+        [ [ month>> ] same? ]
+        [ [ day>> ] same? ]
+    } 2&& ;
 
 : (day-of-week) ( year month day -- n )
     ! Zeller Congruence
@@ -401,16 +415,26 @@ DEFER: end-of-year
     [ [ year>> ] [ week-number ] bi 2array ] same? ;
 
 : same-hour? ( ts1 ts2 -- ? )
-    [ >gmt slots{ year month day hour } ] same? ;
+    [ >gmt ] bi@ {
+        [ [ year>> ] same? ]
+        [ [ month>> ] same? ]
+        [ [ day>> ] same? ]
+        [ [ hour>> ] same? ]
+    } 2&& ;
 
 : same-minute? ( ts1 ts2 -- ? )
-    [ >gmt slots{ year month day hour minute } ] same? ;
+    [ >gmt ] bi@ {
+        [ [ year>> ] same? ]
+        [ [ month>> ] same? ]
+        [ [ day>> ] same? ]
+        [ [ hour>> ] same? ]
+        [ [ minute>> ] same? ]
+    } 2&& ;
 
 : same-second? ( ts1 ts2 -- ? )
-    [ >gmt ] bi@
-    {
+    [ >gmt ] bi@ {
         [ [ second>> floor ] bi@ = ]
-        [ [ slots{ year month day hour minute } ] same? ]
+        [ same-minute? ]
     } 2&& ;
 
 <PRIVATE
@@ -829,6 +853,66 @@ M: integer weeks-in-week-year
 
 M: timestamp weeks-in-week-year
     { [ january 1 >>day thursday? ] [ december 31 >>day thursday? ] } 1|| 53 52 ? ;
+
+! https://gml.noaa.gov/grad/solcalc/solareqns.PDF
+
+<PRIVATE
+
+: fractional-year ( timestamp -- radians )
+    [ days-in-year 2pi swap / ]
+    [ day-of-year 1 - ]
+    [ hour>> 12 - 24 / + * ] tri ;
+
+:: declination ( timestamp -- radians )
+    timestamp fractional-year :> γ
+    0.006918
+    0.399912 γ cos * -
+    0.070257 γ sin * +
+    0.006758 γ 2 * cos * -
+    0.000907 γ 2 * sin * +
+    0.002697 γ 3 * cos * -
+    0.00148  γ 3 * sin * + ;
+
+:: hour-angle ( timestamp latitude -- degrees )
+    timestamp declination :> decl
+    latitude deg>rad :> lat
+    90.833 deg>rad cos
+    lat cos decl cos * /
+    lat tan decl tan * -
+    acos rad>deg ;
+
+:: equation-of-time ( timestamp -- minutes )
+    timestamp fractional-year :> γ
+    0.000075
+    0.001868 γ cos * +
+    0.032077 γ sin * -
+    0.014615 γ 2 * cos * -
+    0.040849 γ 2 * sin * -
+    229.18 * ;
+
+: preserve-gmt-offset ( timestamp quot -- timestamp' )
+    '[ >utc @ ] [ gmt-offset>> convert-timezone ] bi ; inline
+
+: (sunrise/sunset) ( timestamp latitude longitude quot -- new-timestamp )
+    '[
+        [ noon ]
+        [ _ hour-angle _ swap @ 4 * ]
+        [ equation-of-time ] tri + round >integer minutes time-
+    ] preserve-gmt-offset ; inline
+
+PRIVATE>
+
+: sunrise ( timestamp latitude longitude -- new-timestamp )
+    [ + ] (sunrise/sunset) ;
+
+: sunset ( timestamp latitude longitude -- new-timestamp )
+    [ - ] (sunrise/sunset) ;
+
+: solar-noon ( timestamp longitude -- new-timestamp )
+    '[
+        [ noon _ 4 * ] [ equation-of-time ] bi + minutes time-
+        [ round >integer ] change-second
+    ] preserve-gmt-offset ;
 
 {
     { [ os unix? ] [ "calendar.unix" ] }

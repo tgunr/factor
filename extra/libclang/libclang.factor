@@ -1,62 +1,313 @@
 ! Copyright (C) 2022 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.c-types alien.data alien.enums
-alien.strings ascii byte-arrays classes.struct combinators
-combinators.short-circuit combinators.smart discord io
-io.backend io.encodings.utf8 io.files.info kernel layouts libc
-libclang.ffi make math math.parser sequences sequences.private
-splitting strings ;
+alien.strings ascii assocs byte-arrays classes classes.struct
+combinators combinators.extras combinators.short-circuit
+combinators.smart discord io io.backend io.directories
+io.encodings.utf8 io.files.info kernel layouts libc libclang.ffi
+make math math.parser multiline namespaces prettyprint sequences
+sequences.private sets sorting splitting strings ;
 IN: libclang
 
-STRUCT: malloced
-    { byte-array void* }
-    { len uint }
-    { offset uint }
-    { marked-offset uint } ;
+SYMBOL: clang-state
+: clang-state> ( -- clang-state ) clang-state get-global ;
 
-: <malloced> ( len -- malloced )
-    malloced malloc-struct
-        over 1 + <byte-array> malloc-byte-array >>byte-array
-        swap >>len
-        0 >>offset
-        0 >>marked-offset ;
+! todo: typedefs
+TUPLE: libclang-state
+    defs-counter c-defs-by-name c-defs-by-order
+    c-forms child-forms
+    unnamed-counter unnamed-table
+    typedefs
+    out-forms-counter out-forms out-forms-by-name
+    out-forms-written out-form-names-written ;
 
-: mark-malloced ( malloced -- malloced )
-    dup offset>> >>marked-offset ;
+: <libclang-state> ( -- state )
+    libclang-state new
+        0 >>defs-counter
+        H{ } clone >>c-defs-by-name
+        H{ } clone >>c-defs-by-order
+        V{ } clone >>c-forms
+        H{ } clone >>child-forms
+        0 >>unnamed-counter
+        H{ } clone >>unnamed-table
+        H{ } clone >>typedefs
+        0 >>out-forms-counter
+        H{ } clone >>out-forms
+        H{ } clone >>out-forms-by-name
+        HS{ } clone >>out-forms-written
+        HS{ } clone >>out-form-names-written ;
 
-: since-reset ( malloced -- string )
-    [ marked-offset>> ] [ byte-array>> ] bi
-    <displaced-alien> utf8 alien>string ;
+: next-defs-counter ( libclang-state -- n ) [ dup 1 + ] change-defs-counter drop ;
+: next-unnamed-counter ( libclang-state -- n ) [ dup 1 + ] change-unnamed-counter drop ;
+: next-out-forms-counter ( libclang-state -- n ) [ dup 1 + ] change-out-forms-counter drop ;
 
-: reset-malloced ( malloced -- malloced string )
-    [ since-reset ]
-    [ dup marked-offset>> >>offset ] bi swap ;
+GENERIC: def>out-form ( obj -- string )
 
-: malloced-string ( malloced -- string )
-    byte-array>> utf8 alien>string ;
+: out-form-written? ( string -- ? )
+    clang-state> out-forms-written>> in? ; inline
 
-: append-oom? ( malloced string -- ? )
-    [ [ len>> ] [ offset>> ] bi - ]
-    [ length ] bi* < ;
+: out-form-name-written? ( string -- ? )
+    clang-state> out-form-names-written>> in? ; inline
 
-: realloc-malloced ( malloced -- malloced' )
-    dup len>> 2 *
-    '[ [ _ 1 + realloc ] change-byte-array ] keep >>len ;
-
-: append-malloced ( malloced string -- malloced )
-    2dup append-oom?
-    [ [ realloc-malloced ] dip append-malloced ] [
-        [
-            [
-                [ offset>> ] [ byte-array>> ] bi <displaced-alien>
-            ] dip [ utf8 string>alien ] [ length ] bi memcpy
+: save-out-form ( string def -- )
+    over empty? [
+        2drop
+    ] [
+        over out-form-written? [
+        ! dup name>> out-form-name-written? [
+            2drop
         ] [
-            '[ _ length + ] change-offset
-        ] 2bi
+            clang-state>
+            {
+                [
+                    nip
+                    [ next-out-forms-counter ]
+                    [ out-forms>> set-at ] bi
+                ]
+                [ nipd [ name>> ] dip out-form-names-written>> adjoin ]
+                [ nip out-forms-written>> adjoin ]
+                [ [ name>> ] dip out-forms-by-name>> push-at ]
+            } 3cleave
+        ] if
     ] if ;
 
-: malloced>string ( malloced -- string )
-    [ byte-array>> utf8 alien>string ] [ free ] bi ;
+! some forms must be defined out of order, e.g. anonymous unions/structs
+: def>out-forms ( obj -- )
+    [ def>out-form ] keep save-out-form ;
+
+: peek-current-form ( -- n )
+    clang-state> c-forms>> ?last ; inline
+
+SLOT: parent-order
+SLOT: order
+
+: push-child-form ( form -- )
+    ! dup order>> c-defs-by-order get-global set-at ; inline
+    dup parent-order>> clang-state> child-forms>> push-at ; inline
+
+: with-new-form ( quot -- n )
+    clang-state> [ next-defs-counter ] [ c-forms>> ] bi push
+    call
+    clang-state> c-forms>> pop ; inline
+
+ERROR: unknown-form name ;
+GENERIC: print-deferred ( obj -- )
+
+! foo*** -> foo, todo: other cases?
+: factor-type-name ( type -- type' ) [ CHAR: * = ] trim-tail ;
+
+: ?lookup-type ( type -- obj/f )
+    factor-type-name
+    clang-state> c-defs-by-name>> ?at [ drop f ] unless ;
+
+: lookup-order ( obj -- order/f ) type>> ?lookup-type [ order>> ] ?call -1 or ;
+
+M: object print-deferred
+    type>> ?lookup-type [ def>out-forms ] when* ;
+
+: unnamed? ( string -- ? ) "(unnamed" swap subseq? ; inline
+: unnamed-exists? ( string -- value/key ? ) clang-state> unnamed-table>> ?at ; inline
+: lookup-unnamed ( type string -- type-name )
+    unnamed-exists? [
+        nip
+    ] [
+        [ clang-state> next-unnamed-counter number>string append ] dip
+        " " split1-last nip
+        ! "RECORDING: " gwrite dup g... gflush
+        [ clang-state> unnamed-table>> set-at ] keepd
+    ] if ; inline
+
+: ?unnamed ( string type -- string' ? )
+    over unnamed? [
+        swap lookup-unnamed t
+    ] [
+        drop f
+    ] if ;
+
+TUPLE: c-function
+    { return-type string }
+    { name string }
+    { args string }
+    { order integer } ;
+
+: <c-function> ( return-type name args -- c-function )
+    c-function new
+        swap >>args
+        swap >>name
+        swap >>return-type
+        clang-state> next-defs-counter >>order ;
+
+TUPLE: c-struct
+    { name string }
+    { order integer } ;
+
+: <c-struct> ( name order -- c-struct )
+    c-struct new
+        swap >>order
+        swap >>name ;
+
+TUPLE: c-union
+    { name string }
+    { order integer } ;
+
+: <c-union> ( name order -- c-union )
+    c-union new
+        swap >>order
+        swap >>name ;
+
+
+TUPLE: c-enum
+    { name string }
+    slots
+    { order integer } ;
+
+: <c-enum> ( name order -- c-enum )
+    c-enum new
+        swap >>order
+        swap >>name ;
+
+TUPLE: c-arg
+    { name string }
+    { type string }
+    parent-order
+    { order integer } ;
+
+: <c-arg> ( name type -- c-arg )
+    c-arg new
+        swap >>type
+        swap >>name
+        peek-current-form >>parent-order
+        clang-state> next-defs-counter >>order ;
+
+TUPLE: c-field
+    { name string }
+    { type string }
+    parent-order
+    { order integer } ;
+
+: <c-field> ( name type -- c-field )
+    c-field new
+        swap >>type
+        swap >>name
+        peek-current-form >>parent-order
+        clang-state> next-defs-counter >>order ;
+
+TUPLE: c-typedef
+    { type string }
+    { name string }
+    { order integer } ;
+
+: <c-typedef> ( type name -- c-typedef )
+    c-typedef new
+        swap >>name
+        swap >>type
+        clang-state> next-defs-counter >>order ;
+
+M: c-function def>out-form
+    [
+        {
+            [ drop "FUNCTION: " ]
+            [ return-type>> " " ]
+            [ name>> " ( " ]
+            [ args>> dup empty? ")\n" " )\n" ? ]
+        } cleave
+    ] "" append-outputs-as ;
+
+: ignore-typedef? ( typedef -- ? )
+    [ type>> ] [ name>> ] bi
+    { [ = ] [ [ empty? ] either? ] } 2|| ;
+
+M: c-typedef def>out-form
+    dup ignore-typedef? [
+        drop ""
+    ] [
+        [
+            {
+                [ drop "TYPEDEF: " ]
+                [ type>> " " ]
+                [ name>> ]
+            } cleave
+        ] "" append-outputs-as
+    ] if ;
+
+ERROR: unknown-child-forms order ;
+M: c-field def>out-form
+    [
+        {
+            [ drop "  { " ]
+            [ name>> " " ]
+            [ type>> " }" ]
+        } cleave
+    ] "" append-outputs-as ;
+
+: print-defers ( current-order slots -- )
+    [
+        tuck lookup-order < [
+            print-deferred
+        ] [
+            drop
+        ] if
+    ] with each ;
+
+: empty-struct? ( c-struct -- ? )
+    order>> clang-state> child-forms>> key? not ;
+
+M: c-struct def>out-form
+    dup empty-struct? [
+        name>> "C-TYPE: " prepend
+    ] [
+        [
+            {
+                [ drop "STRUCT: " ]
+                [ name>> "\n" ]
+                [
+                    order>> dup clang-state> child-forms>> ?at [ drop { } ] unless
+                    [ print-defers ]
+                    [ nip [ def>out-form ] map "\n" join " ;\n" append ] 2bi
+                ]
+            } cleave
+        ] "" append-outputs-as
+    ] if ;
+
+M: c-enum def>out-form
+    [
+        {
+            [ drop "ENUM: " ]
+            [ name>> "\n" ]
+            [
+                order>> dup clang-state> child-forms>> ?at [ drop { } ] unless
+                [ print-defers ]
+                [ nip [ def>out-form ] map "\n" join " ;\n" append ] 2bi
+            ]
+        } cleave
+    ] "" append-outputs-as ;
+
+M: c-union def>out-form
+    [
+        {
+            [ drop "UNION-STRUCT: " ]
+            [ name>> "\n" ]
+            [
+                order>> dup clang-state> child-forms>> ?at [ drop { } ] unless
+                [ print-defers ]
+                [ nip [ def>out-form ] map "\n" join " ;\n" append ] 2bi
+            ]
+        } cleave
+    ] "" append-outputs-as ;
+
+M: object def>out-form
+    class-of name>> "unknown object: " prepend ;
+
+: set-definition ( named -- )
+    [ dup name>> clang-state> c-defs-by-name>> set-at ]
+    [ dup order>> clang-state> c-defs-by-order>> set-at ] bi ;
+
+: set-typedef ( typedef -- )
+    dup ignore-typedef? [
+        drop
+    ] [
+        [ type>> ] [ name>> ] bi clang-state> typedefs>> set-at
+    ] if ;
 
 : clang-get-cstring ( CXString -- string )
     clang_getCString [ utf8 alien>string ] [ clang_disposeString ] bi ;
@@ -91,42 +342,45 @@ STRUCT: malloced
     [ drop ] [ clang-get-file-max-range ] 2bi
     clang-tokenize ;
 
-: tokenize-translation-unit ( CXTranslationUnit -- tokens ntokens )
-    [ ] [ clang_getTranslationUnitCursor clang_getCursorExtent ] bi
-    clang-tokenize ;
+: ptr-array>array ( ptr c-type n -- array )
+    [ heap-size ] [ <iota> ] bi*
+    [
+        * swap <displaced-alien>
+    ] with with { } map-as ;
 
-: tokenize-cursor ( cursor -- tokens ntokens )
-    [ clang_Cursor_getTranslationUnit ] [ clang_getCursorExtent ] bi
-    clang-tokenize ;
-
-: dispose-tokens ( cursor tokens ntokens -- )
-    [ clang_Cursor_getTranslationUnit ] 2dip clang_disposeTokens ;
-
-:: with-cursor-tokens ( cursor quot: ( tu token -- obj ) -- )
+:: with-cursor-tokens ( cursor quot: ( tu token -- obj ) -- seq )
     cursor clang_Cursor_getTranslationUnit :> tu
-    cursor tokenize-cursor :> ( tokens ntokens )
-    tokens ntokens <iota>
-    cell-bytes :> bytesize
-    quot
-    '[
-        [ tu ] 2dip bytesize * swap <displaced-alien> @
-    ] with { } map-as
-    tu tokens ntokens dispose-tokens ; inline
+    tu cursor clang_getCursorExtent clang-tokenize :> ( tokens ntokens )
+    tu
+    tokens CXToken ntokens ptr-array>array
+    [ clang_getTokenSpelling clang-get-cstring ] with map
+    tu tokens ntokens clang_disposeTokens ; inline
 
-: clang-get-token-spelling ( CXTranslationUnit CXToken -- string )
-    clang_getTokenSpelling clang-get-cstring ;
+DEFER: cursor>c-struct
+DEFER: cursor>c-union
 
-: cursor-type ( cursor -- string )
-    clang_getCursorType
-    clang_getTypeSpelling clang-get-cstring
+:: cursor-type ( cursor -- string )
+    cursor clang_getCursorType clang_getTypeSpelling clang-get-cstring
 
     "const" ?head drop
 
     [ CHAR: * = ] cut-tail
     [ [ trim-blanks ] dip append ] when*
 
-    "struct " ?head drop
+    dup :> type
     {
+        { [ dup "struct " head? ] [
+            " " split1-last nip
+            clang-state> unnamed-table>> ?at or
+        ] }
+
+        ! libclang uses two forms for unnamed union (why!?)
+        ! union (unnamed at /Users/erg/factor/elf2.h:39:3)
+        ! union (unnamed union at /Users/erg/factor/elf2.h:39:3)
+        { [ dup "union " head? ] [
+            " " split1-last nip
+            clang-state> unnamed-table>> ?at or
+        ] }
         { [ dup "_Bool" = ] [ drop "bool" ] }
         { [ "int8_t" ?head ] [ trim-blanks "char" prepend ] }
         { [ "int16_t" ?head ] [ trim-blanks "short" prepend ] }
@@ -149,7 +403,10 @@ STRUCT: malloced
     } cond ;
 
 : cursor-name ( cursor -- string )
-    clang_getCursorSpelling clang-get-cstring ;
+    clang_getCursorSpelling clang-get-cstring "Enum" ?unnamed drop ;
+
+: ?cursor-name ( cursor unnamed-type -- string )
+    [ clang_getCursorSpelling clang-get-cstring ] dip ?unnamed drop ;
 
 : arg-info ( cursor -- string )
     [ cursor-type ] [ cursor-name [ "dummy" ] when-empty ] bi " " glue ;
@@ -187,7 +444,7 @@ STRUCT: malloced
 : cxreturn-type>factor ( CXType -- string )
     {
         { [ dup kind>> CXType_Pointer = ] [
-            clang_getPointeeType dup g... gflush cxreturn-type>factor "*" append
+            clang_getPointeeType cxreturn-type>factor "*" append
         ] }
         { [ dup kind>> CXType_Elaborated = ] [
             clang_getCanonicalType cxreturn-type>factor
@@ -205,155 +462,136 @@ STRUCT: malloced
 : cursor>args-info ( CXCursor -- args-info )
     cursor>args [ arg-info ] map ", " join ;
 
-: function>string ( CXCursor -- string )
-    [
-        {
-            [ drop "FUNCTION: " ]
-            [ clang_getCursorResultType cxreturn-type>factor ]
-            [ drop " " ]
-            [ cursor-name ]
-            [ drop " ( " ]
-            [ cursor>args-info dup empty? ")\n" " )\n" ? ]
-        } cleave
-    ] "" append-outputs-as ;
+: cursor>c-function ( CXCursor -- )
+    [ clang_getCursorResultType cxreturn-type>factor ]
+    [ cursor-name ]
+    [ cursor>args-info ] tri <c-function> set-definition ;
 
-: typedef>string ( CXCursor -- string )
+: cursor>c-typedef ( CXCursor -- )
     [ clang_getTypedefDeclUnderlyingType cxreturn-type>factor ]
-    [ cursor-name ] bi
-    2dup { [ and ] [ = ] } 2||
-    [ nip "TYPEDEF: void* " "\n" surround ] [ " " glue "TYPEDEF: " "\n" surround ] if ;
+    [ cursor-name ] bi <c-typedef> [ set-definition ] [ set-typedef ] bi ;
 
-: field-visitor ( -- callback )
+: cursor>c-field ( CXCursor -- )
+    [ cursor-name ] [ cursor-type ] bi <c-field> push-child-form ;
+
+DEFER: cursor-visitor
+
+: cursor>enum ( CXCursor -- )
     [
-        nip
-        malloced memory>struct
-        swap dup clang_getCursorKind
+        [ cursor-name ] [ cursor-visitor ] bi
+        f clang_visitChildren drop
+    ] with-new-form <c-enum> set-definition ;
+
+: cursor>c-union ( CXCursor -- )
+    [
+        [ "Union" ?cursor-name ] keep
+        cursor-visitor f clang_visitChildren drop
+    ] with-new-form
+    <c-union> set-definition ;
+
+: cursor>c-struct ( CXCursor -- )
+    [
+        [ "Struct" ?cursor-name ] keep
+        cursor-visitor f clang_visitChildren drop
+    ] with-new-form
+    <c-struct> set-definition ;
+
+: cursor-visitor ( -- callback )
+    [
+        2drop
+        dup clang_getCursorKind
+        ! dup "cursor-visitor got: " gwrite g... gflush
         {
+            { CXCursor_Namespace [ drop CXChildVisit_Recurse ] }
+            { CXCursor_FunctionDecl [ cursor>c-function CXChildVisit_Continue ] }
+            { CXCursor_TypedefDecl [ cursor>c-typedef CXChildVisit_Continue ] }
+            { CXCursor_UnionDecl [ cursor>c-union CXChildVisit_Continue ] }
+            { CXCursor_StructDecl [ cursor>c-struct CXChildVisit_Continue ] }
+            { CXCursor_EnumDecl [ cursor>enum CXChildVisit_Continue ] }
+            { CXCursor_VarDecl [ drop CXChildVisit_Continue ] }
+
             { CXCursor_FieldDecl [
-                [ cursor-name ] [ cursor-type ] bi " " glue
-                "\n  { " " }" surround
-                append-malloced drop
-                CXChildVisit_Continue
+                cursor>c-field CXChildVisit_Continue
             ] }
-            [ dup g... 3drop CXChildVisit_Recurse ]
-        } case
-        gflush
-    ] CXCursorVisitor ;
-
-: struct>string ( malloced CXCursor -- )
-    [ mark-malloced ] dip
-    tuck cursor-name append-malloced
-    [ field-visitor ] dip
-    [ clang_visitChildren drop ] keep
-    ! hack to removev typedefs like `typedef struct foo foo;`
-    dup malloced-string "}" tail? [
-        reset-malloced "STRUCT: " " ;\n" surround
-        append-malloced drop
-    ] [
-        reset-malloced "TYPEDEF: void* " "\n" surround
-        append-malloced drop
-    ] if ;
-
-: enum-visitor ( -- callback )
-    [
-        nip
-        malloced memory>struct
-        swap dup clang_getCursorKind
-        {
             { CXCursor_EnumConstantDecl [
-                "enum" gprint
                 [
-                    [ clang-get-token-spelling ] with-cursor-tokens
+                    [
+                        clang_getTokenSpelling clang-get-cstring
+                    ] with-cursor-tokens
                     first
                 ] [
                     clang_getEnumConstantDeclUnsignedValue number>string
                 ] bi
-                " " glue
-                "\n  { " " }" surround
-                append-malloced drop
+                <c-field> push-child-form
                 CXChildVisit_Continue
             ] }
-            ! { CXCursor_IntegerLiteral [
-            !     "integer" gprint
-            !     [ clang-get-token-spelling ] with-cursor-tokens
-            !     first " " " }" surround append-malloced drop
-            !     CXChildVisit_Continue
-            ! ] }
-            [ "omg" g... 3dup [ g... ] tri@ 3drop CXChildVisit_Recurse ]
-        } case
-        gflush
-    ] CXCursorVisitor ;
-
-: enum>string ( malloced CXCursor -- )
-    [ mark-malloced ] dip
-    tuck cursor-name "ENUM: " prepend append-malloced
-    [ enum-visitor ] dip
-    [ clang_visitChildren drop ] keep
-    " ;\n" append-malloced drop ;
-
-: cursor-visitor ( -- callback )
-    [
-        nip
-        malloced memory>struct
-        swap dup clang_getCursorKind
-        dup g... gflush
-        {
-            { CXCursor_Namespace [ 2drop CXChildVisit_Recurse ] }
-            { CXCursor_FunctionDecl [ function>string append-malloced drop CXChildVisit_Continue ] }
-            { CXCursor_TypedefDecl [ typedef>string append-malloced drop CXChildVisit_Continue ] }
-            { CXCursor_StructDecl [ struct>string CXChildVisit_Continue ] }
-            { CXCursor_EnumDecl [ enum>string CXChildVisit_Continue ] }
-            ! { CXType_FunctionProto [ cursor-name "C-TYPE: " "\n" surround append-malloced drop CXChildVisit_Continue ] }
-            [ dup g... 3drop CXChildVisit_Recurse ]
+            { CXCursor_UnexposedDecl [ drop CXChildVisit_Continue ] }
+            [
+                "cursor-visitor unhandled: " gwrite dup g... gflush
+                2drop CXChildVisit_Recurse
+            ]
         } case
     ] CXCursorVisitor
     gflush ;
 
-: with-clang-index ( quot: ( index -- string ) -- )
+: with-clang-index ( quot: ( index -- ) -- )
     [ 0 0 clang_createIndex ] dip keep clang_disposeIndex ; inline
 
-: with-clang-translation-unit ( idx source-file command-line-args nargs unsaved-files nunsaved-files options quot: ( tu -- string ) -- )
+: with-clang-translation-unit ( idx source-file command-line-args nargs unsaved-files nunsaved-files options quot: ( tu -- ) -- )
     [ enum>number clang_parseTranslationUnit ] dip
     keep clang_disposeTranslationUnit ; inline
 
-: with-clang-default-translation-unit ( path quot: ( tu path -- string ) -- )
+: with-clang-default-translation-unit ( path quot: ( tu path -- ) -- )
     dupd '[
         _ f 0 f 0 CXTranslationUnit_None [
             _ @
         ] with-clang-translation-unit
     ] with-clang-index ; inline
 
-: with-clang-cursor ( path quot: ( tu path cursor -- string ) -- )
+: with-clang-cursor ( path quot: ( tu path cursor -- ) -- )
     dupd '[
         _ f 0 f 0 CXTranslationUnit_None [
             _ over clang_getTranslationUnitCursor @
         ] with-clang-translation-unit
     ] with-clang-index ; inline
 
-: parse-c-defines ( path -- string )
+: parse-c-exports ( path -- )
     [
-        tokenize-path
-        [
-            ! tu void* int
-            cell-bits 8 /i * swap <displaced-alien>
-            clang_getTokenKind
-        ] with { } map-as
-    ] with-clang-default-translation-unit ;
-
-: parse-c-exports ( path -- string )
-    [
-        nipd cursor-visitor rot file-info size>> 2 * <malloced>
-        [ clang_visitChildren drop ] keep malloced>string
+        2nip cursor-visitor f clang_visitChildren drop
     ] with-clang-cursor ;
 
-: parse-include ( path -- string )
-    normalize-path
-    {
-        ! [ parse-c-defines ]
-        [ parse-c-exports ]
-    } cleave ;
+: write-c-defs ( clang-state -- )
+    [
+        c-defs-by-order>>
+        sort-keys values
+        [ def>out-forms ] each
+    ] [
+        [
+            [ members [ length ] inv-sort-by ] assoc-map
+        ] change-out-forms-by-name
+        out-forms>>
+        sort-keys values [ print ] each
+    ] bi ;
 
-! "/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/include/php/ext/sqlite3/libsqlite/sqlite3.h" parse-include
+: parse-include ( path -- libclang-state )
+    <libclang-state> clang-state [
+        normalize-path
+        parse-c-exports
+    ] with-output-global-variable
+    ! dup write-c-defs
+    ;
 
-! "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0/include"
+: parse-hpp-files ( path -- assoc )
+    ?qualified-directory-files
+    [ ".hpp" tail? ] filter
+    [ parse-include ] zip-with ;
 
+: parse-h-files ( path -- assoc )
+    ?qualified-directory-files
+    [ ".h" tail? ] filter
+    [ parse-include ] zip-with ;
+
+: parse-cpp-files ( path -- assoc )
+    ?qualified-directory-files
+    [ ".cpp" tail? ] filter
+    [ parse-include ] zip-with ;
