@@ -56,11 +56,21 @@ PRIVATE>
 
 :: cleanup-unique-file ( ..a prefix suffix quot: ( ..a path -- ..b ) -- ..b )
     prefix suffix unique-file :> path
-    [ path quot call ] [ path delete-file ] finally ; inline
+    [ path quot call ] [ path ?delete-file ] finally ; inline
 
 :: cleanup-unique-files ( ..a prefix suffixes quot: ( ..a paths -- ..b ) -- ..b )
     prefix suffixes unique-files :> paths
-    [ paths quot call ] [ paths [ delete-file ] each ] finally ; inline
+    [ paths quot call ] [ paths [ ?delete-file ] each ] finally ; inline
+
+: safe-overwrite-file ( ..a original-path quot: ( ..a empty-path -- ..b ) -- ..b )
+    [ "" "" ] dip '[
+        [ nip @ ] [ swap move-file-atomically ] 2bi
+    ] cleanup-unique-file ; inline
+
+: safe-replace-file ( ..a original-path quot: ( ..a copy-path -- ..b ) -- ..b )
+    [ "" "" ] dip '[
+        [ copy-file ] [ nip @ ] [ swap move-file-atomically ] 2tri
+    ] cleanup-unique-file ; inline
 
 : unique-directory ( -- path )
     [

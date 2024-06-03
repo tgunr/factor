@@ -40,6 +40,8 @@ lists.lazy math sequences tools.test ;
 
 { { 1 2 3 } } [ { 1 2 3 4 5 } >list [ 2 > ] luntil list>array ] unit-test
 
+{ { 1 2 3 } } [ [ 1 ] [ 2 ] [ 3 ] 3lazy-list list>array ] unit-test
+
 { } [
     "resource:LICENSE.txt" utf8 <file-reader> [
         llines list>array drop
@@ -49,4 +51,8 @@ lists.lazy math sequences tools.test ;
     "resource:LICENSE.txt" utf8 <file-reader> [
         lcontents list>array drop
     ] with-disposal
+] unit-test
+
+{ { 1 4 2 5 3 6 } } [
+  { 1 2 3 } >list { 4 5 6 } >list lmerge list>array
 ] unit-test

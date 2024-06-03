@@ -21,7 +21,7 @@ jobs:
       run: './factor -run=help.lint resource:core resource:basis resource:extra'
 
   build-macos:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v4
     - name: build
@@ -40,7 +40,13 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: build
       shell: cmd
-      run: build.cmd net-bootstrap
+      run: build.cmd compile
+    - name: build-report
+      run: 'Foreach ($f in Get-ChildItem  *.exe,*.com,*.dll) { "{0} {1}" -f (Split-Path -Path $f -Leaf),$f.Length }'
+    - name: bootstrap
+      run: |
+           .\build.cmd update-boot-image
+           .\build.cmd bootstrap
     - name: load-all
       shell: cmd
       run: 'factor -e="USING: memory namespaces parser.notes vocabs.hierarchy ; parser-quiet? off auto-use? off load-all save"'
@@ -48,4 +54,5 @@ jobs:
       shell: cmd
       run: 'factor -run=tools.test resource:core'
     - name: help-lint
-      run: './factor -run=help.lint resource:core resource:basis resource:extra'
+      shell: cmd
+      run: 'factor -run=help.lint resource:core resource:basis resource:extra'

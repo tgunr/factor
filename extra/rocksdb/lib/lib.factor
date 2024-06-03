@@ -13,14 +13,14 @@ IN: rocksdb.lib
     [ void* deref alien>native-string throw ] if ;
 
 TUPLE: rocksdb-handle < disposable ptr ;
-CONSTRUCTOR: <rocksdb-handle> rocksdb-handle ( ptr -- handle ) ;
-M: rocksdb-handle dispose
-    ptr>> rocksdb_close ;
+: <rocksdb-handle> ( ptr -- handle )
+    rocksdb-handle new-disposable swap >>ptr ;
+M: rocksdb-handle dispose* ptr>> rocksdb_close ;
 
 TUPLE: rocksdb-options < disposable ptr ;
-CONSTRUCTOR: <rocksdb-options> rocksdb-options ( ptr -- options ) ;
-M: rocksdb-options dispose
-    ptr>> rocksdb_options_destroy ;
+: <rocksdb-options> ( ptr -- options )
+    rocksdb-options new-disposable swap >>ptr ;
+M: rocksdb-options dispose* ptr>> rocksdb_options_destroy ;
 
 : set-create-if-missing ( options -- options )
     [ 1 rocksdb_options_set_create_if_missing ] keep ;
@@ -47,8 +47,9 @@ SYMBOL: rocksdb-handle-var
 SYMBOL: rocksdb-write-options-var
 
 TUPLE: rocksdb-write-options < disposable ptr ;
-CONSTRUCTOR: <rocksdb-write-options> rocksdb-write-options ( ptr -- options ) ;
-M: rocksdb-write-options dispose
+: <rocksdb-write-options> ( ptr -- options )
+    rocksdb-write-options new-disposable swap >>ptr ;
+M: rocksdb-write-options dispose*
     ptr>> rocksdb_writeoptions_destroy ;
 
 : make-write-options-sync ( -- write-options )
@@ -70,8 +71,9 @@ M: rocksdb-write-options dispose
 SYMBOL: rocksdb-read-options-var
 
 TUPLE: rocksdb-read-options < disposable ptr ;
-CONSTRUCTOR: <rocksdb-read-options> rocksdb-read-options ( ptr -- options ) ;
-M: rocksdb-read-options dispose
+: <rocksdb-read-options> ( ptr -- options )
+    rocksdb-read-options new-disposable swap >>ptr ;
+M: rocksdb-read-options dispose*
     ptr>> rocksdb_readoptions_destroy ;
 
 

@@ -1,5 +1,5 @@
-USING: io.streams.string kernel math msgpack sequences
-tools.test ;
+USING: io.encodings.binary io.streams.byte-array
+io.streams.string kernel math msgpack sequences tools.test ;
 
 {
     {
@@ -52,3 +52,19 @@ tools.test ;
 ] unit-test
 
 [ 64 2^ >msgpack ] [ cannot-convert? ] must-fail-with
+
+! this failure makes it impossible to reliably detect eof when
+! reading an msgpack object from a stream
+[ "" [ read-msgpack ] with-string-reader ] must-fail
+
+{ f f } [ "" [ ?read-msgpack ] with-string-reader ] unit-test
+{ f t } [
+    [ f write-msgpack ] with-string-writer
+    [ ?read-msgpack ] with-string-reader
+] unit-test
+
+{ t } [
+    { "hello" "world" 1234 }
+    dup [ >msgpack ] map concat
+    binary [ read-msgpacks ] with-byte-reader =
+] unit-test

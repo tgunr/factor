@@ -4,7 +4,7 @@ USING: accessors assocs continuations destructors kernel
 namespaces sequences strings ;
 IN: db
 
-TUPLE: db-connection
+TUPLE: db-connection < disposable
     handle
     insert-statements
     update-statements
@@ -13,7 +13,7 @@ TUPLE: db-connection
 <PRIVATE
 
 : new-db-connection ( class -- obj )
-    new
+    new-disposable
         H{ } clone >>insert-statements
         H{ } clone >>update-statements
         H{ } clone >>delete-statements ; inline
@@ -26,7 +26,7 @@ HOOK: parse-db-error db-connection ( error -- error' )
 
 : dispose-statements ( assoc -- ) values dispose-each ;
 
-M: db-connection dispose
+M: db-connection dispose*
     dup db-connection [
         [ dispose-statements H{ } clone ] change-insert-statements
         [ dispose-statements H{ } clone ] change-update-statements
@@ -35,7 +35,9 @@ M: db-connection dispose
         drop
     ] with-variable ;
 
-TUPLE: result-set sql in-params out-params handle n max ;
+TUPLE: result-set < disposable sql in-params out-params handle n max ;
+
+M: result-set dispose* drop ;
 
 GENERIC: query-results ( query -- result-set )
 GENERIC: #rows ( result-set -- n )
@@ -50,19 +52,21 @@ GENERIC: more-rows? ( result-set -- ? )
     0 >>n drop ;
 
 : new-result-set ( query handle class -- result-set )
-    new
+    new-disposable
         swap >>handle
         [ [ sql>> ] [ in-params>> ] [ out-params>> ] tri ] dip
         swap >>out-params
         swap >>in-params
         swap >>sql ;
 
-TUPLE: statement handle sql in-params out-params bind-params bound? type retries ;
+TUPLE: statement < disposable handle sql in-params out-params bind-params bound? type retries ;
 TUPLE: simple-statement < statement ;
 TUPLE: prepared-statement < statement ;
 
+M: statement dispose* drop ;
+
 : new-statement ( sql in out class -- statement )
-    new
+    new-disposable
         swap >>out-params
         swap >>in-params
         swap >>sql ;

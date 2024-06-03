@@ -1,15 +1,14 @@
 ! Copyright (C) 2024 John Benediktsson
 ! See https://factorcode.org/license.txt for BSD license
 
-USING: combinators command-line command-loop
-concurrency.mailboxes io io.encodings.utf8 io.sockets kernel
-literals math.parser namespaces prettyprint random sequences
-splitting stomp threads unicode ;
+USING: command-line.parser command-loop concurrency.mailboxes
+formatting io io.encodings.utf8 io.sockets kernel literals math
+namespaces prettyprint sequences splitting stomp unicode ;
 
 IN: stomp.cli
 
-INITIALIZED-SYMBOL: stomp-host [ "localhost" ]
-INITIALIZED-SYMBOL: stomp-port [ 61613 ]
+SYMBOL: stomp-host
+SYMBOL: stomp-port
 
 CONSTANT: stomp-mailbox $[ <mailbox> ]
 
@@ -63,33 +62,48 @@ CONSTANT: COMMANDS {
         { help "Unsubscribe from a destination." } }
 }
 
-! XXX: wait for connected to start before run-command-loop
+CONSTANT: OPTIONS {
+    T{ option
+        { name "--host" }
+        { help "set the hostname" }
+        { type ipv4 }
+        { variable stomp-host }
+        { default T{ ipv4 f "127.0.0.1" } }
+    }
+    T{ option
+        { name "--port" }
+        { help "set the port" }
+        { type integer }
+        { variable stomp-port }
+        { default 61613 }
+    }
+    T{ option
+        { name "--username" }
+        { help "set the username" }
+        { variable stomp-username }
+    }
+    T{ option
+        { name "--password" }
+        { help "set the password" }
+        { variable stomp-password }
+    }
+}
+
 ! XXX: when disconnected, exit with a message
 ! XXX: print incoming and outgoing messages nicely
 
 : start-stomp-client ( -- )
-    [
-        stomp-host get resolve-host [ ipv4? ] filter random
-        stomp-port get with-port utf8 [
-            stomp-mailbox [ [ nl . flush ] with-global ] stomp-loop
-        ] with-client
-    ] in-thread ;
-
-: stomp-options ( args -- )
-    [
-        unclip >lower {
-            { [ dup { "-h" "--host" } member? ] [ unclip stomp-host set-global ] }
-            { [ dup { "-p" "--port" } member? ] [ unclip string>number stomp-port set-global ] }
-            { [ dup { "-u" "--username" } member? ] [ unclip stomp-username set-global ] }
-            { [ dup { "-w" "--password" } member? ] [ unclip stomp-password set-global ] }
-        } case stomp-options
-    ] unless-empty ;
+    stomp-host get stomp-port get with-port
+    [ dup "Connecting to %s...\n" printf flush ] with-global
+    utf8 [
+        stomp-mailbox [ [ nl . flush ] with-global ] stomp-loop
+    ] spawn-client ;
 
 : stomp-main ( -- )
-    command-line get stomp-options
-    "Welcome to STOMP!" "STOMP>" <command-loop>
-    COMMANDS [ over add-command ] each
-    start-stomp-client run-command-loop ;
+    OPTIONS [
+        "Welcome to STOMP!" "STOMP>" <command-loop>
+        COMMANDS [ over add-command ] each
+        start-stomp-client run-command-loop
+    ] with-options ;
 
 MAIN: stomp-main
-

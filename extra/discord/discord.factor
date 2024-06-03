@@ -23,7 +23,7 @@ TUPLE: discord-bot-config
     metadata
     discord-bot mailbox connect-thread ;
 
-TUPLE: discord-bot
+TUPLE: discord-bot < disposable
     config in out bot-thread heartbeat-thread
     send-heartbeat? reconnect? stop?
     sequence-number
@@ -32,7 +32,7 @@ TUPLE: discord-bot
     guilds channels ;
 
 : <discord-bot> ( in out config -- discord-bot )
-    discord-bot new
+    discord-bot new-disposable
         swap >>config
         swap >>out
         swap >>in
@@ -472,7 +472,7 @@ DEFER: discord-reconnect
         ] "Discord Bot" spawn >>bot-thread discord-bot-config get discord-bot<<
     ] if ;
 
-M: discord-bot dispose
+M: discord-bot dispose*
     f >>reconnect?
     t >>stop?
     f >>send-heartbeat?

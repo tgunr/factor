@@ -133,7 +133,7 @@ set_md5sum() {
 }
 
 set_cc() {
-    # on Cygwin we MUST use the MinGW "cross-compiler", therefore check these first
+    # on Cygwin we MUST use the MinGW "cross-compilers", therefore check these first
     # furthermore, we prefer 64 bit over 32 bit versions if both are available
 
     # we need this condition so we don't find a mingw32 compiler on linux
@@ -142,6 +142,7 @@ set_cc() {
             [ -z "$CC" ] && CC=x86_64-w64-mingw32-gcc
             [ -z "$CXX" ] && CXX=x86_64-w64-mingw32-g++
             [ -z "$CC_OPT" ] && [ "$LTO" == "1" ] && CC_OPT="-flto=auto"
+            [ -z "$CXX_OPT" ] && [ "$LTO" == "1" ] && CXX_OPT="-flto=auto"
             return
         fi
 
@@ -149,27 +150,52 @@ set_cc() {
             [ -z "$CC" ] && CC=i686-w64-mingw32-gcc
             [ -z "$CXX" ] && CXX=i686-w64-mingw32-g++
             [ -z "$CC_OPT" ] && [ "$LTO" == "1" ] && CC_OPT="-flto=auto"
+            [ -z "$CXX_OPT" ] && [ "$LTO" == "1" ] && CXX_OPT="-flto=auto"
+            return
+        fi
+
+        if test_programs_installed x86_64-w64-mingw32-clang x86_64-w64-mingw32-clang++; then
+            [ -z "$CC" ] && CC=x86_64-w64-mingw32-clang
+            [ -z "$CXX" ] && CXX=x86_64-w64-mingw32-clang++
+            # [ -z "$CC_OPT" ] && [ "$LTO" == "1" ] && CC_OPT="-flto"
+            # [ -z "$CXX_OPT" ] && [ "$LTO" == "1" ] && CXX_OPT="-flto"
+            return
+        fi
+
+        if test_programs_installed i686-w64-mingw32-clang i686-w64-mingw32-clang++; then
+            [ -z "$CC" ] && CC=i686-w64-mingw32-clang
+            [ -z "$CXX" ] && CXX=i686-w64-mingw32-clang++
+            # [ -z "$CC_OPT" ] && [ "$LTO" == "1" ] && CC_OPT="-flto"
+            # [ -z "$CXX_OPT" ] && [ "$LTO" == "1" ] && CXX_OPT="-flto"
             return
         fi
     fi
 
+    # clang and clang++ commands will fail to correctly build Factor on Cygwin, need "cross compiler"
     if test_programs_installed clang clang++ ; then
         [ -z "$CC" ] && CC=clang
         [ -z "$CXX" ] && CXX=clang++
         [ -z "$CC_OPT" ] && [ "$LTO" == "1" ] && CC_OPT="-flto"
+        [ -z "$CXX_OPT" ] && [ "$LTO" == "1" ] && CXX_OPT="-flto"
         return
     fi
 
-    # gcc and g++ will fail to correctly build Factor on Cygwin
+    # gcc and g++ commands will fail to correctly build Factor on Cygwin, need "cross compiler"
     if test_programs_installed gcc g++ ; then
         [ -z "$CC" ] && CC=gcc
         [ -z "$CXX" ] && CXX=g++
         [ -z "$CC_OPT" ] && [ "$LTO" == "1" ] && CC_OPT="-flto=auto"
+        [ -z "$CXX_OPT" ] && [ "$LTO" == "1" ] && CXX_OPT="-flto=auto"
         return
     fi
 
     $ECHO "error: high enough version of either (clang/clang++) or (gcc/g++) required!"
     exit_script 10
+}
+
+set_cc_versions() {
+    CC_VERSION=$($CC --version | head -1)
+    CXX_VERSION=$($CXX --version | head -1)
 }
 
 set_make() {
@@ -377,8 +403,11 @@ echo_build_info() {
     $ECHO "DOWNLOADER_NAME=$DOWNLOADER_NAME"
     $ECHO "CC=$CC"
     $ECHO "CXX=$CXX"
+    $ECHO "CC_VERSION=$CC_VERSION"
+    $ECHO "CXX_VERSION=$CXX_VERSION"
     $ECHO "LTO=$LTO"
     $ECHO "CC_OPT=$CC_OPT"
+    $ECHO "CXX_OPT=$CXX_OPT"
     $ECHO "MAKE=$MAKE"
 }
 
@@ -426,8 +455,8 @@ prepare_build_info() {
     find_os
     find_architecture
     find_num_cores
-    if [[ $OS != macosx ]] ; then LTO=1; fi # temporarily try out LTO to collect performance data (not working on MacOSX)
     set_cc
+    set_cc_versions
     find_word_size
     set_current_branch
     set_factor_binary
@@ -530,14 +559,13 @@ invoke_make() {
 }
 
 make_clean() {
-    echo invoke_make clean BUILD_DIR="build-$MAKE_TARGET"
-    invoke_make clean BUILD_DIR="build-$MAKE_TARGET"
+    invoke_make clean
 }
 
 make_factor() {
     $ECHO "Building factor with $NUM_CORES cores"
-    $ECHO invoke_make "CC=$CC" "CXX=$CXX" "CC_OPT=$CC_OPT" "$MAKE_TARGET" "-j$NUM_CORES"
-    invoke_make "CC=$CC" "CXX=$CXX" "CC_OPT=$CC_OPT" "$MAKE_TARGET" "-j$NUM_CORES"
+    $ECHO invoke_make "CC=$CC" "CXX=$CXX" "CC_OPT=$CC_OPT" "CXX_OPT=$CXX_OPT" "$MAKE_TARGET" "-j$NUM_CORES"
+    invoke_make "CC=$CC" "CXX=$CXX" "CC_OPT=$CC_OPT" "CXX_OPT=$CXX_OPT" "$MAKE_TARGET" "-j$NUM_CORES"
 }
 
 make_clean_factor() {

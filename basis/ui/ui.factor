@@ -208,9 +208,17 @@ HOOK: close-window ui-backend ( gadget -- )
 M: object close-window
     find-world [ ungraft ] when* ;
 
+: close-all-windows ( -- )
+    worlds get values [ close-window ] each ;
+
 STARTUP-HOOK: [
     f ui-running set-global
     <flag> ui-notify-flag set-global
+    init-ui
+]
+
+SHUTDOWN-HOOK: [
+    close-all-windows notify-queued
 ]
 
 HOOK: resize-window ui-backend ( world dim -- )
@@ -223,7 +231,7 @@ M: object resize-window 2drop ;
 : with-ui ( quot: ( -- ) -- )
     ui-running? [ call( -- ) ] [
         t ui-running set-global '[
-            [ init-ui @ ] (with-ui)
+            _ (with-ui)
         ] [
             f ui-running set-global
             ! Give running ui threads a chance to finish.
