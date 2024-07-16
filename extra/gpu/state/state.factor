@@ -1,8 +1,9 @@
 ! Copyright (C) 2009 Joe Groff.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien.c-types alien.data arrays byte-arrays
-combinators gpu kernel literals math math.rectangles opengl
-opengl.gl sequences typed variants specialized-arrays ;
+combinators combinators.short-circuit gpu kernel literals math
+math.rectangles opengl opengl.gl sequences typed variants
+specialized-arrays ;
 QUALIFIED-WITH: alien.c-types c
 FROM: math => float ;
 SPECIALIZED-ARRAY: c:int
@@ -361,8 +362,7 @@ M: multisample-state set-gpu-state*
     ] [ drop GL_MULTISAMPLE glDisable ] if ;
 
 M: stencil-state set-gpu-state*
-    [ ] [ front-mode>> ] [ back-mode>> ] tri or
-    [
+    dup { [ front-mode>> ] [ back-mode>> ] } 1|| [
         GL_STENCIL_TEST glEnable
         [ front-mode>> GL_FRONT swap (set-stencil-mode) ]
         [ back-mode>> GL_BACK swap (set-stencil-mode) ] bi

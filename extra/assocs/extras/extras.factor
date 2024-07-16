@@ -4,6 +4,9 @@ USING: arrays assocs assocs.private kernel math math.statistics
 sequences sets ;
 IN: assocs.extras
 
+: set-of ( assoc key value -- assoc )
+    swap pick set-at ; inline
+
 : change-of ( ..a assoc key quot: ( ..a value -- ..b newvalue ) -- ..b assoc )
     [ [ of ] dip call ] 2keepd rot set-of ; inline
 
@@ -12,7 +15,7 @@ IN: assocs.extras
 : of+ ( assoc key n -- assoc ) '[ 0 or _ + ] change-of ; inline
 
 : of+* ( assoc key n -- assoc old new )
-    '[ [ 0 or _ + ] keep swap dup ] change-of ; inline
+    '[ [ 0 or _ + ] 1check dup ] change-of ; inline
 
 : delete-of ( assoc key -- assoc ) over delete-at ; inline
 
@@ -76,7 +79,7 @@ IN: assocs.extras
     dup assoc-invert-as ;
 
 : assoc-collect! ( assoc1 assoc2 -- assoc1 )
-    over [ push-at ] with-assoc assoc-each ;
+    over '[ swap _ push-at ] assoc-each ;
 
 : assoc-collect ( assoc1 assoc2 -- newassoc )
     [ [ [ assoc-size ] bi@ + ] [ drop ] 2bi new-assoc ] 2keep
@@ -111,7 +114,7 @@ IN: assocs.extras
 GENERIC: delete-value-at ( value assoc -- )
 
 M: assoc delete-value-at
-    [ value-at* ] keep swap [ delete-at ] [ 2drop ] if ;
+    [ value-at* ] 1check [ delete-at ] [ 2drop ] if ;
 
 ERROR: key-exists value key assoc ;
 : set-once-at ( value key assoc -- )
@@ -244,7 +247,7 @@ PRIVATE>
     [ 0 > ] filter-values ;
 
 : collect-by-multi! ( ... assoc seq quot: ( ... obj -- ... new-keys ) -- ... assoc )
-    [ keep swap ] curry rot [
+    [ 1check ] curry rot [
         [ push-at-each ] curry compose each
     ] keep ; inline
 

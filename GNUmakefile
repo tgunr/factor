@@ -24,10 +24,9 @@ ifdef CONFIG
 	endif
 
 	IS_CLANG = $(shell $(CC) -dM -E - < /dev/null | grep -q '__clang__' && echo 1 || echo 0)
-	IS_GCC = $(shell $(CC) -dM -E - < /dev/null | grep -q '__GNUC__' && echo 1 || echo 0)
 
 	XCODE_PATH ?= /Applications/Xcode.app
-	MACOSX_32_SDK ?= MacOSX10.11.sdk
+	MACOS_32_SDK ?= MacOSX10.11.sdk
 
 	ARCHITECTURE_FLAG :=
 
@@ -43,8 +42,7 @@ ifdef CONFIG
 	SITE_CXXFLAGS += $(SITE_COMMON_FLAGS)
 	ASFLAGS += $(COMMON_FLAGS)
 	CFLAGS += $(SITE_CFLAGS) $(COMMON_FLAGS)
-	# -fPIC is strictly only needed for linux, macOS does not need it
-	CXXFLAGS += -std=c++11 -fPIC $(SITE_CXXFLAGS) $(COMMON_FLAGS) $(ARCHITECTURE_FLAG)
+	CXXFLAGS += -std=c++11 $(SITE_CXXFLAGS) $(COMMON_FLAGS) $(ARCHITECTURE_FLAG)
 	LINKER_FLAGS += $(SITE_COMMON_LINKER_FLAGS) $(CC_OPT)
 
 	# SANITIZER=address ./build.sh compile
@@ -56,6 +54,7 @@ ifdef CONFIG
 
 	ifneq ($(DEBUG), 0)
 		CFLAGS += -g -DFACTOR_DEBUG
+		CXXFLAGS += -g -DFACTOR_DEBUG
 	else
 		OPTIMIZATION := -O3
 		CFLAGS += $(CC_OPT) $(OPTIMIZATION)
@@ -63,9 +62,8 @@ ifdef CONFIG
 		ifeq ($(IS_CLANG), 1)
 			LDFLAGS += -Wl,-x
 			PCHFLAGS = -Winvalid-pch -include-pch $(BUILD_DIR)/master.hpp.gch
-		else ifeq ($(IS_GCC), 1)
-			LDFLAGS += -Wl,-s
 		else
+			LDFLAGS += -Wl,-s
 			PCHFLAGS =
 		endif
 
@@ -201,10 +199,10 @@ help:
 	@echo "linux-arm-64"
 	@echo "freebsd-x86-32"
 	@echo "freebsd-x86-64"
-	@echo "macosx-x86-32"
-	@echo "macosx-x86-64"
-	@echo "macosx-x86-fat"
-	@echo "macosx-arm-64"
+	@echo "macos-x86-32"
+	@echo "macos-x86-64"
+	@echo "macos-x86-fat"
+	@echo "macos-arm-64"
 	@echo "windows-x86-32"
 	@echo "windows-x86-64"
 	@echo ""
@@ -215,9 +213,9 @@ help:
 	@echo "SITE_CFLAGS=...  additional C optimization flags"
 	@echo "SITE_CXXFLAGS=...  additional C++ optimization flags"
 	@echo "LTO=1  compile VM with Link Time Optimization"
-	@echo "X11=1  force link with X11 libraries instead of Cocoa (only on Mac OS X)"
+	@echo "X11=1  force link with X11 libraries instead of Cocoa (only on macOS)"
 
-ALL = factor factor-ffi-test factor-lib
+ALL = factor-executable factor-ffi-test factor-lib
 
 freebsd-x86-32:
 	$(MAKE) $(ALL) CONFIG=vm/Config.freebsd.x86.32
@@ -225,17 +223,17 @@ freebsd-x86-32:
 freebsd-x86-64:
 	$(MAKE) $(ALL) CONFIG=vm/Config.freebsd.x86.64
 
-macosx-x86-32:
-	$(MAKE) $(ALL) macosx.app CONFIG=vm/Config.macosx.x86.32
+macos-x86-32:
+	$(MAKE) $(ALL) macos.app CONFIG=vm/Config.macos.x86.32
 
-macosx-x86-64:
-	$(MAKE) $(ALL) macosx.app CONFIG=vm/Config.macosx.x86.64
+macos-x86-64:
+	$(MAKE) $(ALL) macos.app CONFIG=vm/Config.macos.x86.64
 
-macosx-x86-fat:
-	$(MAKE) $(ALL) macosx.app CONFIG=vm/Config.macosx.x86.fat
+macos-x86-fat:
+	$(MAKE) $(ALL) macos.app CONFIG=vm/Config.macos.x86.fat
 
-macosx-arm-64:
-	$(MAKE) $(ALL) macosx.app CONFIG=vm/Config.macosx.arm.64
+macos-arm-64:
+	$(MAKE) $(ALL) macos.app CONFIG=vm/Config.macos.arm.64
 
 linux-arm-32:
 	$(MAKE) $(ALL) CONFIG=vm/Config.linux.arm.32
@@ -273,6 +271,9 @@ $(BUILD_DIR):
 $(BUILD_DIR)/master.hpp.gch: vm/master.hpp $(MASTER_HEADERS) | $(BUILD_DIR)
 	$(TOOLCHAIN_PREFIX)$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
+$(BUILD_DIR)/zstd.o: vm/zstd.cpp vm/zstd.c $(BUILD_DIR)/master.hpp.gch | $(BUILD_DIR)
+	$(TOOLCHAIN_PREFIX)$(CXX) -c $(CXXFLAGS) $(PCHFLAGS) -o $@ $<
+
 $(BUILD_DIR)/%.o: vm/%.cpp $(BUILD_DIR)/master.hpp.gch | $(BUILD_DIR)
 	$(TOOLCHAIN_PREFIX)$(CXX) -c $(CXXFLAGS) $(PCHFLAGS) -o $@ $<
 
@@ -283,7 +284,7 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.S | $(BUILD_DIR)
 	$(TOOLCHAIN_PREFIX)$(CC) -c $(ASFLAGS) -o $@ $<
 
 $(FFI_TEST_LIBRARY): $(BUILD_DIR)/ffi_test.o | $(BUILD_DIR)
-	$(TOOLCHAIN_PREFIX)$(CC) $(CFLAGS) $(FFI_TEST_CFLAGS) $(SHARED_FLAG) -o $(FFI_TEST_LIBRARY) $(TEST_OBJS)
+	$(TOOLCHAIN_PREFIX)$(CC) $(CFLAGS) $(FFI_TEST_CFLAGS) $(SHARED_FLAG) -o $@ $(TEST_OBJS)
 
 $(BUILD_DIR)/resources.o: vm/factor.rs | $(BUILD_DIR)
 	$(TOOLCHAIN_PREFIX)$(WINDRES) --preprocessor=cat $< $@
@@ -291,7 +292,7 @@ $(BUILD_DIR)/resources.o: vm/factor.rs | $(BUILD_DIR)
 $(BUILD_DIR)/ffi_test.o: vm/ffi_test.c | $(BUILD_DIR)
 	$(TOOLCHAIN_PREFIX)$(CC) -c $(CFLAGS) $(FFI_TEST_CFLAGS) -std=c99 -o $@ $<
 
-macosx.app: factor
+macos.app: $(EXECUTABLE)
 	mkdir -p $(BUNDLE)/Contents/MacOS
 	mkdir -p $(BUNDLE)/Contents/Frameworks
 	mv $(EXECUTABLE) $(BUNDLE)/Contents/MacOS/factor
@@ -302,13 +303,21 @@ $(ENGINE): $(DLL_OBJS)
 
 factor-lib: $(ENGINE)
 
-factor: $(EXE_OBJS) $(DLL_OBJS)
-	$(TOOLCHAIN_PREFIX)$(CXX) -L. $(DLL_OBJS) \
-		$(CXXFLAGS) $(LDFLAGS) -o $(EXECUTABLE) $(LIBS) $(EXE_OBJS)
+factor-executable: $(EXECUTABLE)
 
-factor-console: $(EXE_OBJS) $(DLL_OBJS)
+$(EXECUTABLE): $(EXE_OBJS) $(DLL_OBJS)
 	$(TOOLCHAIN_PREFIX)$(CXX) -L. $(DLL_OBJS) \
-		$(CXXFLAGS) $(LDFLAGS) $(CFLAGS_CONSOLE) -o $(CONSOLE_EXECUTABLE) $(LIBS) $(EXE_OBJS)
+		$(CXXFLAGS) $(LDFLAGS) -o $@ $(LIBS) $(EXE_OBJS)
+
+factor-console: $(CONSOLE_EXECUTABLE)
+
+ifneq ($(CONSOLE_EXECUTABLE),$(EXECUTABLE))
+
+$(CONSOLE_EXECUTABLE): $(EXE_OBJS) $(DLL_OBJS)
+	$(TOOLCHAIN_PREFIX)$(CXX) -L. $(DLL_OBJS) \
+		$(CXXFLAGS) $(LDFLAGS) $(CFLAGS_CONSOLE) -o $@ $(LIBS) $(EXE_OBJS)
+
+endif
 
 factor-ffi-test: $(FFI_TEST_LIBRARY)
 
@@ -332,5 +341,5 @@ clean:
 	rm -f libfactor-ffi-test.*
 	rm -f Factor.app/Contents/Frameworks/libfactor.dylib
 
-.PHONY: factor factor-lib factor-console factor-ffi-test tags clean help macosx.app
-.PHONY: linux-x86-32 linux-x86-64 linux-ppc-32 linux-ppc-64 linux-arm-64 freebsd-x86-32 freebsd-x86-64 macosx-x86-32 macosx-x86-64 macosx-x86-fat macosx-arm64 windows-x86-32 windows-x86-64
+.PHONY: factor-executable factor-lib factor-console factor-ffi-test tags clean help macos.app
+.PHONY: linux-x86-32 linux-x86-64 linux-ppc-32 linux-ppc-64 linux-arm-64 freebsd-x86-32 freebsd-x86-64 macos-x86-32 macos-x86-64 macos-x86-fat macos-arm64 windows-x86-32 windows-x86-64

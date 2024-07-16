@@ -41,14 +41,15 @@ IN: sequences.extras
     0 :> n!
     0 :> end!
     len1 1 + [ len2 1 + 0 <array> ] replicate :> table
-    len1 [1..b] [| x |
-        len2 [1..b] [| y |
-            x 1 - seq1 nth-unsafe
-            y 1 - seq2 nth-unsafe = [
-                y 1 - x 1 - table nth-unsafe nth-unsafe 1 + :> len
-                len y x table nth-unsafe set-nth-unsafe
-                len n > [ len n! x end! ] when
-            ] [ 0 y x table nth-unsafe set-nth-unsafe ] if
+    len1 [0..b) [| x |
+        x seq1 nth-unsafe :> elt1
+        x 1 + table nth-unsafe :> tab1
+        len2 [0..b) [| y |
+            elt1 y seq2 nth-unsafe = [
+                y x table nth-unsafe nth-unsafe 1 + :> len
+                len y 1 + tab1 set-nth-unsafe
+                len n > [ len n! x 1 + end! ] when
+            ] [ 0 y 1 + tab1 set-nth-unsafe ] if
         ] each
     ] each end n - end seq1 subseq ;
 
@@ -146,7 +147,7 @@ PRIVATE>
     [ drop 0 ] [ length ] [ ] tri <slice> ; inline
 
 : slice-order-by-from ( slice1 slice2 -- slice-lt slice-gt )
-    2dup [ from>> ] bi@ > [ swap ] when ; inline
+    [ [ from>> ] bi@ > ] 2check [ swap ] when ; inline
 
 : ordered-slices-range ( slice-lt slice-gt -- to from )
     [ to>> ] [ from>> ] bi* ;
@@ -232,7 +233,7 @@ PRIVATE>
 
 : map-concat ( ... seq quot: ( ... elt -- ... newelt ) -- ... newseq )
     over empty? [ 2drop { } ] [
-        [ [ first ] dip call ] 2keep rot [
+        [ [ first ] dip call ] 2check [
             >resizable [ '[ @ _ push-all ] 1 each-from ] keep
         ] keep like
     ] if ; inline
@@ -308,7 +309,7 @@ PRIVATE>
 : nth-index ( n obj seq -- i )
     [ = dup [ drop 1 - dup 0 < ] when ] with find drop nip ;
 
-: at+* ( n key assoc -- old new ) [ 0 or [ + ] keep swap dup ] change-at ; inline
+: at+* ( n key assoc -- old new ) [ 0 or [ + ] 1check dup ] change-at ; inline
 
 : inc-at* ( key assoc -- old new ) [ 1 ] 2dip at+* ; inline
 
@@ -337,17 +338,34 @@ PRIVATE>
 : occurrence-count-by ( seq quot: ( elt -- elt' ) -- hash seq' )
     '[ nip @ over inc-at* drop ] [ H{ } clone ] 2dip { } 0accumulate-as ; inline
 
-: progressive-index-by-as ( seq1 seq2 quot exemplar -- hash seq' )
+: bqn-index-by-as ( seq1 seq2 quot exemplar -- seq )
+    [
+        over length 1 + '[ @ swap index _ or ] with
+    ] dip map-as ; inline
+
+: bqn-index-by ( seq1 seq2 quot -- seq )
+    { } bqn-index-by-as ; inline
+
+: bqn-index-as ( seq1 seq2 exemplar -- seq )
+    [ [ ] ] dip bqn-index-by-as ; inline
+
+: bqn-index ( seq1 seq2 -- seq )
+    [ ] bqn-index-by ; inline
+
+: progressive-index-by-as ( seq1 seq2 quot exemplar -- hash seq )
     [
         pick length '[
             tuck [ @ over inc-at* drop ] 2dip swap nth-index _ or
         ] [ H{ } clone ] 3dip with
     ] dip map-as ; inline
 
-: progressive-index-by ( seq1 seq2 quot -- hash seq' )
+: progressive-index-by ( seq1 seq2 quot -- hash seq )
     { } progressive-index-by-as ; inline
 
-: progressive-index ( seq1 seq2 -- hash seq' )
+: progressive-index-as ( seq1 seq2 exemplar -- hash seq )
+    [ [ ] ] dip progressive-index-by-as ; inline
+
+: progressive-index ( seq1 seq2 -- hash seq )
     [ ] progressive-index-by ; inline
 
 : 0reduce ( seq quot: ( ..a prev elt -- ..a next ) -- result )
@@ -394,7 +412,7 @@ PRIVATE>
     new-resizable [ [ 1push-map-when ] 3curry ] keep ; inline
 
 : 2push-map-when ( ..a filter-quot: ( ..a -- ..b ? ) map-quot: ( ..a -- ..b obj ) accum -- ..b )
-    [ 2keep rot ] 2dip '[ [ @ _ push ] [ 2drop ] if ] call ; inline
+    [ 2check ] 2dip '[ [ @ _ push ] [ 2drop ] if ] call ; inline
 
 : 2filter-mapper-for ( filter-quot map-quot length exemplar -- filter-mapper accum )
     new-resizable [ [ 2push-map-when ] 3curry ] keep ; inline
@@ -553,7 +571,7 @@ PRIVATE>
     [ "    " prepend ] with-string-lines ;
 
 : one? ( ... seq quot: ( ... elt -- ... ? ) -- ... ? )
-    [ find ] 2keep rot [
+    [ find ] 2check [
         [ 1 + ] 2dip find-from drop not
     ] [ 3drop f ] if ; inline
 
@@ -690,7 +708,7 @@ PRIVATE>
     [ (reverse) ] [ like ] bi* ;
 
 : map-product ( ... seq quot: ( ... elt -- ... n ) -- ... n )
-    [ 1 ] 2dip [ dip * ] with-assoc each ; inline
+    [ 1 ] 2dip '[ swap _ dip * ] each ; inline
 
 : insert-nth! ( elt n seq -- )
     [ length ] keep ensure swap pick (a..b]
@@ -707,7 +725,7 @@ PRIVATE>
 
 : (map-find-index) ( seq quot find-quot -- result i elt )
     [ [ f ] 2dip [ [ nip ] 2dip call dup ] curry ] dip call
-    [ [ [ drop f ] unless ] keep ] dip ; inline
+    [ [ and* ] keep ] dip ; inline
 
 PRIVATE>
 
@@ -883,7 +901,7 @@ ERROR: slice-error-of from to seq ;
 
 : select-by* ( ... seq quot: ( ... elt -- ... x ) compare: ( obj1 obj2 -- ? ) -- ... i elt )
     [
-        [ keep swap ] curry [ dip ] curry
+        [ 1check ] curry [ dip ] curry
         [ [ first 0 ] dip call ] 2keep
         [ 2curry 3dip 5 npick pick ] curry
     ] [
@@ -1013,7 +1031,7 @@ ALIAS: map-infimum map-minimum deprecated
 
 : extract! ( ... seq quot: ( ... elt -- ... ? ) -- ... seq )
     [ dup ] compose over [ length ] keep new-resizable
-    [ [ push-when ] 2curry reject! ] keep swap like ; inline
+    [ [ push-when ] 2curry reject! ] 1check like ; inline
 
 : find-pred-loop ( ... i n seq quot: ( ... elt -- ... calc ? ) -- ... calc/f i/f elt/f )
     2pick < [
@@ -1028,7 +1046,10 @@ ALIAS: map-infimum map-minimum deprecated
 : find-pred ( ... seq quot: ( ... elt -- ... calc ) pred: ( ... calc -- ... ? ) -- ... calc/f i/f elt/f )
     [ 0 ] 3dip
     [ [ length check-length ] keep ] 2dip
-    '[ nth-unsafe _ keep swap _ keep swap ] find-pred-loop swapd ; inline
+    '[ nth-unsafe _ 1check _ 1check ] find-pred-loop swapd ; inline
+
+: find-deep ( ... seq quot: ( ... elt -- ... calc ) -- ... calc/f )
+    [ ] find-pred 2drop ; inline
 
 ! https://en.wikipedia.org/wiki/Maximum_subarray_problem
 ! Kadane's algorithm O(n) largest sum in subarray
@@ -1069,7 +1090,7 @@ INSTANCE: step-slice wrapped-sequence
 
 : 2nested-each* ( seq1 seq-quot: ( n -- seq ) quot: ( a b -- ) -- )
     '[
-        _ keep swap _ with each
+        _ 1check _ with each
     ] each ; inline
 
 : 2nested-filter-as* ( seq1 seq-quot quot exemplar -- seq )
@@ -1167,7 +1188,7 @@ INSTANCE: step-slice wrapped-sequence
 
 : map-prior-identity-from-as ( ... identity i seq quot: ( ... prior elt -- elt' ) exemplar -- seq' )
     [
-        '[ [ swap @ ] keep swap ] length-operator
+        '[ [ swap @ ] 1check ] length-operator
     ] dip map-integers-from-as nip ; inline
 
 : map-prior-identity-as ( ... identity seq quot: ( ... prior elt -- elt' ) exemplar -- seq' )

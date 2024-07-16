@@ -10,7 +10,7 @@ SINGLETON: notepad
 : notepad-path ( -- path )
     \ notepad-path get [
         windows-directory "notepad.exe" append-path
-        dup file-exists? [ drop f ] unless
+        [ file-exists? ] 1guard
     ] unless* [
         windows-directory
         [ "notepad.exe" tail? ] find-file

@@ -10,7 +10,7 @@ IN: calendar
 ERROR: not-in-interval value interval ;
 
 : check-interval ( value interval -- value )
-    2dup interval-contains? [ drop ] [ not-in-interval ] if ;
+    [ interval-contains? ] [ drop ] [ not-in-interval ] 2if ;
 
 HOOK: gmt-offset os ( -- hours minutes seconds )
 
@@ -59,7 +59,7 @@ M: timestamp leap-year?
     year>> leap-year? ;
 
 : (days-in-month) ( year month -- n )
-    dup 2 = [ drop leap-year? 29 28 ? ] [ nip day-counts nth ] if ;
+    [ 2 = ] [ drop leap-year? 29 28 ? ] [ nip day-counts nth ] 1if ;
 
 :: <timestamp> ( $year $month $day $hour $minute $second $gmt-offset -- timestamp )
     $year
@@ -620,7 +620,7 @@ M: integer last-day-of-year 12 31 <date> ;
 :: nth-day-this-month ( $timestamp $n $day -- timestamp' )
     $timestamp clone
     $timestamp start-of-month $day day-this-week
-    [ [ month>> ] same? ] keep swap
+    [ [ month>> ] same? ] 1check
     [ $n ] [ $n 1 + ] if weeks time+ ;
 
 PRIVATE>

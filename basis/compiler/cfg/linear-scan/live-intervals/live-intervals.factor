@@ -25,7 +25,7 @@ TUPLE: live-interval-state
     [ <vreg-use> dup ] dip push ;
 
 : last-use? ( insn# uses -- use/f )
-    [ drop f ] [ last [ n>> = ] keep and ] if-empty ;
+    [ drop f ] [ last [ n>> = ] 1guard ] if-empty ;
 
 :: (add-use) ( insn# live-interval spill-slot? -- use )
     live-interval uses>> :> uses
@@ -37,7 +37,7 @@ TUPLE: live-interval-state
 
 :: find-use ( insn# live-interval -- vreg-use/f )
     insn# live-interval (find-use)
-    [ dup n>> insn# = [ drop f ] unless ] ?call ;
+    [ dup n>> insn# = and* ] ?call ;
 
 : <live-interval> ( vreg -- live-interval )
     \ live-interval-state new

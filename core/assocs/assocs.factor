@@ -33,9 +33,6 @@ M: assoc assoc-like drop ; inline
 : maybe-set-at ( value key assoc -- changed? )
     3dup at* [ = [ 3drop f ] [ set-at t ] if ] [ 2drop set-at t ] if ;
 
-: set-of ( assoc key value -- assoc )
-    swap pick set-at ; inline
-
 <PRIVATE
 
 : assoc-operator ( assoc quot -- alist quot' )
@@ -121,13 +118,6 @@ PRIVATE>
 : of ( assoc key -- value/f )
     swap at ; inline
 
-: with-assoc ( assoc quot: ( ..a value key assoc -- ..b ) -- quot: ( ..a key value -- ..b ) )
-    curry [ swap ] prepose ; inline
-
-M: assoc assoc-clone-like
-    [ dup assoc-size ] dip new-assoc
-    [ [ set-at ] with-assoc assoc-each ] keep ; inline
-
 M: assoc keys [ drop ] { } assoc>map ;
 
 M: assoc values [ nip ] { } assoc>map ;
@@ -138,9 +128,8 @@ M: assoc values [ nip ] { } assoc>map ;
 : ?delete-at ( key assoc -- value/key ? )
     [ ?at ] [ delete-at ] 2bi ;
 
-
 : rename-at ( newkey key assoc -- )
-    [ delete-at* ] keep [ set-at ] with-assoc [ 2drop ] if ;
+    [ delete-at* ] keep '[ swap _ set-at ] [ 2drop ] if ;
 
 : assoc-empty? ( assoc -- ? )
     assoc-size 0 = ; inline
@@ -149,7 +138,7 @@ M: assoc values [ nip ] { } assoc>map ;
     index-of-last assoc-stack-from ; flushable
 
 : assoc-subset? ( assoc1 assoc2 -- ? )
-    [ at* [ = ] [ 2drop f ] if ] with-assoc assoc-all? ;
+    '[ swap _ at* [ = ] [ 2drop f ] if ] assoc-all? ;
 
 : assoc= ( assoc1 assoc2 -- ? )
     2dup [ assoc-size ] bi@ = [ assoc-subset? ] [ 2drop f ] if ;
@@ -161,7 +150,7 @@ M: assoc values [ nip ] { } assoc>map ;
     swap [ nip key? ] curry assoc-filter ;
 
 : assoc-union! ( assoc1 assoc2 -- assoc1 )
-    [ set-of ] assoc-each ; inline
+    over '[ swap _ set-at ] assoc-each ; inline
 
 : assoc-union-as ( assoc1 assoc2 exemplar -- union )
     [ [ [ assoc-size ] bi@ + ] dip new-assoc ] 2keepd
@@ -172,6 +161,9 @@ M: assoc values [ nip ] { } assoc>map ;
 
 : assoc-union-all ( seq -- union )
     H{ } clone [ assoc-union! ] reduce ;
+
+M: assoc assoc-clone-like
+    over [ assoc-size ] [ new-assoc ] [ assoc-union! ] tri* ; inline
 
 : assoc-intersect-all ( seq -- assoc )
     [ f ] [ [ ] [ assoc-intersect ] map-reduce ] if-empty ;
@@ -238,7 +230,7 @@ M: assoc value-at* swap [ = nip ] curry assoc-find nip ;
         [ 2array ] swap 2map-as
     ] [
         [ 2dup min-length ] dip new-assoc
-        [ [ set-at ] with-assoc 2each ] keep
+        [ '[ swap _ set-at ] 2each ] keep
     ] if ; inline
 
 : zip ( keys values -- alist )
@@ -254,13 +246,13 @@ M: assoc unzip
     dup assoc-empty? [ drop { } { } ] [ >alist flip first2 ] if ;
 
 : zip-with-as ( ... seq quot: ( ... key -- ... value ) exemplar -- ... assoc )
-    [ [ keep swap ] curry ] dip map>assoc ; inline
+    [ [ 1check ] curry ] dip map>assoc ; inline
 
 : zip-with ( ... seq quot: ( ... key -- ... value ) -- ... alist )
     { } zip-with-as ; inline
 
 : collect-by! ( ... assoc seq quot: ( ... obj -- ... key ) -- ... assoc )
-    [ keep swap ] curry rot [
+    [ 1check ] curry rot [
         [ push-at ] curry compose each
     ] keep ; inline
 

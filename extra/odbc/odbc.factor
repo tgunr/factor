@@ -11,7 +11,7 @@ FROM: alien.c-types => float short ;
 IN: odbc
 
 << "odbc" {
-    { [ os macosx? ] [ "libiodbc.dylib" ] }
+    { [ os macos? ] [ "libiodbc.dylib" ] }
     { [ os unix? ] [ "libodbc.so" ] }
     { [ os windows? ] [ "odbc32.dll" ] }
 } cond
@@ -279,7 +279,7 @@ ERROR: odbc-statement-error state native-code message ;
     swap succeeded? [ drop ] [ throw-statement-error ] if ;
 
 : alloc-handle ( type parent -- handle )
-    f void* <ref> [ SQLAllocHandle ] keep swap succeeded? [
+    f void* <ref> [ SQLAllocHandle ] 1check succeeded? [
         void* deref
     ] [
         drop f
@@ -339,7 +339,7 @@ DESTRUCTOR: odbc-free-statement
 : odbc-next-row ( statement -- bool ) SQLFetch succeeded? ;
 
 : odbc-number-of-columns ( statement -- number )
-    0 short <ref> [ SQLNumResultCols succeeded? ] keep swap [
+    0 short <ref> [ SQLNumResultCols succeeded? ] 1check [
         short deref
     ] [
         drop f

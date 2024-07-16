@@ -124,8 +124,6 @@ IN: codebase-analyzer
         [ file-stem "RECORD" = ]
         [ file-stem "REQUESTED" = ]
         [ file-stem "WHEEL" = ]
-        [ file-stem "AUTHORS" = ]
-        [ file-stem "AUTHORS" = ]
     } 1|| ;
 : python-packaging-files ( paths -- paths' ) [ python-packaging-file? ] filter ;
 
@@ -472,7 +470,7 @@ IN: codebase-analyzer
 : uses-repo? ( path -- ? ) ".repo" append-path file-exists? ;
 
 : diff-paths ( paths quot -- paths' )
-    keep swap [ [ normalize-path ] map ] bi@ diff ; inline
+    1check [ [ normalize-path ] map ] bi@ diff ; inline
 
 : source-code-file? ( path -- ? )
     {

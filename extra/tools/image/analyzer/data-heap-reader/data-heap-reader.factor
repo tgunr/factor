@@ -4,7 +4,7 @@ vm vocabs.parser ;
 IN: tools.image.analyzer.data-heap-reader
 FROM: alien.c-types => uchar heap-size ;
 FROM: arrays => 2array ;
-FROM: kernel => ? boa bi dup keep nip swap ;
+FROM: kernel => ? boa bi dup keep nip swap 1check ;
 FROM: layouts => data-alignment ;
 FROM: math => + - * align neg shift ;
 
@@ -103,4 +103,4 @@ M: tuple read-payload ( rel-base tuple -- payload )
     peek-read-object object-tag tag>class read-struct ;
 
 : read-object ( rel-base -- object )
-    tell-input swap (read-object) [ read-payload ] keep swap heap-node boa ;
+    tell-input swap (read-object) [ read-payload ] 1check heap-node boa ;

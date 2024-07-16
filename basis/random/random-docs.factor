@@ -54,6 +54,16 @@ HELP: random
         "heads" }
 } ;
 
+HELP: randoms-as
+{ $values { "length" integer } { "obj" object } { "exemplar" sequence } { "seq" sequence } }
+{ $description "Outputs a sequence of the same type as " { $snippet "exemplar" } " with " { $snippet "length" } " random values generated from " { $snippet "obj" } "." }
+{ $examples
+    { $unchecked-example "USING: prettyprint random ranges ;"
+               "10 CHAR: A CHAR: Z [a..b] \"\" randoms-as ."
+               "\"KEIYFPBAWJ\""
+    }
+} ;
+
 HELP: randoms
 { $values { "length" integer } { "obj" object } { "seq" array } }
 { $description "Outputs an array with " { $snippet "length" } " random values generated from " { $snippet "obj" } "." }
@@ -64,7 +74,7 @@ HELP: randoms
     }
 } ;
 
-{ random* random randoms } related-words
+{ random* random randoms randoms-as } related-words
 
 HELP: random-unit
 { $values { "n" float } }
@@ -92,7 +102,7 @@ HELP: random-bits
 { $values { "numbits" integer } { "n" "a random integer" } }
 { $description "Outputs a random integer " { $snippet "numbits" } " bits in length." } ;
 
-HELP: random-bits*
+HELP: random-bits-exact
 { $values { "numbits" integer } { "n" "a random integer" } }
 { $description "Returns an integer exactly " { $snippet "numbits" } " bits in length, with the topmost bit set to one." } ;
 
@@ -148,7 +158,7 @@ ARTICLE: "random-protocol" "Random protocol"
 ARTICLE: "random" "Generating random integers"
 "The " { $vocab-link "random" } " vocabulary contains a protocol for generating random or pseudorandom numbers."
 $nl
-"The “Mersenne Twister” pseudorandom number generator algorithm is the default generator stored in " { $link random-generator } "."
+"The \"Mersenne Twister\" pseudorandom number generator algorithm is the default generator stored in " { $link random-generator } "."
 $nl
 "Generate random object(s):"
 { $subsections random randoms }
@@ -173,7 +183,7 @@ $nl
 "Random numbers with " { $snippet "n" } " bits:"
 { $subsections
     random-bits
-    random-bits*
+    random-bits-exact
 } ;
 
 ABOUT: "random"

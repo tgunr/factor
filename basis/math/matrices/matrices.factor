@@ -46,7 +46,7 @@ PREDICATE: zero-square-matrix < square-matrix
 : <matrix> ( m n element -- matrix )
     '[ _ _ <array> ] replicate ; inline
 
-: <matrix-by> ( m n quot: ( ... -- elt ) -- matrix )
+: <matrix-by> ( ... m n quot: ( ... -- ... elt ) -- ... matrix )
     '[ _ _ replicate ] replicate ; inline
 
 : <matrix-by-indices> ( ... m n quot: ( ... m' n' -- ... elt ) -- ... matrix )
@@ -69,7 +69,7 @@ PREDICATE: zero-square-matrix < square-matrix
     [ (nth-from-tail) ] keep nth-unsafe ; inline flushable
 
 : array-nth-end-unsafe ( n seq -- elt )
-    [ (nth-from-tail) ] keep swap 2 fixnum+fast slot ; inline flushable
+    [ (nth-from-tail) ] 1check 2 fixnum+fast slot ; inline flushable
 
 : set-nth-end ( elt n seq -- )
     [ (nth-from-tail) ] keep set-nth ; inline

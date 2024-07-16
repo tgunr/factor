@@ -82,13 +82,13 @@ PRIVATE>
 
 : add-ctx-flag ( ctx flag -- )
     [ handle>> ] dip
-    [ [ SSL_CTX_get_options ] dip bitor ]
-    [ drop swap SSL_CTX_set_options ssl-error ] 2bi ;
+    over SSL_CTX_get_options bitor
+    SSL_CTX_set_options ssl-error ;
 
 : clear-ctx-flag ( ctx flag -- )
     [ handle>> ] dip
-    [ [ SSL_CTX_get_options ] dip bitnot bitand ]
-    [ drop swap SSL_CTX_set_options ssl-error ] 2bi ;
+    over SSL_CTX_get_options bitnot bitand
+    SSL_CTX_set_options ssl-error ;
 
 : disable-old-tls ( ctx -- )
     SSL_OP_NO_TLSv1 SSL_OP_NO_TLSv1_1 bitor add-ctx-flag ;
@@ -105,13 +105,14 @@ PRIVATE>
 ERROR: file-expected path ;
 
 : ensure-exists ( path -- path )
-    dup file-exists? [ file-expected ] unless ; inline
+    [ file-exists? ] 1check [ file-expected ] unless ; inline
 
 : ssl-file-path ( path -- path' )
     absolute-path ensure-exists ;
 
 : load-certificate-chain ( ctx -- )
-    dup config>> key-file>> [
+    [ config>> key-file>> ] 1check
+    [
         [ handle>> ] [ config>> key-file>> ssl-file-path ] bi
         SSL_CTX_use_certificate_chain_file
         ssl-error
@@ -132,7 +133,8 @@ ERROR: file-expected path ;
     [ push ] [ drop ] 2bi ;
 
 : set-default-password ( ctx -- )
-    dup config>> password>> [
+    [ config>> password>> ] 1check
+    [
         [ handle>> password-callback SSL_CTX_set_default_passwd_cb ]
         [
             [ handle>> ] [ default-pasword ] bi
@@ -141,7 +143,8 @@ ERROR: file-expected path ;
     ] [ drop ] if ;
 
 : use-private-key-file ( ctx -- )
-    dup config>> key-file>> [
+    [ config>> key-file>> ] 1check
+    [
         [ handle>> ]
         [ config>> key-file>> ssl-file-path ] bi
         SSL_FILETYPE_PEM SSL_CTX_use_PrivateKey_file
@@ -153,17 +156,18 @@ ERROR: file-expected path ;
         [ handle>> ]
         [
             config>>
-            [ ca-file>> dup [ ssl-file-path ] when ]
-            [ ca-path>> dup [ ssl-file-path ] when ] bi
+            [ ca-file>> [ ssl-file-path ] ?call ]
+            [ ca-path>> [ ssl-file-path ] ?call ] bi
         ] bi
         SSL_CTX_load_verify_locations
     ] [ handle>> SSL_CTX_set_default_verify_paths ] if ssl-error ;
 
 : set-verify-depth ( ctx -- )
-    dup config>> verify-depth>> [
+    [ config>> verify-depth>> ]
+    [
         [ handle>> ] [ config>> verify-depth>> ] bi
         SSL_CTX_set_verify_depth
-    ] [ drop ] if ;
+    ] [ drop ] 1if ;
 
 TUPLE: bio < disposable handle ;
 
@@ -175,11 +179,12 @@ M: bio dispose* handle>> BIO_free ssl-error ;
     normalize-path "r" BIO_new_file dup ssl-error <bio> ;
 
 : load-dh-params ( ctx -- )
-    dup config>> dh-file>> [
+    [ config>> dh-file>> ]
+    [
         [ handle>> ] [ config>> dh-file>> ] bi <file-bio> &dispose
         handle>> f f f PEM_read_bio_DHparams dup ssl-error
         SSL_CTX_set_tmp_dh ssl-error
-    ] [ drop ] if ;
+    ] [ drop ] 1if ;
 
 ! Attempt to set ecdh. If it fails, ignore...?
 : set-ecdh-params ( ctx -- )
@@ -206,7 +211,7 @@ M: openssl <secure-context>
             [ set-verify-depth ]
             [ load-dh-params ]
             [ set-ecdh-params ]
-            [ os macosx? [ drop ] [ ignore-unexpected-eof ] if ]
+            [ os macos? [ drop ] [ ignore-unexpected-eof ] if ]
             [ ]
         } cleave
     ] with-destructors ;

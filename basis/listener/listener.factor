@@ -180,6 +180,7 @@ SYMBOL: interactive-vocabs
     "stack-checker"
     "strings"
     "syntax"
+    "system"
     "tools.annotations"
     "tools.crossref"
     "tools.deprecation"
@@ -227,6 +228,6 @@ SYMBOL: interactive-vocabs
     ] with-interactive-vocabs ;
 
 : listener-main ( -- )
-    "q" get [ version-info print flush ] unless listener ;
+    "q" get [ vm-info print flush ] unless listener ;
 
 MAIN: listener-main

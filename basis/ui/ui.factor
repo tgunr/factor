@@ -138,7 +138,7 @@ PRIVATE>
 
 : find-windows ( quot: ( world -- ? ) -- seq )
     [ worlds get-global values ] dip
-    '[ dup children>> [ ] [ nip first ] if-empty @ ]
+    '[ dup children>> [ nip first ] unless-empty @ ]
     filter ; inline
 
 : find-window ( quot: ( world -- ? ) -- world/f )
@@ -218,7 +218,7 @@ STARTUP-HOOK: [
 ]
 
 SHUTDOWN-HOOK: [
-    close-all-windows notify-queued
+    ui-running? [ close-all-windows notify-ui-thread yield ] when
 ]
 
 HOOK: resize-window ui-backend ( world dim -- )

@@ -78,6 +78,8 @@ CONSTANT: word-renames {
     { "assoc-any-value?" { "any-value?" "0.100" } }
     { "?download-to" { "download-once-into" "0.100" } }
     { "download-to" { "download-into" "0.100" } }
+    { "version-info" { "vm-info" "0.100" } }
+    { "random-bits*" { "random-bits-exact" "0.100" } }
 }
 
 : compute-assoc-fixups ( continuation name assoc -- seq )

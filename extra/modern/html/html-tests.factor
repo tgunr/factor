@@ -1,7 +1,8 @@
 ! Copyright (C) 2021 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: io.encodings.utf8 io.files kernel make math modern.html
-multiline sequences tools.test ;
+USING: accessors combinators.short-circuit io.encodings.utf8
+io.files kernel make math modern.html multiline sequences
+tools.test ;
 IN: modern.html.tests
 
 [
@@ -263,4 +264,16 @@ IN: modern.html.tests
 { t } [
     "resource:extra/websites/factorcode/index.fhtml" utf8 file-contents
     string>html [ [ dup embedded-language? [ , ] [ drop ] if ] walk-html ] { } make length 0 >
+] unit-test
+
+
+{ t } [
+    [[ <body> <table id="w460aac37c11b7"></table></body>]] string>html
+    [
+        {
+            [ open-tag? ]
+            [ name>> "table" = ]
+            [ props>> [ first "id" = ] find nip ?second html>display "w460aac37c11b7" head? ]
+        } 1&&
+    ] xml-find-by >boolean
 ] unit-test

@@ -30,9 +30,9 @@ M: avail transfer-set drop defined assoc-union ;
     uses-vregs [ >avail-vreg ] all? ;
 
 : with-available-uses? ( quot -- ? )
-    keep swap [ available-uses? ] [ drop f ] if ; inline
+    1check [ available-uses? ] [ drop f ] if ; inline
 
 : make-available ( vreg -- )
     basic-block get avail-ins get [ dupd clone ?set-at ] assocs:change-at ;
 
-RENAMING: >avail [ ] [ dup >avail-vreg swap or ] [ ]
+RENAMING: >avail [ ] [ dup >avail-vreg or* ] [ ]

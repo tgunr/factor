@@ -75,7 +75,7 @@ M: rule match-position drop position get ;
     line get position get tail-slice ;
 
 : match-start ( string regexp -- slice/f )
-    first-match dup [ dup from>> 0 = [ drop f ] unless ] when ;
+    first-match dup [ dup from>> 0 = and* ] when ;
 
 GENERIC: text-matches? ( string text -- match-count/f )
 
@@ -113,7 +113,7 @@ M: regexp text-matches?
     ] find drop nip ;
 
 : nth-group ( n raw -- before nth )
-    [ nth-group-start ] keep swap cut dup matching-paren 1 + head ;
+    [ nth-group-start ] 1check cut dup matching-paren 1 + head ;
 
 : match-group-regexp ( regexp n -- skip-regexp match-regexp )
     [ [ options>> options>string ] [ raw>> ] bi ] dip swap
@@ -142,7 +142,7 @@ MEMO: <fixup-regexp> ( raw matched options -- regexp )
     } cleave regexp boa ;
 
 M: regexp fixup-end
-    [ raw>> [ -rot update-match-groups ] keep swap ]
+    [ raw>> [ -rot update-match-groups ] 1check ]
     [ options>> options>string ] bi <fixup-regexp> ;
 
 : fixup-end? ( text -- ? )

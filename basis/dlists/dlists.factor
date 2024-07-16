@@ -54,27 +54,26 @@ M: dlist equal?
     [ next<< ] [ drop ] if* ; inline
 
 : set-next-prev ( dlist-node -- )
-    dup next>> set-prev-when ; inline
+    [ next>> ] 1check set-prev-when ; inline
 
 : set-prev-next ( dlist-node -- )
-    dup prev>> set-next-when ;
+    [ prev>> ] 1check set-next-when ;
 
 : normalize-front ( dlist -- )
-    dup back>> [ f >>front ] unless drop ; inline
+    [ back>> ] 1check [ f >>front ] unless drop ; inline
 
 : normalize-back ( dlist -- )
-    dup front>> [ f >>back ] unless drop ; inline
+    [ front>> ] 1check [ f >>back ] unless drop ; inline
 
 : set-back-to-front ( dlist -- )
-    dup back>> [ dup front>> >>back ] unless drop ; inline
+    [ back>> ] 1check [ dup front>> >>back ] unless drop ; inline
 
 : set-front-to-back ( dlist -- )
-    dup front>> [ dup back>> >>front ] unless drop ; inline
+    [ front>> ] 1check [ dup back>> >>front ] unless drop ; inline
 
 : (dlist-find-node) ( ... dlist-node quot: ( ... node -- ... ? ) -- ... node/f )
     over [
-        [ call ] 2keep rot
-        [ drop ] [ [ next>> ] dip (dlist-find-node) ] if
+        [ call ] [ drop ] [ [ next>> ] dip (dlist-find-node) ] 2if
     ] [ 2drop f ] if ; inline recursive
 
 : dlist-find-node ( ... dlist quot: ( ... node -- ... ? ) -- ... node/f )
@@ -183,7 +182,7 @@ M: dlist clear-deque
 
 : dlist-filter ( ... dlist quot: ( ... value -- ... ? ) -- ... dlist' )
     <dlist> [
-        '[ _ keep swap [ _ push-back ] [ drop ] if ] dlist-each
+        '[ _ [ _ push-back ] [ drop ] 1if ] dlist-each
     ] keep ; inline
 
 M: dlist clone
@@ -196,11 +195,9 @@ M: dlist clone
     [ dupd next<< ] change-prev drop ; inline
 
 : push-before-node ( obj dlist-node dlist -- new-dlist-node )
-    2dup front>> eq? [
-        nip push-front*
-    ] [
-        drop (push-before-node)
-    ] if ; inline
+    [ front>> eq? ]
+    [ nip push-front* ]
+    [ drop (push-before-node) ] 2if ; inline
 
 PRIVATE>
 

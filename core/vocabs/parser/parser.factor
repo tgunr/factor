@@ -112,7 +112,7 @@ ERROR: unbalanced-private-declaration vocab ;
 
 : use-vocab ( vocab -- )
     dup using-vocab? [
-        vocab-name "Already using “" "” vocabulary" surround note.
+        vocab-name "Already using '" "' vocabulary" surround note.
     ] [
         manifest get
         [ [ ?load-vocab ] dip search-vocabs>> push ]
@@ -169,7 +169,7 @@ TUPLE: rename word vocab words ;
 : <rename> ( word vocab new-name -- rename )
     [
         2dup load-vocab words>> dupd at
-        or* [ swap no-word-in-vocab ] unless
+        or? [ swap no-word-in-vocab ] unless
     ] dip associate rename boa ;
 
 : add-renamed-word ( word vocab new-name -- )

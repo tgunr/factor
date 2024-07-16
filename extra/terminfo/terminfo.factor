@@ -1,40 +1,52 @@
 ! Copyright (C) 2013 John Benediktsson.
 ! See https://factorcode.org/license.txt for BSD license.
 
-USING: accessors assocs combinators formatting endian fry
-grouping hashtables io io.directories io.encodings.binary
-io.files io.files.types io.pathnames kernel math math.parser
-memoize pack sequences sequences.generalizations splitting
-strings system ;
+USING: accessors assocs combinators endian environment
+formatting fry grouping hashtables io io.directories
+io.encodings.binary io.files io.files.info io.files.types
+io.pathnames io.streams.byte-array kernel make math math.parser
+memoize namespaces pack sequences sequences.generalizations
+splitting strings system ;
 
 IN: terminfo
 
-! Reads compiled terminfo files
-! typically located in any of the directories below.
-CONSTANT: TERMINFO-DIRS {
-    "~/.terminfo"
-    "/etc/terminfo"
-    "/lib/terminfo"
-    "/usr/share/terminfo"
-}
+! Read compiled terminfo files from any of the following directories.
+! This does not quite match the behaviour of curses; in particular,
+! if TERMINFO is set, curses ignores everything else on the list,
+! and we make a best-guess here at the system-wide directories
+! rather than knowing what curses has compiled in.
+: terminfo-dirs ( -- dirlist )
+    [
+        "TERMINFO" os-env [ , ] when*
+        "~/.terminfo" ,
+        "TERMINFO_DIRS" os-env [ ":" split % ] when*
+        "/etc/terminfo" ,
+        "/lib/terminfo" ,
+        "/usr/share/terminfo" ,
+    ] { } make ;
 
 <PRIVATE
 
-CONSTANT: MAGIC 0o432
-
+! The two formats are largely identical; the only difference is that SysV
+! format uses int16_t for the number table and Curses 6.1 format uses
+! int32_t. Note that other numeric values, like the header and indexes
+! into the string table, are int16_t in both formats.
+CONSTANT: SYSV-MAGIC 0o432
+CONSTANT: CURSES6-MAGIC 0o1036
 ERROR: bad-magic ;
 
-: check-magic ( n -- )
-    MAGIC = [ bad-magic ] unless ;
-
-TUPLE: terminfo-header names-bytes boolean-bytes #numbers
-#strings string-bytes ;
+TUPLE: terminfo-header magic names-bytes boolean-bytes
+    #numbers #strings string-bytes ;
 
 C: <terminfo-header> terminfo-header
 
+: check-magic ( header -- )
+    magic>> [ SYSV-MAGIC = ] [ CURSES6-MAGIC = ] bi or
+    [ bad-magic ] unless ;
+
 : read-header ( -- header )
-    12 read "ssssss" unpack-le unclip check-magic
-    5 firstn <terminfo-header> ;
+    12 read "ssssss" unpack-le 6 firstn <terminfo-header>
+    [ check-magic ] keep ;
 
 : read-names ( header -- names )
     names-bytes>> read but-last "|" split [ >string ] map ;
@@ -42,60 +54,100 @@ C: <terminfo-header> terminfo-header
 : read-booleans ( header -- booleans )
     boolean-bytes>> read [ 1 = ] { } map-as ;
 
-: read-shorts ( n -- seq' )
-    2 * read 2 <groups> [ signed-le> dup 0 < [ drop f ] when ] map ;
+: read-ints ( n size -- seq )
+    [ * read ] keep <groups> [ signed-le> dup 0 < [ drop f ] when ] map ;
 
-: align-even-bytes ( header -- )
-    [ names-bytes>> ] [ boolean-bytes>> ] bi + odd?
-    [ read1 drop ] when ;
+: read-shorts ( n -- seq ) 2 read-ints ;
+: read-longs ( n -- seq ) 4 read-ints ;
+
+: word-align-input ( -- )
+    tell-input odd? [ read1 drop ] when ;
 
 : read-numbers ( header -- numbers )
-    [ align-even-bytes ] [ #numbers>> read-shorts ] bi ;
+    word-align-input
+    [ #numbers>> ] [ magic>> ] bi
+    {
+        { SYSV-MAGIC [ read-shorts ] }
+        { CURSES6-MAGIC [ read-longs ] }
+    } case ;
 
 : string-offset ( from seq -- str )
     0 2over index-from swap subseq >string ;
 
-: read-strings ( header -- strings )
-    [ #strings>> read-shorts ] [ string-bytes>> read ] bi
+: reify-strings ( offsets strbuf -- strings )
     '[ [ _ string-offset ] [ f ] if* ] map ;
 
-TUPLE: terminfo names booleans numbers strings ;
+: read-strings ( header -- strings )
+    [ #strings>> read-shorts ] [ string-bytes>> read ] bi
+    reify-strings ;
 
-C: <terminfo> terminfo
+: next-string ( offset strbuf -- offset )
+    0 -rot index-from 1 + ;
 
-: read-terminfo ( -- terminfo )
-    read-header {
-        [ read-names ]
+: extinfo-values ( bool-vals int-vals str-indexes strbuf -- vals )
+    reify-strings 3append ;
+
+: find-keybuf ( str-indexes strbuf -- keybuf )
+    [ maximum ] dip tuck next-string tail-slice ;
+
+: extinfo-keys ( key-indexes str-indexes strbuf -- keys )
+    find-keybuf reify-strings ;
+
+:: parse-extinfo ( bool-vals int-vals str-indexes key-indexes strbuf -- extinfo )
+    key-indexes str-indexes strbuf extinfo-keys
+    bool-vals int-vals str-indexes strbuf extinfo-values
+    H{ } zip-as ;
+
+: field-count ( header -- n )
+    [ boolean-bytes>> ] [ #numbers>> ] [ #strings>> ] tri + + ;
+
+TUPLE: extinfo-header magic boolean-bytes #numbers #strings string-bytes ;
+C: <extinfo-header> extinfo-header
+
+: read-extinfo-header ( main-header -- extinfo-header )
+    magic>> 10 read "sssss" unpack-le [ first3 ] [ last ] bi <extinfo-header> ;
+
+: read-extinfo ( header -- extinfo )
+    word-align-input
+    read-extinfo-header {
         [ read-booleans ]
         [ read-numbers ]
-        [ read-strings ]
-    } cleave <terminfo> ;
+        [ #strings>> read-shorts ]
+        [ field-count read-shorts ]
+        [ string-bytes>> read ]
+    } cleave parse-extinfo ;
+
+! If extinfo is present, there will be at least another ten bytes (the size of
+! the extinfo header) left over once we're done reading the main file. We
+! could simply check if there's *any* data left over, but I don't trust that
+! we can rule out the existence of terminfo files with a padding byte at the
+! end to make them even-sized.
+: ?read-extinfo ( header -- extinfo )
+    input-stream get [ stream-length ] [ stream-tell ] bi - 10 >=
+    [ read-extinfo ] [ drop f ] if ;
 
 PRIVATE>
 
-: file>terminfo ( path -- terminfo )
-    binary [ read-terminfo ] with-file-reader ;
-
 HOOK: terminfo-relative-path os ( name -- path )
 
-M: macosx terminfo-relative-path ( name -- path )
+M: macos terminfo-relative-path ( name -- path )
     [ first >hex ] keep "%s/%s" sprintf ;
 
 M: linux terminfo-relative-path ( name -- path )
     [ first ] keep "%c/%s" sprintf ;
 
 : terminfo-path ( name -- path )
-    terminfo-relative-path TERMINFO-DIRS [ swap append-path ] with map
+    terminfo-relative-path terminfo-dirs [ swap append-path ] with map
     [ file-exists? ] find nip ;
 
 : terminfo-names-for-path ( path -- names )
     [
-        [ type>> +directory+ = ] filter
-        [ name>> directory-files ] map concat
-    ] with-directory-entries ;
+        [ directory? ] filter
+        [ directory-files ] map concat
+    ] with-directory-files ;
 
 MEMO: terminfo-names ( -- names )
-    TERMINFO-DIRS [ file-exists? ] filter
+    terminfo-dirs [ file-exists? ] filter
     [ terminfo-names-for-path ] map concat ;
 
 <PRIVATE
@@ -247,14 +299,45 @@ CONSTANT: string-names {
     "acs_plus" "memory_lock" "memory_unlock" "box_chars_1"
 }
 
+TUPLE: terminfo names booleans numbers strings ;
+
+C: <terminfo> terminfo
+
 : zip-names ( seq names -- assoc )
     swap 2dup 2length - f <repetition> append zip ;
 
+: legacy>assoc ( terminfo-arrays -- assoc )
+    [ {
+        [ names>> ".names" ,, ]
+        [ booleans>> boolean-names zip-names %% ]
+        [ numbers>> number-names zip-names %% ]
+        [ strings>> string-names zip-names %% ]
+      } cleave
+    ] H{ } make ;
+
+: as-assoc ( terminfo-arrays extinfo -- assoc )
+    [ legacy>assoc ] dip assoc-union
+    [ f = not ] filter-values ;
+
+: read-terminfo ( -- terminfo )
+    read-header {
+        [ read-names ]
+        [ read-booleans ]
+        [ read-numbers ]
+        [ read-strings ]
+        [ ?read-extinfo ]
+    } cleave [ <terminfo> ] dip as-assoc ;
+
 PRIVATE>
 
-: term-capabilities ( name -- assoc )
-    terminfo-path file>terminfo {
-        [ booleans>> boolean-names zip-names ]
-        [ numbers>> number-names zip-names ]
-        [ strings>> string-names zip-names ]
-    } cleave 3append >hashtable ;
+: bytes>terminfo ( bytes -- terminfo )
+    binary [ read-terminfo ] with-byte-reader ;
+
+: file>terminfo ( path -- terminfo )
+    binary [ read-terminfo ] with-file-reader ;
+
+: name>terminfo ( name -- terminfo/f )
+    terminfo-path [ file>terminfo ] [ f ] if* ;
+
+: my-terminfo ( -- terminfo/f )
+    "TERM" os-env name>terminfo ;

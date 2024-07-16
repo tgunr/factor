@@ -17,10 +17,10 @@ UNION: ppc ppc.32 ppc.64 ;
 
 : cpu ( -- class ) \ cpu get-global ; foldable
 
-SINGLETONS: windows macosx linux freebsd ;
+SINGLETONS: windows macos linux freebsd ;
 
 UNION: bsd freebsd ;
-UNION: unix macosx linux freebsd bsd ;
+UNION: unix macos linux freebsd bsd ;
 
 : os ( -- class ) \ os get-global ; foldable
 
@@ -28,49 +28,15 @@ UNION: unix macosx linux freebsd bsd ;
 
 : vm-git-label ( -- string ) \ vm-git-label get-global ;
 
-: vm-git-ref ( -- string )
-    vm-git-label "-" split1-last drop ;
+: vm-git-ref ( -- string ) vm-git-label "-" split1-last drop ;
 
-: vm-git-id ( -- string )
-    vm-git-label "-" split1-last nip ;
+: vm-git-id ( -- string ) vm-git-label "-" split1-last nip ;
 
 : vm-compiler ( -- string ) \ vm-compiler get-global ;
 
 : vm-compile-time ( -- string ) \ vm-compile-time get-global ;
 
-<PRIVATE
-
-CONSTANT: string>cpu-hash H{
-    { "x86.32" x86.32 }
-    { "x86.64" x86.64 }
-    { "arm.32" arm.32 }
-    { "arm.64" arm.64 }
-    { "ppc.32" ppc.32 }
-    { "ppc.64" ppc.64 }
-}
-
-CONSTANT: string>os-hash H{
-    { "windows" windows }
-    { "macosx" macosx }
-    { "freebsd" freebsd }
-    { "linux" linux }
-}
-
-: string>cpu ( str -- class )
-    string>cpu-hash at ;
-
-: string>os ( str -- class )
-    string>os-hash at ;
-
-PRIVATE>
-
-: image-path ( -- path ) \ image-path get-global ;
-
-: vm-path ( -- path ) \ vm-path get-global ;
-
-: embedded? ( -- ? ) OBJ-EMBEDDED special-object ;
-
-: version-info ( -- str )
+: vm-info ( -- str )
     ! formatting vocab not available in this context.
     [
         "Factor " % vm-version %
@@ -81,6 +47,35 @@ PRIVATE>
         vm-compile-time % ")\n[" %
         vm-compiler % "] on " % os name>> %
     ] "" make ;
+
+: vm-path ( -- path ) \ vm-path get-global ;
+
+<PRIVATE
+
+: string>cpu ( str -- class )
+    H{
+        { "x86.32" x86.32 }
+        { "x86.64" x86.64 }
+        { "arm.32" arm.32 }
+        { "arm.64" arm.64 }
+        { "ppc.32" ppc.32 }
+        { "ppc.64" ppc.64 }
+    } at ;
+
+: string>os ( str -- class )
+    H{
+        { "windows" windows }
+        { "macos" macos }
+        { "macosx" macos } ! For compatibility with VMs using the old name
+        { "freebsd" freebsd }
+        { "linux" linux }
+    } at ;
+
+PRIVATE>
+
+: image-path ( -- path ) \ image-path get-global ;
+
+: embedded? ( -- ? ) OBJ-EMBEDDED special-object ;
 
 : exit ( n -- * )
     [ do-shutdown-hooks (exit) ] ignore-errors

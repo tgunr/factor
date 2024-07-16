@@ -1,7 +1,8 @@
 IN: stack-checker.transforms.tests
 USING: sequences stack-checker.transforms tools.test math kernel
 quotations stack-checker stack-checker.errors accessors
-combinators words arrays classes classes.tuple macros ;
+combinators combinators.short-circuit words arrays classes
+classes.tuple macros ;
 
 MACRO: compose-n ( n word -- quot' ) <repetition> >quotation ;
 
@@ -78,7 +79,13 @@ MACRO: curry-folding-test ( quot -- quot )
 
 \ bad-macro [ "OOPS" throw ] 0 define-transform
 
-[ [ bad-macro ] infer ] [ [ transform-expansion-error? ] [ error>> "OOPS" = ] [ word>> \ bad-macro = ] tri and and ] must-fail-with
+[ [ bad-macro ] infer ] [
+    {
+        [ transform-expansion-error? ]
+        [ error>> "OOPS" = ]
+        [ word>> \ bad-macro = ]
+    } 1&&
+] must-fail-with
 
 MACRO: two-params ( a b -- c ) + 1quotation ;
 

@@ -356,11 +356,9 @@ TUPLE: token-parser symbol ;
 
 : parse-token ( input string -- result )
     ! Parse the string, returning a parse result
-    [ ?head-slice ] keep swap [
-        <parse-result>
-    ] [
-        [ seq>> pos get swap ] dip "'" "'" surround 1vector add-error f
-    ] if ;
+    [ ?head-slice ]
+    [ <parse-result> ]
+    [ [ seq>> pos get swap ] dip "'" "'" surround 1vector add-error f ] 1if ;
 
 M: token-parser parser-quot
     symbol>> '[ input-slice _ parse-token ] ;
@@ -453,7 +451,7 @@ M: optional-parser parser-quot
 TUPLE: semantic-parser parser quot ;
 
 : check-semantic ( result quot -- result )
-    dupd '[ dup ast>> @ [ drop f ] unless ] when ; inline
+    dupd '[ dup ast>> @ and* ] when ; inline
 
 M: semantic-parser parser-quot
     [ parser>> execute-parser-quot ] [ quot>> ] bi

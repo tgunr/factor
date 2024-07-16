@@ -87,11 +87,9 @@ DEFER: if
 : if ( ..a ? true: ( ..a -- ..b ) false: ( ..a -- ..b ) -- ..b ) ? call ;
 
 ! Single branch
-: unless ( ..a ? false: ( ..a -- ..a ) -- ..a )
-    swap [ drop ] [ call ] if ; inline
+: unless ( ..a ? false: ( ..a -- ..a ) -- ..a ) [ ] swap if ; inline
 
-: when ( ..a ? true: ( ..a -- ..a ) -- ..a )
-    swap [ call ] [ drop ] if ; inline
+: when ( ..a ? true: ( ..a -- ..a ) -- ..a ) [ ] if ; inline
 
 ! Anaphoric
 : if* ( ..a ? true: ( ..a ? -- ..b ) false: ( ..a -- ..b ) -- ..b )
@@ -173,11 +171,11 @@ DEFER: if
 
 : ?call ( ..a obj/f quot: ( ..a obj -- ..a obj' )  -- ..a obj'/f ) dupd when ; inline
 
-: ?transmute ( old quot: ( old -- new/f ) -- new/old new? )
-    keep over [ drop t ] [ nip f ] if ; inline
+: or? ( obj1 obj2 -- obj2/obj1 second? ) [ nip t ] [ f ] if* ; inline
 
-: transmute ( old quot: ( old -- new/f ) -- new/old )
-    ?transmute drop ; inline
+: ?transmute ( old quot: ( old -- new/f ) -- new/old new? ) keep swap or? ; inline
+
+: transmute ( old quot: ( old -- new/f ) -- new/old ) ?transmute drop ; inline
 
 ! Default
 
@@ -284,13 +282,15 @@ UNION: boolean POSTPONE: t POSTPONE: f ;
 
 : not ( obj -- ? ) [ f ] [ t ] if ; inline
 
-: and ( obj1 obj2 -- ? ) over ? ; inline
+: and ( obj1 obj2 -- obj2/f ) over ? ; inline
 
-: or ( obj1 obj2 -- ? ) dupd ? ; inline
+: and* ( obj1 obj2 -- obj1/f ) swap and ; inline
 
-: or* ( obj1 obj2 -- obj2/obj1 second? ) [ nip t ] [ f ] if* ; inline
+: or ( obj1 obj2 -- obj1/obj2 ) dupd ? ; inline
 
-: xor ( obj1 obj2 -- ? ) [ f swap ? ] when* ; inline
+: or* ( obj1 obj2 -- obj2/obj1 ) swap or ; inline
+
+: xor ( obj1 obj2 -- obj1/obj2/f ) [ f swap ? ] when* ; inline
 
 : both? ( x y quot -- ? ) bi@ and ; inline
 
@@ -299,6 +299,52 @@ UNION: boolean POSTPONE: t POSTPONE: f ;
 : most ( x y quot -- z ) 2keep ? ; inline
 
 : negate ( quot -- quot' ) [ not ] compose ; inline
+
+: 1check ( ..a x quot: ( ..a x -- ..b ? ) -- ..b x ? )
+    keep swap ; inline
+
+: 2check ( ..a x y quot: ( ..a x y -- ..b ? ) -- ..b x y ? )
+    2keep rot ; inline
+
+: 3check ( ..a x y z quot: ( ..a x y z -- ..b ? ) -- ..b x y z ? )
+    3keep roll ; inline
+
+! `1guard` is `keep and` but the parallelism looks nice
+: 1guard ( ..a x quot: ( ..a x -- ..b ? ) -- ..b x/f )
+    1check [ drop f ] unless ; inline
+
+: 2guard ( ..a x y quot: ( ..a x y -- ..b ? ) -- ..b x/f y/f )
+    2check [ 2drop f f ] unless ; inline
+
+: 3guard ( ..a x y z quot: ( ..a x y z -- ..b ? ) -- ..b x/f y/f z/f )
+    3check [ 3drop f f f ] unless ; inline
+
+: 1if ( ..a x pred: ( ..a x quot: ( ..a x -- ..b ? ) -- ..b x ? ) true: ( ..b x -- ..c ) false: ( ..b x -- ..c ) -- ..c )
+    [ 1check ] 2dip if ; inline
+
+: 2if ( ..a x y pred: ( ..a x y -- ..b x y ? ) true: ( ..b x y -- ..c ) false: ( ..b x y -- ..c ) -- ..c )
+    [ 2check ] 2dip if ; inline
+
+: 3if ( ..a x y z pred: ( ..a x y z -- ..b x y z ? ) true: ( ..b x y z -- ..c ) false: ( ..b x y z -- ..c ) -- ..c )
+    [ 3check ] 2dip if ; inline
+
+: 1when ( ..a x pred: ( ..a x -- ..b ? ) true: ( ..b x -- ..b x ) -- ..b x )
+    [ ] 1if ; inline
+
+: 1unless ( ..a x pred: ( ..a x -- ..b ? ) false: ( ..b x -- ..b x ) -- ..b x )
+    [ ] swap 1if ; inline
+
+: 2when ( ..a x y pred: ( ..a x y -- ..b ? ) true: ( ..b x y -- ..b x y ) -- ..b x y )
+    [ ] 2if ; inline
+
+: 2unless ( ..a x y pred: ( ..a x y -- ..b ? ) false: ( ..b x y -- ..b x y ) -- ..b x y )
+    [ ] swap 2if ; inline
+
+: 3when ( ..a x y z pred: ( ..a x y z -- ..b ? ) true: ( ..b x y z -- ..b x y z ) -- ..b x y x )
+    [ ] 3if ; inline
+
+: 3unless ( ..a x y z pred: ( ..a x y z -- ..b ? ) false: ( ..b x y z -- ..c x y z ) -- ..b x y z )
+    [ ] swap 3if ; inline
 
 ! Loops
 : loop ( ... pred: ( ... -- ... ? ) -- ... )

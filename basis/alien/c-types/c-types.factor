@@ -1,9 +1,10 @@
 ! Copyright (C) 2004, 2010 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors alien alien.accessors arrays classes
-combinators compiler.units cpu.architecture delegate kernel
-layouts math math.order math.parser quotations sequences summary
-system words words.symbol ;
+combinators combinators.short-circuit compiler.units
+cpu.architecture delegate kernel layouts math math.order
+math.parser quotations sequences summary system words
+words.symbol ;
 IN: alien.c-types
 
 SYMBOLS:
@@ -54,8 +55,8 @@ UNION: c-type-name
     c-type-word pointer ;
 
 : resolve-typedef ( name -- c-type )
-    dup void? [ no-c-type ] when
-    dup c-type-name? [ lookup-c-type ] when ;
+    [ void? ] [ no-c-type ] 1when
+    [ c-type-name? ] [ lookup-c-type ] 1when ;
 
 M: word lookup-c-type
     [ "c-type" word-prop resolve-typedef ]
@@ -156,7 +157,7 @@ CONSULT: c-type-protocol c-type-name
     lookup-c-type ;
 
 PREDICATE: typedef-word < c-type-word
-    "c-type" word-prop [ c-type-name? ] [ array? ] bi or ;
+    "c-type" word-prop { [ c-type-name? ] [ array? ] } 1|| ;
 
 : typedef ( old new -- )
     {
@@ -213,9 +214,10 @@ CONSTANT: primitive-types
     ] if ;
 
 : primitive-pointer-type? ( type -- ? )
-    dup c-type-word? [
-        resolve-pointer-typedef [ void? ] [ primitive-types member? ] bi or
-    ] [ drop t ] if ;
+    [ c-type-word? ] [
+        resolve-pointer-typedef
+        { [ void? ] [ primitive-types member? ] } 1||
+    ] [ drop t ] 1if ;
 
 : (pointer-c-type) ( void* type -- void*' )
     [ clone ] dip c-type-boxer-quot '[ _ [ f ] if* ] >>boxer-quot ;
@@ -520,8 +522,8 @@ M: double-2-rep rep-component-type drop double ;
     } cond ; foldable
 
 : c-type-clamp ( value c-type -- value' )
-    dup { float double } member-eq?
-    [ drop ] [ c-type-interval clamp ] if ; inline
+    [ { float double } member-eq? ]
+    [ drop ] [ c-type-interval clamp ] 1if ; inline
 
 GENERIC: pointer-string ( pointer -- string/f )
 M: object pointer-string drop f ;

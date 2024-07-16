@@ -9,13 +9,16 @@ IN: compiler.cfg.stacks.clearing
     [ f ##clear boa ] map ;
 
 : dangerous-insn? ( state insn -- ? )
-    [ { [ nip ##peek? ] [ underflowable-peek? ] } 2&& ]
-    [ gc-map-insn? ] bi or ;
+    {
+        [ { [ nip ##peek? ] [ underflowable-peek? ] } 2&& ]
+        [ gc-map-insn? ]
+    } 1|| ;
 
 : clearing-insns ( assoc insn -- insns' )
-    [ insn#>> of ] keep 2dup dangerous-insn? [
-        drop state>clears
-    ] [ 2drop { } ] if ;
+    [ insn#>> of ] keep
+    [ dangerous-insn? ]
+    [ drop state>clears ]
+    [ 2drop { } ] 2if ;
 
 : visit-insns ( assoc insns -- insns' )
     [ [ clearing-insns ] keep suffix ] with map V{ } concat-as ;

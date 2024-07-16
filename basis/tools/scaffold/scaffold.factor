@@ -19,14 +19,16 @@ ERROR: vocab-must-not-exist string ;
 
 <PRIVATE
 
-: vocab-root? ( string -- ? )
-    trim-tail-separators vocab-roots get member? ;
+GENERIC: vocab-root? ( obj -- ? )
+M: string vocab-root? trim-tail-separators vocab-roots get member? ;
+M: vocab vocab-root? drop f ;
+M: vocab-link vocab-root? drop f ;
 
 : ensure-vocab-exists ( string -- string )
-    dup lookup-vocab [ no-vocab ] unless ;
+    [ lookup-vocab ] 1check [ no-vocab ] unless ;
 
 : check-vocab-root ( string -- string )
-    dup vocab-root? [ not-a-vocab-root ] unless ;
+    [ vocab-root? ] 1check [ not-a-vocab-root ] unless ;
 
 : check-vocab-root/name ( vocab-root string -- vocab-root string )
     [ check-vocab-root ] [ check-vocab-name ] bi* ;
@@ -39,7 +41,8 @@ ERROR: vocab-must-not-exist string ;
     [ ] [ replace-vocab-separators ] bi* append-path ;
 
 : vocab>path ( vocab -- path )
-    check-vocab [ find-vocab-root ] keep vocab-root/vocab>path ;
+    vocab-name check-vocab
+    [ find-vocab-root ] keep vocab-root/vocab>path ;
 
 : vocab-root/vocab/file>path ( vocab-root vocab file -- path )
     [ vocab-root/vocab>path ] dip append-path ;
@@ -53,21 +56,15 @@ ERROR: vocab-must-not-exist string ;
 : vocab/suffix>path ( vocab suffix -- path )
     [ vocab>path dup file-name append-path ] dip append ;
 
-: directory-exists ( path -- )
-    "Not creating a directory, it already exists: " write print ;
-
 : scaffold-directory ( vocab-root vocab -- )
     vocab-root/vocab>path
-    [ directory-exists ] [ make-directories ] if-file-exists ;
-
-: not-scaffolding ( path -- path )
-    "Not creating scaffolding for " write dup <pathname> . ;
-
-: scaffolding ( path -- path )
-    "Creating scaffolding for " write dup <pathname> . ;
+    [ "Not creating a directory, it already exists: " write print ]
+    [ make-directories ] if-file-exists ;
 
 : scaffolding? ( path -- path ? )
-    [ not-scaffolding f ] [ scaffolding t ] if-file-exists ;
+    [ "Not creating scaffolding for " f ]
+    [ "Creating scaffolding for " t ] if-file-exists
+    [ write dup <pathname> . ] dip ;
 
 : scaffold-copyright ( -- )
     "! Copyright (C) " write now year>> number>string write
@@ -85,7 +82,8 @@ ERROR: vocab-must-not-exist string ;
     [ main-file-string 1array ] dip utf8 set-file-lines ;
 
 : scaffold-main ( vocab-root vocab -- )
-    [ ".factor" vocab-root/vocab/suffix>path ] keep swap scaffolding? [
+    [ ".factor" vocab-root/vocab/suffix>path ] 1check
+    scaffolding? [
         set-scaffold-main-file
     ] [
         2drop
@@ -147,6 +145,10 @@ GENERIC: add-using ( object -- )
 M: array add-using [ add-using ] each ;
 
 M: string add-using drop ;
+
+M: vocab add-using drop ;
+
+M: vocab-link add-using drop ;
 
 M: object add-using
     vocabulary>> using get [ adjoin ] [ drop ] if* ;
@@ -260,6 +262,7 @@ PRIVATE>
     [ HS{ } clone using ] dip with-variable ; inline
 
 : link-vocab ( vocab -- )
+    vocab-name
     ".private" ?tail drop
     check-vocab
     "Edit documentation: " write
@@ -284,6 +287,8 @@ M: string scaffold-docs ( vocab -- )
 
 M: sequence scaffold-docs [ scaffold-word-docs nl ] each ;
 M: word scaffold-docs scaffold-word-docs ;
+M: vocab scaffold-docs vocab-name scaffold-docs ;
+M: vocab-link scaffold-docs vocab-name scaffold-docs ;
 
 : scaffold-undocumented ( string -- )
     [ interesting-words. ] [ link-vocab ] bi ;
@@ -304,6 +309,7 @@ M: word scaffold-docs scaffold-word-docs ;
     root-cache get delete-at ;
 
 : scaffold-vocab-in ( vocab-root string -- )
+    vocab-name
     dup delete-from-root-cache
     {
         [ scaffold-directory ]
@@ -342,11 +348,12 @@ M: word scaffold-docs scaffold-word-docs ;
     [ tests-file-string ] dip utf8 set-file-contents ;
 
 : vocab>test-path ( vocab -- string )
-    "-tests.factor" vocab/suffix>path ;
+    vocab-name "-tests.factor" vocab/suffix>path ;
 
 PRIVATE>
 
 : scaffold-tests ( vocab -- )
+    vocab-name
     ensure-vocab-exists dup vocab>test-path
     scaffolding? [
         set-scaffold-tests-file

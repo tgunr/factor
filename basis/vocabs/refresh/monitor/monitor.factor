@@ -12,7 +12,7 @@ TR: convert-separators "/\\" ".." ;
     trim-head-separators
     trim-tail-separators
     convert-separators
-    dup valid-vocab-name? [ drop f ] unless ;
+    [ valid-vocab-name? ] 1guard ;
 
 : path>vocab-parent-dir ( path -- path' )
     dup ".factor" tail? [ parent-directory ] when ;
@@ -29,7 +29,7 @@ TR: convert-separators "/\\" ".." ;
     chop-vocab-root path>vocab-parent-dir vocab-dir>vocab-name ;
 
 : monitor-loop ( monitor -- )
-    ! On OS X, monitors give us the full path, so we chop it
+    ! On macOS, monitors give us the full path, so we chop it
     ! off if its there.
     [
         next-change path>>
@@ -39,7 +39,7 @@ TR: convert-separators "/\\" ".." ;
             ] when*
         ] [
             [
-                [ "monitor-loop warning for path ``" "``:" surround write ]
+                [ "monitor-loop warning for path '" "':" surround write ]
                 [ . ] bi* flush
             ] with-global
         ] recover
@@ -54,7 +54,7 @@ TR: convert-separators "/\\" ".." ;
             [ _ (start-vocab-monitor) ]
             [
                 [
-                    _ "fatal error for monitor root ``" "``: " surround write
+                    _ "fatal error for monitor root '" "': " surround write
                     . flush
                 ] with-global
             ] recover

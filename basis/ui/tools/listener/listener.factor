@@ -49,9 +49,7 @@ GENERIC: (word-at-caret) ( token completion-mode -- obj )
 M: object (word-at-caret) 2drop f ;
 
 M: vocab-completion (word-at-caret)
-    drop
-    [ dup vocab-exists? [ >vocab-link ] [ drop f ] if ]
-    [ 2drop f ] recover ;
+    drop dup vocab-exists? [ >vocab-link ] [ drop f ] if ;
 
 M: word-completion (word-at-caret)
     manifest>> [
@@ -365,7 +363,7 @@ M: object accept-completion-hook 2drop ;
 M: interactor stream-read-quot
     dup interactor-yield dup array? [
         over interactor-finish try-parse
-        or* [ stream-read-quot ] unless
+        or? [ stream-read-quot ] unless
     ] [ nip ] if ;
 
 : interactor-operation ( gesture interactor -- ? )
@@ -406,7 +404,7 @@ interactor "completion" f {
         H{ { font-size $ default-font-size } } [
             { $tip-of-the-day } print-element nl
             { $strong "Press " { $snippet "F1" } " at any time for help." } print-element nl
-            version-info print-element
+            vm-info print-element
         ] with-style
     ] with-default-style nl nl ;
 
@@ -418,7 +416,7 @@ interactor "completion" f {
         introduction.
         listener
         nl
-        "The listener has exited. To start it again, click “Restart Listener”." print
+        "The listener has exited. To start it again, click 'Restart Listener'." print
     ] with-input-output+error-streams* ;
 
 : start-listener-thread ( listener -- )
@@ -455,19 +453,19 @@ interactor "completion" f {
 
 listener-gadget "toolbar" f {
     { f restart-listener }
-    { T{ key-down f ${ os macosx? M+ A+ ? } "u" } com-auto-use }
-    { T{ key-down f ${ os macosx? M+ A+ ? } "k" } clear-output }
-    { T{ key-down f ${ os macosx? M+ A+ ? } "K" } clear-stack }
+    { T{ key-down f ${ os macos? M+ A+ ? } "u" } com-auto-use }
+    { T{ key-down f ${ os macos? M+ A+ ? } "k" } clear-output }
+    { T{ key-down f ${ os macos? M+ A+ ? } "K" } clear-stack }
     { T{ key-down f f "F1" } com-help }
 } define-command-map
 
 listener-gadget "scrolling"
 "The listener's scroller can be scrolled from the keyboard."
 {
-    { T{ key-down f ${ os macosx? M+ A+ ? } "UP" } com-scroll-up }
-    { T{ key-down f ${ os macosx? M+ A+ ? } "DOWN" } com-scroll-down }
-    { T{ key-down f ${ os macosx? M+ A+ ? } "PAGE_UP" } com-page-up }
-    { T{ key-down f ${ os macosx? M+ A+ ? } "PAGE_DOWN" } com-page-down }
+    { T{ key-down f ${ os macos? M+ A+ ? } "UP" } com-scroll-up }
+    { T{ key-down f ${ os macos? M+ A+ ? } "DOWN" } com-scroll-down }
+    { T{ key-down f ${ os macos? M+ A+ ? } "PAGE_UP" } com-page-up }
+    { T{ key-down f ${ os macos? M+ A+ ? } "PAGE_DOWN" } com-page-down }
 } define-command-map
 
 listener-gadget "multi-touch" f {
@@ -526,9 +524,9 @@ PRIVATE>
     adjust-listener-font-size ;
 
 listener-gadget "fonts" f {
-    { T{ key-down f ${ os macosx? M+ C+ ? } "+" } com-font-size-plus }
-    { T{ key-down f ${ os macosx? M+ C+ ? } "=" } com-font-size-plus }
-    { T{ key-down f ${ os macosx? M+ C+ ? } "_" } com-font-size-minus }
-    { T{ key-down f ${ os macosx? M+ C+ ? } "-" } com-font-size-minus }
-    { T{ key-down f ${ os macosx? M+ C+ ? } "0" } com-font-size-normal }
+    { T{ key-down f ${ os macos? M+ C+ ? } "+" } com-font-size-plus }
+    { T{ key-down f ${ os macos? M+ C+ ? } "=" } com-font-size-plus }
+    { T{ key-down f ${ os macos? M+ C+ ? } "_" } com-font-size-minus }
+    { T{ key-down f ${ os macos? M+ C+ ? } "-" } com-font-size-minus }
+    { T{ key-down f ${ os macos? M+ C+ ? } "0" } com-font-size-normal }
 } define-command-map

@@ -60,7 +60,7 @@ M: persistent-vector nth-unsafe
     [ 2array ] [ drop level>> 1 + ] 2bi node boa ;
 
 : new-child ( new-child node -- node' expansion/f )
-    dup full? [ [ level>> 1node ] keep swap ] [ node-add f ] if ;
+    dup full? [ [ level>> 1node ] 1check ] [ node-add f ] if ;
 
 : new-last ( val seq -- seq' )
     index-of-last new-nth ;
@@ -73,7 +73,7 @@ M: persistent-vector nth-unsafe
         new-child
     ] [
         [ nip ] 2keep children>> last (ppush-new-tail)
-        or* [ swap new-child ] [ swap node-set-last f ] if
+        or? [ swap new-child ] [ swap node-set-last f ] if
     ] if ;
 
 : do-expansion ( pvec root expansion/f -- pvec )

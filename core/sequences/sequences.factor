@@ -31,8 +31,8 @@ M: sequence like drop ; inline
 GENERIC: lengthen ( n seq -- )
 GENERIC: shorten ( n seq -- )
 
-M: sequence lengthen 2dup length > [ set-length ] [ 2drop ] if ; inline
-M: sequence shorten 2dup length < [ set-length ] [ 2drop ] if ; inline
+M: sequence lengthen [ length > ] 2check [ set-length ] [ 2drop ] if ; inline
+M: sequence shorten [ length < ] 2check [ set-length ] [ 2drop ] if ; inline
 
 : 2length ( seq1 seq2 -- n1 n2 ) [ length ] bi@ ; inline
 : 3length ( seq1 seq2 seq3 -- n1 n2 n3 ) [ length ] tri@ ; inline
@@ -67,7 +67,7 @@ M: integer bounds-check?
     dupd length < [ 0 >= ] [ drop f ] if ; inline
 
 : bounds-check ( n seq -- n seq )
-    2dup bounds-check? [ bounds-error ] unless ; inline
+    [ bounds-check? ] 2check [ bounds-error ] unless ; inline
 
 MIXIN: immutable-sequence
 
@@ -347,7 +347,7 @@ C: <copier> copier
     nth-of-unsafe set-nth-of-unsafe drop ; inline
 
 : copy-loop ( dst dst-i src src-i src-stop -- dst )
-    2dup >= [
+    [ >= ] 2check [
         4drop
     ] [
         [
@@ -578,7 +578,7 @@ PRIVATE>
 <PRIVATE
 
 : bounds-check-call ( n seq quot -- obj1 obj2 )
-    2over bounds-check? [ call ] [ 3drop f f ] if ; inline
+    [ drop bounds-check? ] 3check [ call ] [ 3drop f f ] if ; inline
 
 : do-find-from ( ... n seq quot: ( ... elt -- ... ? ) -- ... i/f seq )
     [ length-operator find-integer-from ] keepd ; inline
@@ -641,7 +641,7 @@ PRIVATE>
     over reject-as ; inline
 
 : push-either ( ..a elt quot: ( ..a elt -- ..b ? ) accum1 accum2 -- ..b )
-    [ keep swap ] 2dip ? push ; inline
+    [ 1check ] 2dip ? push ; inline
 
 : 2selector ( quot -- selector accum1 accum2 )
     V{ } clone V{ } clone [ [ push-either ] 3curry ] 2keep ; inline
@@ -752,13 +752,13 @@ M: sequence <=>
     [ 2nth-unsafe <=> ] [ [ length ] compare nip ] if ;
 
 : sequence= ( seq1 seq2 -- ? )
-    2dup 2length dupd =
-    [ -rot mismatch-unsafe not ] [ 3drop f ] if ; inline
+    [ 2length dupd = ] 2check
+    [ mismatch-unsafe not ] [ 3drop f ] if ; inline
 
 ERROR: assert-sequence got expected ;
 
 : assert-sequence= ( a b -- )
-    2dup sequence= [ 2drop ] [ assert-sequence ] if ;
+    [ sequence= ] 2check [ 2drop ] [ assert-sequence ] if ;
 
 M: reversed equal? over reversed? [ sequence= ] [ 2drop f ] if ;
 
@@ -984,18 +984,18 @@ PRIVATE>
 : longer ( seq1 seq2 -- seq ) [ 2length >= ] most ; inline
 
 : head? ( seq begin -- ? )
-    2dup shorter? [
+    [ shorter? ] 2check [
         2drop f
     ] [
-        [ length [ head-slice ] keep swap ] keep
+        [ length [ head-slice ] 1check ] keep
         mismatch-unsafe not
     ] if ;
 
 : tail? ( seq end -- ? )
-    2dup shorter? [
+    [ shorter? ] 2check [
         2drop f
     ] [
-        [ length [ tail-slice* ] keep swap ] keep
+        [ length [ tail-slice* ] 1check ] keep
         mismatch-unsafe not
     ] if ;
 
@@ -1072,7 +1072,7 @@ PRIVATE>
 : subseq? ( subseq seq -- ? ) subseq-start >boolean ; inline deprecated
 
 : drop-prefix ( seq1 seq2 -- slice1 slice2 )
-    2dup mismatch [ 2dup min-length ] unless*
+    [ mismatch ] 2check [ 2dup min-length ] unless*
     [ tail-slice ] curry bi@ ;
 
 : unclip ( seq -- rest first )
@@ -1185,7 +1185,7 @@ ALIAS: supremum maximum deprecated
 
 : select-by ( ... seq quot: ( ... elt -- ... x ) compare: ( obj1 obj2 -- ? ) -- ... elt )
     [
-        [ keep swap ] curry [ [ first ] dip call ] 2keep
+        [ 1check ] curry [ [ first ] dip call ] 2keep
         [ curry 2dip pick over ] curry
     ] [
         [ [ 2drop ] [ 2nipd ] if ] compose

@@ -24,6 +24,15 @@ USING: tools.test machine-learning.functions ;
 
 {
     {
+        0.8411919906082768
+        1.954597694087775
+        -0.04540230591222494
+        0.34571400982514394
+    }
+} [ { 1 2 -2 0.5 } gelu ] unit-test
+
+{
+    {
         0.327201948676532
         0.1203708700293295
         0.04428196839971006
@@ -57,3 +66,11 @@ USING: tools.test machine-learning.functions ;
         -24.83032903943923
     } .00001
 } [ { 1. 2. 3. 4. 1. 2. 3. } log-softmax ] unit-test-v~
+
+{ { 0.0 1.0 0.0 0.0 } } [
+    { 1.2 2000 -4000 0.0 } stable-softmax
+] unit-test
+
+{ { -1998.8 0.0 -6000.0 -2000.0 } } [
+    { 1.2 2000 -4000 0.0 } stable-log-softmax
+] unit-test

@@ -34,7 +34,7 @@ SYMBOL: auto-use?
 : private? ( word -- ? ) vocabulary>> ".private" tail? ;
 
 : use-first-word? ( words -- ? )
-    [ length 1 = ] [ ?first dup or* [ private? not ] when ] bi and
+    [ length 1 = ] [ ?first dup or? [ private? not ] when ] bi and
     auto-use? get and ;
 
 ! True branch is a singleton public word with no name conflicts
@@ -111,20 +111,19 @@ ERROR: classoid-expected object ;
     scan-object \ f or
     dup classoid? [ classoid-expected ] unless ;
 
-: parse-until-step ( accum end -- accum ? )
-    ?scan-datum {
-        { [ 2dup eq? ] [ 2drop f ] }
-        { [ dup not ] [ drop throw-unexpected-eof t ] }
-        { [ dup delimiter? ] [ unexpected t ] }
-        { [ dup parsing-word? ] [ nip execute-parsing t ] }
-        [ pick push drop t ]
-    } cond ;
-
 : (parse-until) ( accum end -- accum )
-    [ parse-until-step ] keep swap [ (parse-until) ] [ drop ] if ;
+    [
+        ?scan-datum {
+            { [ 2dup eq? ] [ 2drop f ] }
+            { [ dup not ] [ drop throw-unexpected-eof ] }
+            { [ dup delimiter? ] [ unexpected ] }
+            { [ dup parsing-word? ] [ nip execute-parsing t ] }
+            [ pick push drop t ]
+        } cond
+    ] curry loop ;
 
 : parse-until ( end -- vec )
-    100 <vector> swap (parse-until) ;
+    [ 100 <vector> ] dip (parse-until) ;
 
 SYMBOL: quotation-parser
 

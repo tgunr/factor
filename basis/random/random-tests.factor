@@ -23,7 +23,7 @@ math.functions sets grouping random.private math.statistics ;
 { f }
 [ 100 [ { 0 1 } random ] replicate all-equal? ] unit-test
 
-{ 49 } [ 50 random-bits* log2 ] unit-test
+{ 49 } [ 50 random-bits-exact log2 ] unit-test
 
 [ { 1 2 } 3 sample ] [ too-many-samples?  ] must-fail-with
 
@@ -34,58 +34,58 @@ math.functions sets grouping random.private math.statistics ;
 [ [ 100 random-bytes ] with-system-random drop ] unit-test
 
 { t t }
-[ 500000 [ 0 1 normal-random-float ] replicate [ mean 0 .2 ~ ] [ std 1 .2 ~ ] bi ] unit-test
+[ 500000 [ 0 1 normal-random ] replicate [ mean 0 .2 ~ ] [ std 1 .2 ~ ] bi ] unit-test
 
 { t }
-[ 500000 [ .15 exponential-random-float ] replicate [ mean ] [ std ] bi .2 ~ ] unit-test
+[ 500000 [ .15 exponential-random ] replicate [ mean ] [ std ] bi .2 ~ ] unit-test
 
 { t }
-[ 500000 [ 1 exponential-random-float ] replicate [ mean ] [ std ] bi .2 ~ ] unit-test
+[ 500000 [ 1 exponential-random ] replicate [ mean ] [ std ] bi .2 ~ ] unit-test
 
 { t t }
 [
-    500000 [ 1 3 pareto-random-float ] replicate [ mean ] [ std ] bi
+    500000 [ 1 3 pareto-random ] replicate [ mean ] [ std ] bi
     [ 1.5 .5 ~ ] [ 3 sqrt 2 / .5 ~ ] bi*
 ] unit-test
 
 { t t }
 [
-    500000 [ 2 3 gamma-random-float ] replicate
+    500000 [ 2 3 gamma-random ] replicate
     [ mean 6 .2 ~ ] [ std 2 sqrt 3 * .2 ~ ] bi
 ] unit-test
 
 { t t }
 [
-    500000 [ 2 3 beta-random-float ] replicate
+    500000 [ 2 3 beta-random ] replicate
     [ mean 2 2 3 + / .2 ~ ]
     [ std 2 sqrt 3 sqrt + 2 3 + dup 1 + sqrt * / .2 ~ ] bi
 ] unit-test
 
 { t }
-[ 500000 [ 3 4 von-mises-random-float ] replicate mean 3 .2 ~ ] unit-test
+[ 500000 [ 3 4 von-mises-random ] replicate mean 3 .2 ~ ] unit-test
 
 { t t }
 [
-    500000 [ 2 7 triangular-random-float ] replicate
+    500000 [ 2 7 triangular-random ] replicate
     [ mean 2 7 + 2 / .2 ~ ] [ std 7 2 - 2 6 sqrt * / .2 ~ ] bi
 ] unit-test
 
 { t t }
 [
-    500000 [ 2 3 laplace-random-float ] replicate
+    500000 [ 2 3 laplace-random ] replicate
     [ mean 2 .2 ~ ] [ std 2 sqrt 3 * .2 ~ ] bi
 ] unit-test
 
 { t t }
 [
-    500000 [ 12 rayleigh-random-float ] replicate
+    500000 [ 12 rayleigh-random ] replicate
     [ mean pi 2 / sqrt 12 * .2 ~ ]
     [ std 2 pi 2 / - sqrt 12 * .2 ~ ] bi
 ] unit-test
 
 { t t }
 [
-    500000 [ 3 4 logistic-random-float ] replicate
+    500000 [ 3 4 logistic-random ] replicate
     [ mean 3 .2 ~ ] [ std pi 4 * 3 sqrt / .2 ~ ] bi
 ] unit-test
 
@@ -99,4 +99,24 @@ math.functions sets grouping random.private math.statistics ;
 [
     500000 [ 100 0.8 binomial-random ] replicate
     [ mean 80 .1 ~ ] [ std 4 .1 ~ ] bi
+] unit-test
+
+{ t } [
+    500000 [ 1.23 1.45 wald-random ] replicate
+    mean 1.54 1.23 / .1 ~
+] unit-test
+
+{ t } [
+    500000 [ 0.1 geometric-random ] replicate
+    [ [ 1 = ] count ] [ length ] bi / 0.1 .01 ~
+] unit-test
+
+{ t } [
+    500000 [ 0.35 geometric-random ] replicate
+    [ [ 1 = ] count ] [ length ] bi / 0.35 .01 ~
+] unit-test
+
+{ t } [
+    500000 [ 0.35 bernoulli-random ] replicate
+    mean 0.35 0.01 ~
 ] unit-test

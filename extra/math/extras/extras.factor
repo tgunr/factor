@@ -52,8 +52,8 @@ MEMO: bernoulli ( p -- n )
 
 <PRIVATE
 
-: df-check ( df -- )
-    even? [ "odd degrees of freedom" throw ] unless ;
+: check-df ( df -- df )
+    dup even? [ "odd degrees of freedom" throw ] unless ;
 
 : (chi2P) ( chi/2 df/2 -- p )
     [1..b) dupd n/v cum-product swap neg e^ [ v*n sum ] keep + ;
@@ -61,7 +61,7 @@ MEMO: bernoulli ( p -- n )
 PRIVATE>
 
 : chi2P ( chi df -- p )
-    dup df-check [ 2.0 / ] [ 2 /i ] bi* (chi2P) 1.0 min ;
+    check-df [ 2.0 / ] [ 2 /i ] bi* (chi2P) 1.0 min ;
 
 <PRIVATE
 
@@ -205,10 +205,15 @@ PRIVATE>
 : weighted-random ( histogram -- obj )
     unzip cum-sum [ last >float random ] keep bisect-left swap nth ;
 
+: weighted-randoms-as ( length histogram exemplar -- seq )
+    [
+        unzip cum-sum swap
+        [ [ last >float random-generator get ] keep ] dip
+        '[ _ _ random* _ bisect-left _ nth ]
+    ] dip replicate-as ; inline
+
 : weighted-randoms ( length histogram -- seq )
-    unzip cum-sum swap
-    [ [ last >float random-generator get ] keep ] dip
-    '[ _ _ random* _ bisect-left _ nth ] replicate ;
+    { } weighted-randoms-as ;
 
 : unique-indices ( seq -- unique indices )
     [ members ] keep over dup length <iota>
@@ -259,12 +264,6 @@ PRIVATE>
 : compression-dissimilarity ( a b -- n )
     compression-lengths + / ;
 
-: round-to-decimal ( x n -- y )
-    10^ [ * round ] [ / ] bi ;
-
-: round-to-step ( x step -- y )
-    [ [ / round ] [ * ] bi ] unless-zero ;
-
 GENERIC: round-away-from-zero ( x -- y )
 
 M: integer round-away-from-zero ; inline
@@ -282,7 +281,7 @@ M: real round-away-from-zero
 : max-monotonic-count ( seq quot: ( elt1 elt2 -- ? ) -- n )
     over empty? [ 2drop 0 ] [
         [ 0 swap unclip-slice swap 0 ] dip '[
-            [ swapd @ [ 1 + ] [ max 0 ] if ] keep swap
+            [ swapd @ [ 1 + ] [ max 0 ] if ] 1check
         ] reduce nip max
     ] if ; inline
 
@@ -408,6 +407,6 @@ TUPLE: vose
 
 M:: vose random* ( obj rnd -- elt )
     obj n>> rnd random* { fixnum } declare
-    dup obj probs>> nth-unsafe { float } declare rnd (random-unit) >=
+    dup obj probs>> nth-unsafe { float } declare rnd random-unit* >=
     [ obj alias>> nth-unsafe { fixnum } declare ] unless
     obj items>> nth-unsafe ;

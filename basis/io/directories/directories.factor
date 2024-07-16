@@ -137,7 +137,7 @@ PRIVATE>
 
 : find-file ( path quot: ( ... name -- ... ? ) -- path/f )
     [ bfs? <directory-iterator> ] dip
-    '[ _ keep and ] iterate-directory ; inline
+    '[ _ 1guard ] iterate-directory ; inline
 
 : find-files ( path quot: ( ... name -- ... ? ) -- paths )
     selector [ each-file ] dip ; inline
@@ -167,7 +167,7 @@ ERROR: sequence-expected obj ;
     [ drop ?parent-directory [ ?qualified-directory-files ] [ f ] if* ] recover ;
 
 : (find-up-to-root) ( path quot: ( path -- ? ) -- obj )
-    [ [ ?qualified-directory-files ] dip find swap ] 2keep rot [
+    [ [ ?qualified-directory-files ] dip find swap ] 2check [
         2drop
     ] [
         [ nip ?parent-directory ] dip over

@@ -124,7 +124,7 @@ TUPLE: cached-template-state path last-modified quot ;
             [ path>> file-info modified>> ]
             [ last-modified>> ]
             bi =
-        ] keep and
+        ] 1guard
     ] when ;
 
 : template-quot ( chloe -- quot )

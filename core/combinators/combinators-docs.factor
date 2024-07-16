@@ -157,10 +157,10 @@ $nl
 ARTICLE: "conditionals-boolean-equivalence" "Expressing conditionals with boolean logic"
 "Certain simple conditional forms can be expressed in a simpler manner using boolean logic."
 $nl
-"The following two lines are equivalent:"
-{ $code "[ drop f ] unless" "swap and" }
-"The following two lines are equivalent:"
-{ $code "[ ] [ ] ?if" "swap or" }
+"The following three lines are equivalent:"
+{ $code "[ drop f ] unless" "swap and" "and*" }
+"The following three lines are equivalent:"
+{ $code "or? [ ] [ ] ?if" "swap or" "or*" }
 "The following two lines are equivalent, where " { $snippet "L" } " is a literal:"
 { $code "[ L ] unless*" "L or" } ;
 
@@ -171,6 +171,10 @@ ARTICLE: "conditionals" "Conditional combinators"
 { $subsections if* when* unless* }
 "Another form abstracting a common stack shuffle pattern:"
 { $subsections ?if ?when ?unless }
+"An " { $snippet "if" } " form with three quotations:"
+{ $subsections 1if 2if 3if }
+"Words that test or guard against conditions:"
+{ $subsections 1check 2check 3check 1guard 2guard 3guard }
 "Sometimes instead of branching, you just need to pick one of two values:"
 { $subsections ? }
 "Two combinators which abstract out nested chains of " { $link if } ":"

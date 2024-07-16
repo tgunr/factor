@@ -34,16 +34,29 @@ HELP: 2dup  $shuffle ;
 HELP: 3dup  $shuffle ;
 HELP: 4dup  $shuffle ;
 HELP: nip   $shuffle ;
+HELP: nipd  $shuffle ;
 HELP: 2nip  $shuffle ;
+HELP: 2nipd $shuffle ;
+HELP: 3nip  $shuffle ;
+HELP: 3nipd $shuffle ;
+HELP: 4nip  $shuffle ;
+HELP: 5nip  $shuffle ;
 HELP: over  $shuffle ;
+HELP: overd $shuffle ;
 HELP: 2over $shuffle ;
 HELP: pick  $shuffle ;
+HELP: pickd $shuffle ;
+HELP: reach $shuffle ;
 HELP: swap  $shuffle ;
+HELP: spin  $shuffle ;
+HELP: 4spin $shuffle ;
 HELP: roll  $shuffle ;
 HELP: -roll $shuffle ;
 HELP: tuck  $shuffle ;
 HELP: rot   $shuffle ;
 HELP: -rot  $shuffle ;
+HELP: rotd  $shuffle ;
+HELP: -rotd $shuffle ;
 HELP: dupd  $shuffle ;
 HELP: swapd $shuffle ;
 
@@ -191,8 +204,8 @@ HELP: not
 { $notes "This word implements boolean not, so applying it to integers will not yield useful results (all integers have a true value). Bitwise not is the " { $link bitnot } " word." } ;
 
 HELP: and
-{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "?" "a generalized boolean" } }
-{ $description "If both inputs are true, outputs " { $snippet "obj2" } ". otherwise outputs " { $link f } "." }
+{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "obj2/f" "a generalized boolean" } }
+{ $description "If both inputs are true, outputs " { $snippet "obj2" } ". Otherwise outputs " { $link f } "." }
 { $notes "This word implements boolean and, so applying it to integers will not yield useful results (all integers have a true value). Bitwise and is the " { $link bitand } " word." }
 { $examples
     "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that if both inputs are true, the second is output:"
@@ -201,9 +214,22 @@ HELP: and
     { $example "USING: kernel prettyprint ;" "\"hi\" 12.0 and ." "12.0" }
 } ;
 
+HELP: and*
+{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "obj1/f" "a generalized boolean" } }
+{ $description "If both inputs are true, outputs " { $snippet "obj2" } ". Otherwise outputs " { $link f } "." }
+{ $notes "This word implements boolean and, so applying it to integers will not yield useful results (all integers have a true value). Bitwise and is the " { $link bitand } " word." }
+{ $examples
+    "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that if both inputs are true, the second is output:"
+    { $example "USING: kernel prettyprint ;" "t f and* ." "f" }
+    { $example "USING: kernel prettyprint ;" "t 7 and* ." "t" }
+    { $example "USING: kernel prettyprint ;" "\"hi\" 12.0 and* ." "\"hi\"" }
+} ;
+
+{ and and* } related-words
+
 HELP: or
-{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "?" "a generalized boolean" } }
-{ $description "If both inputs are false, outputs " { $link f } ". otherwise outputs the first of " { $snippet "obj1" } " and " { $snippet "obj2" } " which is true." }
+{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "obj1/obj2" "a generalized boolean" } }
+{ $description "If both inputs are false, outputs " { $link f } ". Otherwise outputs the first of " { $snippet "obj1" } " and " { $snippet "obj2" } " which is true." }
 { $notes "This word implements boolean inclusive or, so applying it to integers will not yield useful results (all integers have a true value). Bitwise inclusive or is the " { $link bitor } " word." }
 { $examples
     "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that the result will be the first true input:"
@@ -212,6 +238,16 @@ HELP: or
 } ;
 
 HELP: or*
+{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "obj2/obj1" "a generalized boolean" } }
+{ $description "If both inputs are false, outputs " { $link f } ". Otherwise outputs the first of " { $snippet "obj2" } " and " { $snippet "obj1" } " which is true." }
+{ $notes "This word implements boolean inclusive or, so applying it to integers will not yield useful results (all integers have a true value). Bitwise inclusive or is the " { $link bitor } " word." }
+{ $examples
+    "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that the result will be the first true input:"
+    { $example "USING: kernel prettyprint ;" "t f or* ." "t" }
+    { $example "USING: kernel prettyprint ;" "\"hi\" 12.0 or* ." "12.0" }
+} ;
+
+HELP: or?
 { $values
     { "obj1" "a generalized boolean" }
     { "obj2" "a generalized boolean" }
@@ -222,25 +258,25 @@ HELP: or*
 { $examples
     "Prefers the second argument:"
     { $example "USING: arrays kernel prettyprint ;"
-        "f 3 or* 2array ."
+        "f 3 or? 2array ."
         "{ 3 t }"
     }
     "Will also return the first:"
     { $example "USING: arrays kernel prettyprint ;"
-        "3 f or* 2array ."
+        "3 f or? 2array ."
         "{ 3 f }"
     }
     "Can return false:"
     { $example "USING: arrays kernel prettyprint ;"
-        "f f or* 2array ."
+        "f f or? 2array ."
         "{ f f }"
     }
 } ;
 
-{ or or* } related-words
+{ or or* or? } related-words
 
 HELP: xor
-{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "?" "a generalized boolean" } }
+{ $values { "obj1" "a generalized boolean" } { "obj2" "a generalized boolean" } { "obj1/obj2/f" "a generalized boolean" } }
 { $description "If exactly one input is false, outputs the other input. Otherwise outputs " { $link f } "." }
 { $notes "This word implements boolean exclusive or, so applying it to integers will not yield useful results (all integers have a true value). Bitwise exclusive or is the " { $link bitxor } " word." } ;
 
@@ -778,7 +814,7 @@ HELP: ?if
 { $values
     { "default" object } { "cond" object } { "true" object } { "false" object }
 }
-{ $warning "The old " { $snippet "?if" } " word can be refactored:" { $code "[ .. ] [ .. ] ?if\n\nor* [ .. ] [ .. ] if" } }
+{ $warning "The old " { $snippet "?if" } " word can be refactored:" { $code "[ .. ] [ .. ] ?if\n\nor? [ .. ] [ .. ] if" } }
 { $description "Calls " { $snippet "cond" } " on the " { $snippet "default" } " object and if " { $snippet "cond" } " outputs a new object then the " { $snippet "true" } " quotation is called with that new object. Otherwise, calls " { $snippet "false" } " with the old object." }
 { $examples
     "Look up an existing word or make an error pair:"
@@ -830,6 +866,185 @@ HELP: ?unless
 } ;
 
 { ?if ?when ?unless } related-words
+
+HELP: 1if
+{ $values
+    { "x" object } { "pred" quotation } { "true" quotation } { "false" quotation }
+}
+{ $description "A variant of " { $link if } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 1check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } " for the " { $snippet "true" } " or " { $snippet "false" } " branches, one of which is called." }
+{ $examples
+    "Collatz Conjecture calculation:"
+    { $example "USING: kernel math prettyprint ;"
+        "6 [ even? ] [ 2 / ] [ 3 * 1 + ] 1if ."
+        "3"
+    }
+} ;
+
+HELP: 1when
+{ $values
+    { "x" object } { "pred" quotation } { "true" quotation }
+}
+{ $description "A variant of " { $link when } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 1check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } " for both branches. The " { $snippet "true" } " branch is called conditionally." } ;
+
+HELP: 1unless
+{ $values
+    { "x" object } { "pred" quotation } { "false" quotation }
+}
+{ $description "A variant of " { $link when } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 1check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } " for both branches. The " { $snippet "false" } " branch is called conditionally." } ;
+
+HELP: 2if
+{ $values
+    { "x" object } { "y" object } { "pred" quotation } { "true" quotation } { "false" quotation }
+}
+{ $description "A variant of " { $link if } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 2check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } " and " { $snippet "y" } " for the " { $snippet "true" } " or " { $snippet "false" } " branches, one of which is called." } ;
+
+HELP: 2when
+{ $values
+    { "x" object } { "y" object } { "pred" quotation } { "true" quotation }
+}
+{ $description "A variant of " { $link when } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 2check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } " and " { $snippet "y" } " for both branches. The " { $snippet "true" } " branch is called conditionally." } ;
+
+HELP: 2unless
+{ $values
+    { "x" object } { "y" object } { "pred" quotation } { "false" quotation }
+}
+{ $description "A variant of " { $link unless } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 2check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } " and " { $snippet "y" } " for both branches. The " { $snippet "false" } " branch is called conditionally." } ;
+
+HELP: 3if
+{ $values
+    { "x" object } { "y" object } { "z" object } { "pred" quotation } { "true" quotation } { "false" quotation }
+}
+{ $description "A variant of " { $link if } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 3check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } ", " { $snippet "y" } ", and " { $snippet "z" } " for the " { $snippet "true" } " or " { $snippet "false" } " branches, one of which is called." } ;
+
+HELP: 3when
+{ $values
+    { "x" object } { "y" object } { "z" object } { "pred" quotation } { "true" quotation }
+}
+{ $description "A variant of " { $link when } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 3check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } ", " { $snippet "y" } ", and " { $snippet "z" } " for both branches. The " { $snippet "true" } " branch is called conditionally." } ;
+
+HELP: 3unless
+{ $values
+    { "x" object } { "y" object } { "z" object } { "pred" quotation } { "false" quotation }
+}
+{ $description "A variant of " { $link unless } " that takes a " { $snippet "pred" } " quotation. Calls " { $link 3check } " on the " { $snippet "pred" } " quotation to return a boolean and preserves " { $snippet "x" } ", " { $snippet "y" } ", and " { $snippet "z" } " for both branches. The " { $snippet "false" } " branch is called conditionally." } ;
+
+{ 1if 1when 1unless 2if 2when 2unless 3if 3when 3unless } related-words
+
+HELP: 1check
+{ $values
+    { "x" object } { "quot" quotation }
+    { "?" boolean }
+}
+{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } " and keeps " { $snippet "x" } " under the boolean result from the " { $snippet "quot" } "."  }
+{ $examples
+    "True case:"
+    { $example "USING: kernel math prettyprint ;"
+        "6 [ even? ] 1check [ . ] bi@"
+        "6\nt"
+    }
+    "True case:"
+    { $example "USING: kernel math prettyprint ;"
+        "6 [ odd? ] 1check [ . ] bi@"
+        "6\nf"
+    }
+} ;
+
+HELP: 1guard
+{ $values
+    { "x" object } { "quot" quotation }
+    { "x/f" object }
+}
+{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } " and either keeps " { $snippet "x" } " or replaces it with " { $snippet "f" } "." }
+{ $examples
+    "True case:"
+    { $example "USING: kernel math prettyprint ;"
+        "6 [ even? ] 1guard ."
+        "6"
+    }
+    "False case:"
+    { $example "USING: kernel math prettyprint ;"
+        "5 [ even? ] 1guard ."
+        "f"
+    }
+} ;
+
+HELP: 2check
+{ $values
+    { "x" object } { "y" object } { "quot" quotation }
+    { "?" boolean }
+}
+{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } " and " { $snippet "x" } " and keeps those two values under the boolean result from the " { $snippet "quot" } "."  }
+{ $examples
+    "True case:"
+    { $example "USING: kernel math prettyprint ;"
+        "3 4 [ + odd? ] 2check [ . ] tri@"
+        "3\n4\nt"
+    }
+    "False case:"
+    { $example "USING: kernel math prettyprint ;"
+        "3 4 [ + even? ] 2check [ . ] tri@"
+        "3\n4\nf"
+    }
+} ;
+
+HELP: 2guard
+{ $values
+    { "x" object } { "y" object } { "quot" quotation }
+    { "x/f" object } { "y/f" object }
+}
+{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } " and " { $snippet "y" } " and either keeps " { $snippet "x" } " and " { $snippet "y" } " or replaces them with " { $snippet "f" } "."  }
+{ $examples
+    "True case:"
+    { $example "USING: kernel math prettyprint ;"
+        "3 4 [ + odd? ] 2guard [ . ] bi@"
+        "3\n4"
+    }
+    "False case:"
+    { $example "USING: kernel math prettyprint ;"
+        "3 4 [ + even? ] 2guard [ . ] bi@"
+        "f\nf"
+    }
+} ;
+
+HELP: 3check
+{ $values
+    { "x" object } { "y" object } { "z" object } { "quot" quotation }
+    { "?" boolean }
+}
+{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } ", " { $snippet "y" } ", and " { $snippet "z" } " and keeps those three values under the boolean result from the " { $snippet "quot" } "." }
+{ $examples
+    "True case:"
+    { $example "USING: arrays kernel math prettyprint ;"
+        "3 4 5 [ + + even? ] 3check 4array ."
+        "{ 3 4 5 t }"
+    }
+    "False case:"
+    { $example "USING: arrays kernel math prettyprint ;"
+        "3 4 5 [ + + odd? ] 3check 4array ."
+        "{ 3 4 5 f }"
+    }
+} ;
+
+HELP: 3guard
+{ $values
+    { "x" object } { "y" object } { "z" object } { "quot" quotation }
+    { "x/f" object } { "y/f" object } { "z/f" object }
+}
+{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } ", " { $snippet "y" } ", and " { $snippet "z" } " and either keeps " { $snippet "x" } ", " { $snippet "y" } ", and " { $snippet "z" } " or replaces them with " { $snippet "f" } "." }
+{ $examples
+    "True case:"
+    { $example "USING: kernel math prettyprint ;"
+        "3 4 5 [ + + even? ] 3guard [ . ] tri@"
+        "3\n4\n5"
+    }
+    "False case:"
+    { $example "USING: kernel math prettyprint ;"
+        "3 4 5 [ + + odd? ] 3guard [ . ] tri@"
+        "f\nf\nf"
+    }
+} ;
+
+{ 1check 1guard 2check 2guard 3check 3guard } related-words
 
 HELP: die
 { $description "Starts the front-end processor (FEP), which is a low-level debugger which can inspect memory addresses and the like. The FEP is also entered when a critical error occurs." }
@@ -1075,8 +1290,13 @@ $nl
     drop
     2drop
     3drop
+    4drop
+    5drop
     nip
     2nip
+    3nip
+    4nip
+    5nip
 }
 "Duplicating stack elements:"
 { $subsections
@@ -1098,12 +1318,20 @@ $nl
 "Permuting stack elements deep in the stack:"
 { $subsections
     swapd
+    overd
     rot
     -rot
+    spin
+    4spin
+    rotd
+    -rotd
+    nipd
+    2nipd
+    3nipd
 } ;
 
 ARTICLE: "equality" "Equality"
-"There are two distinct notions of “sameness” when it comes to objects."
+"There are two distinct notions of \"sameness\" when it comes to objects."
 $nl
 "You can test if two references point to the same object (" { $emphasis "identity comparison" } "). This is rarely used; it is mostly useful with large, mutable objects where the object identity matters but the value is transient:"
 { $subsections eq? }

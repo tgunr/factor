@@ -215,7 +215,7 @@ unit-test
 { 1 } [ "a" { H{ { "a" 1 } } H{ { "b" 2 } } } assoc-stack ] unit-test
 { 2 } [ "b" { H{ { "a" 1 } } H{ { "b" 2 } } } assoc-stack ] unit-test
 { f } [ "c" { H{ { "a" 1 } } H{ { "b" 2 } } } assoc-stack ] unit-test
-
+{ f } [ "c" { H{ { "a" 1 } } H{ { "b" 2 } } H{ { "a" 3 } } } assoc-stack ] unit-test
 
 {
     { { 1 f } }
@@ -385,10 +385,6 @@ unit-test
 { 2 t } [ 5 H{ { 2 5 } } ?value-at ] unit-test
 { 10 f } [ 10 H{ { 2 5 } } ?value-at ] unit-test
 
-{ H{ { 1 10 } } } [
-    H{ { 1 2 } } 1 10 set-of
-] unit-test
-
 { H{ { 5 10  } } t } [
     H{ { 5 1 } } dup
     '[ 10 5 _  maybe-set-at ] call
@@ -402,4 +398,8 @@ unit-test
 { H{ { 1 2 } } f } [
     H{ { 1 2 } } dup
     '[ 2 1 _  maybe-set-at ] call
+] unit-test
+
+{ H{ { { 1 2 } 3 } } 3 } [
+    H{ } dup '[ 1 2 _ [ + ] 2cache ] call
 ] unit-test

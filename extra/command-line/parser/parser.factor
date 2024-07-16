@@ -64,13 +64,13 @@ ERROR: option-error ;
 ERROR: unknown-option < option-error str ;
 
 M: unknown-option error.
-    "Unknown option ``" write str>> write "''" print ;
+    "Unknown option '" write str>> write "'" print ;
 
 ERROR: ambiguous-option < option-error arg options ;
 
 M: ambiguous-option error.
-    "The option ``" write dup arg>> write
-    "'' matches more than one (" write
+    "The option '" write dup arg>> write
+    "' matches more than one (" write
     options>> [ ", " write ] [ option-name write ] interleave
     ")" print ;
 
@@ -84,15 +84,15 @@ M: required-options error.
 ERROR: invalid-value < option-error option value ;
 
 M: invalid-value error.
-    "Invalid value ``" write dup value>> write
-    "'' for option ``" write option>> option-name write
-    "''" print ;
+    "Invalid value '" write dup value>> write
+    "' for option '" write option>> option-name write
+    "'" print ;
 
 ERROR: expected-arguments < option-error option ;
 
 M: expected-arguments error.
-    "Expected more arguments for option ``" write
-    option>> option-name write "''" print ;
+    "Expected more arguments for option '" write
+    option>> option-name write "'" print ;
 
 ERROR: unrecognized-arguments < option-error args ;
 
@@ -103,8 +103,8 @@ M: unrecognized-arguments error.
 ERROR: cannot-convert-value < option-error str converter ;
 
 M: cannot-convert-value error.
-    "Unable to convert value ``" write dup str>> write
-    "'' with converter ``" write converter>> pprint "''" print ;
+    "Unable to convert value '" write dup str>> write
+    "' with converter '" write converter>> pprint "'" print ;
 
 : argconvert ( str/f converter -- val )
     dup quotation? [ call( str -- val ) ] [
@@ -174,6 +174,7 @@ M: class argvalid? instance? ;
 : get-program-name ( -- name )
     {
         [ program-name get ]
+        [ script get [ "factor " prepend ] [ f ] if* ]
         [
             "run" get [
                 dup "tools.deploy.shaker" =
@@ -274,23 +275,24 @@ M: usage-error error. options>> print-help ;
         ] dip append
     ] until-empty nip ;
 
-: parse-arguments ( options command-line -- )
-    [ [ optional? ] partition ] dip { "--" } split1
+: parse-arguments ( options command-line -- arguments )
+    [ dup [ optional? ] partition ] dip { "--" } split1
     [ (parse-arguments) f swap ] dip (parse-arguments)
     [ #args>> { "*" "?" } member? ] reject
-    [ required-options ] unless-empty ;
+    [ required-options ] unless-empty
+    [ required?>> ] filter namespace [
+        '[ option-variable _ key? ] reject
+        [ required-options ] unless-empty
+    ] keep ;
 
 PRIVATE>
 
 : (parse-options) ( options command-line -- arguments )
     [ [ >option ] map ] dip over default-options [
         default-help? get [ [ HELP prefix ] dip ] when
-        dupd parse-arguments
-        default-help? get [ print-help? get [ usage-error ] when ] when
-        [ required?>> ] filter namespace [
-            '[ option-variable _ key? ] reject
-            [ required-options ] unless-empty
-        ] keep
+        [ parse-arguments ] pick '[
+            default-help? get [ print-help? get [ _ usage-error ] when ] when
+        ] finally
     ] with-variables ;
 
 : parse-options ( options -- arguments )

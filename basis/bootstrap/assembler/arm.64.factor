@@ -41,7 +41,6 @@ big-endian off
 : temp1 ( -- reg ) X10 ; inline
 : temp2 ( -- reg ) X11 ; inline
 : temp3 ( -- reg ) X12 ; inline
-: pic-tail-reg ( -- reg ) X12 ; inline
 
 : stack-reg ( -- reg ) SP ; inline
 : link-reg ( -- reg ) X30 ; inline ! LR
@@ -50,6 +49,7 @@ big-endian off
 : ds-reg ( -- reg ) X27 ; inline
 : rs-reg ( -- reg ) X26 ; inline
 : ctx-reg ( -- reg ) X25 ; inline
+: return-address ( -- reg ) X24 ; inline
 
 : push-link-reg ( -- ) -16 stack-reg link-reg STRpre ;
 : pop-link-reg ( -- ) 16 stack-reg link-reg LDRpost ;
@@ -61,7 +61,7 @@ big-endian off
 : load2/1 ( -- ) -16 ds-reg temp1 temp2 LDPsoff ;
 : load2/1* ( -- ) -8 ds-reg temp1 temp2 LDPsoff ;
 : load3/2 ( -- ) -24 ds-reg temp2 temp3 LDPsoff ;
-: load-arg1/2 ( -- ) -8 ds-reg arg2 arg1 LDPsoff ;
+: load-arg1/2 ( -- ) -8 ds-reg arg2 arg1 LDPpre ;
 
 : ndrop ( n -- ) bootstrap-cells ds-reg dup SUBi ;
 
@@ -78,7 +78,6 @@ big-endian off
 : push-arg2 ( -- ) 8 ds-reg arg2 STRpre ;
 
 : push-down0 ( n -- ) neg bootstrap-cells ds-reg temp0 STRpre ;
-: push-down-arg3 ( -- ) -8 ds-reg arg3 STRpre ;
 
 : store0 ( -- ) 0 ds-reg temp0 STRuoff ;
 : store1 ( -- ) 0 ds-reg temp1 STRuoff ;
@@ -89,17 +88,17 @@ big-endian off
 : store1/2 ( -- ) -16 ds-reg temp2 temp1 STPsoff ;
 
 ! add tag bits to integers
-:: tag ( reg -- ) tag-bits get reg reg LSLi ;
+:: tag* ( reg -- ) tag-bits get reg reg LSLi ;
 ! remove tag bits
 :: untag ( reg -- ) tag-bits get reg reg ASRi ;
 
 : tagged>offset0 ( -- ) 1 temp0 temp0 ASRi ;
 
-! pops an item from the data stack and pushes it 
+! pops an item from the data stack and pushes it
 ! onto the retain stack (used for dip-like operations)
 : >r ( -- ) pop0 pushr ;
 
-! pops an item from the retain stack and pushes it 
+! pops an item from the retain stack and pushes it
 ! onto the data stack (used for dip-like operations)
 : r> ( -- ) popr push0 ;
 
@@ -119,13 +118,11 @@ big-endian off
 ! This is used when a word is called at the end of a quotation.
 ! JIT-WORD-CALL is used for other word calls.
 [
-    ! why do we store the address after JMP in EBX, where is it
-    ! picked up?
-    4 pic-tail-reg ADR
+    5 words return-address ADR
     absolute-jump rel-word-pic-tail
 ] JIT-WORD-JUMP jit-define
 
-! This is used when a word is called. 
+! This is used when a word is called.
 ! JIT-WORD-JUMP is used if the word is the last piece of code in a quotation.
 [
     absolute-call rel-word-pic
@@ -146,7 +143,7 @@ big-endian off
     arg2s arg2 MOVr
     name jit-call ;
 
-! loads the address of the vm struct. 
+! loads the address of the vm struct.
 ! A no-op on ARM (vm-reg always contains this address).
 : jit-load-vm ( -- ) ;
 
@@ -154,7 +151,7 @@ big-endian off
 : jit-load-context ( -- )
     vm-context-offset vm-reg ctx-reg LDRuoff ;
 
-! Saves the addresses of the callstack, datastack, and retainstack tops 
+! Saves the addresses of the callstack, datastack, and retainstack tops
 ! into the corresponding fields in the ctx struct.
 : jit-save-context ( -- )
     jit-load-context
@@ -167,7 +164,7 @@ big-endian off
     context-datastack-offset ctx-reg ds-reg STRuoff
     context-retainstack-offset ctx-reg rs-reg STRuoff ;
 
-! Retrieves the addresses of the datastack and retainstack tops 
+! Retrieves the addresses of the datastack and retainstack tops
 ! from the corresponding fields in the ctx struct.
 ! ctx-reg must already have been loaded.
 : jit-restore-context ( -- )
@@ -229,13 +226,15 @@ big-endian off
 ! Inline cache miss entry points
 : jit-load-return-address ( -- )
     ! RBX RSP stack-frame-size bootstrap-cell - [+] MOV ;
-    stack-frame-size bootstrap-cell - stack-reg arg1 LDRuoff ;
+    0 stack-reg return-address LDRuoff
+    16 return-address return-address ADDi ;
 
 ! These are always in tail position with an existing stack
 ! frame, and the stack. The frame setup takes this into account.
 : jit-inline-cache-miss ( -- )
     jit-save-context
     ! arg1 RBX MOV
+    return-address arg1 MOVr
     ! arg2 vm-reg MOV
     vm-reg arg2 MOVr
     ! RAX 0 MOV rc-absolute-cell rel-inline-cache-miss
@@ -247,21 +246,21 @@ big-endian off
 [ jit-load-return-address jit-inline-cache-miss ] [
     ! RAX CALL
     push-link-reg
-    temp0 BLR
+    arg1 BLR
     pop-link-reg
 ] [
     ! RAX JMP
-    temp0 BR
+    arg1 BR
 ] \ inline-cache-miss define-combinator-primitive
 
 [ jit-inline-cache-miss ] [
     ! RAX CALL
     push-link-reg
-    temp0 BLR
+    arg1 BLR
     pop-link-reg
 ] [
     ! RAX JMP
-    temp0 BR
+    arg1 BR
 ] \ inline-cache-miss-tail define-combinator-primitive
 
 ! Contexts
@@ -350,9 +349,9 @@ big-endian off
     NOP NOP rc-absolute-cell rel-safepoint
 ] JIT-SAFEPOINT jit-define
 
-! The main C to Factor entry point. 
-! Sets up and executes the boot quote, 
-! then performs a teardown and returns into C++. 
+! The main C to Factor entry point.
+! Sets up and executes the boot quote,
+! then performs a teardown and returns into C++.
 [
     ! ! Optimizing compiler's side of callback accesses
     ! ! arguments that are on the stack via the frame pointer.
@@ -549,6 +548,7 @@ big-endian off
     ! ! pop stack
     ! ds-reg bootstrap-cell SUB
     pop0
+    word-entry-point-offset temp0 temp0 LDUR
 ] [
     ! temp0 word-entry-point-offset [+] CALL
     push-link-reg
@@ -601,7 +601,7 @@ big-endian off
 
 ! ! Factor 2024 Clinic Code:
 ! ! this arm relocation could actually work
-! ! due to the small bitwidth required  
+! ! due to the small bitwidth required
 ! 0 0 temp2 MOVZ f rc-absolute-arm64-movz rel-untagged
 ! temp2 temp2 UXTB
 ! temp2 ds-reg temp1 LDRr
@@ -636,7 +636,7 @@ big-endian off
 
 ! ! Factor 2024 Clinic Code:
 ! ! this arm relocation could actually work
-! ! due to the small bitwidth required  
+! ! due to the small bitwidth required
 ! 0 0 temp2 MOVZ f rc-absolute-arm64-movz rel-untagged
 ! temp2 temp2 UXTB
 ! temp2 temp1 CMPr
@@ -658,7 +658,7 @@ big-endian off
     ! temp1/32 tag-mask get AND
     tag-mask get temp1 temp1 ANDi
     ! temp1/32 tag-bits get SHL
-    temp1 tag
+    temp1 tag*
     ! temp1/32 tuple type-number tag-fixnum CMP
     tuple type-number tag-fixnum temp1 CMPi
     ! [ JNE ]
@@ -718,7 +718,7 @@ big-endian off
     ! load values
     load1/0
     ! compare
-    temp1 temp0 CMPr
+    temp0 temp1 CMPr
     ! move t if true (f otherwise)
     [ temp2 temp3 temp0 ] dip CSEL
     ! store
@@ -728,11 +728,11 @@ big-endian off
 
 ! Overflowing fixnum (integer) arithmetic
 : jit-overflow ( insn func -- )
-    jit-save-context
     load-arg1/2
-    [ [ arg2 arg1 arg3 ] dip call ] dip
-    push-down-arg3
-    [ 8 fixnum+fast VC B.cond ] [
+    jit-save-context
+    [ [ arg2 arg1 temp0 ] dip call ] dip
+    store0
+    [ 4 + VC B.cond ] [
         vm-reg arg3 MOVr
         jit-call
     ] jit-conditional ; inline
@@ -746,7 +746,7 @@ big-endian off
     ! store result
     1 push-down0 ;
 
-! fixnum (integer) division and modulo operations. 
+! fixnum (integer) division and modulo operations.
 ! Does not tag or push results.
 : jit-fixnum-/mod ( -- )
     ! load parameters
@@ -767,16 +767,16 @@ big-endian off
     { (start-context-and-delete) [ jit-start-context-and-delete ] }
 
     ! ## Entry points
-    ! called by callback-stub. 
-    ! this contains some C++ setup/teardown, 
+    ! called by callback-stub.
+    ! this contains some C++ setup/teardown,
     ! as well as the actual call into the boot quote.
     { c-to-factor [
-            arg1 arg2 MOVr
-            vm-reg "begin_callback" jit-call-1arg
+        arg1 arg2 MOVr
+        vm-reg "begin_callback" jit-call-1arg
 
-            jit-call-quot
+        jit-call-quot
 
-            vm-reg "end_callback" jit-call-1arg
+        vm-reg "end_callback" jit-call-1arg
     ] }
     { unwind-native-frames [
         ! ! unwind-native-frames is marked as "special" in
@@ -802,14 +802,27 @@ big-endian off
 
     ! ## Math
     ! Overflowing fixnum (integer) addition
-    { fixnum+ [ 
-        [ ADDr ] "overflow_fixnum_add" jit-overflow ] }
+    { fixnum+ [
+        [ ADDSr ] "overflow_fixnum_add" jit-overflow ] }
     ! Overflowing fixnum (integer) subtraction
-    { fixnum- [ 
-        [ SUBr ] "overflow_fixnum_subtract" jit-overflow ] }
+    { fixnum- [
+        [ SUBSr ] "overflow_fixnum_subtract" jit-overflow ] }
     ! Overflowing fixnum (integer) multiplication
     { fixnum* [
-        [ MUL ] "overflow_fixnum_multiply" jit-overflow ] }
+        load-arg1/2
+        jit-save-context
+        arg1 untag
+        arg2 arg1 temp0 MUL
+        store0
+        arg2 arg1 temp1 SMULH
+        63 temp0 temp0 ASRi
+        temp0 temp1 CMPr
+        [ 4 + EQ B.cond ] [
+            arg2 untag
+            vm-reg arg3 MOVr
+            "overflow_fixnum_multiply" jit-call
+        ] jit-conditional
+    ] }
 
     ! ## Misc
     { fpu-state [
@@ -885,7 +898,7 @@ big-endian off
     ! ### Bit manipulation
     ! fixnum (integer) bitwise AND
     { fixnum-bitand [ \ ANDr jit-math ] }
-    
+
     ! fixnum (integer) bitwise NOT
     { fixnum-bitnot [
         load0
@@ -895,13 +908,13 @@ big-endian off
         tag-mask get temp0 temp0 EORi
         store0
     ] }
-    
+
     ! fixnum (integer) bitwise OR
     { fixnum-bitor [ \ ORRr jit-math ] }
-    
+
     ! fixnum (integer) bitwise XOR
     { fixnum-bitxor [ \ EORr jit-math ] }
-    
+
     ! fixnum (integer) bitwise shift (positive = left, negative = right)
     { fixnum-shift-fast [
         ! load shift count and value
@@ -966,7 +979,7 @@ big-endian off
     { fixnum/mod-fast [
         jit-fixnum-/mod
         ! tag it
-        temp2 tag
+        temp2 tag*
         ! push to stack
         store2/0
     ] }
@@ -1011,7 +1024,7 @@ big-endian off
         store0
     ] }
 
-    ! Turns the top item on the datastack 
+    ! Turns the top item on the datastack
     ! into a local stored on the retainstack.
     { load-local [ >r ] }
 
@@ -1038,7 +1051,7 @@ big-endian off
         ! load character
         string-offset temp0 temp0 ADDi
         temp1 temp0 temp0 LDRBr
-        temp0 tag
+        temp0 tag*
         ! store character to stack
         1 push-down0
     ] }
@@ -1051,7 +1064,7 @@ big-endian off
         ! compute tag
         tag-mask get temp0 temp0 ANDi
         ! tag the tag
-        temp0 tag
+        temp0 tag*
         ! push to stack
         store0
     ] }

@@ -2,7 +2,7 @@
 ! See https://factorcode.org/license.txt for BSD license.
 USING: arrays assocs combinators combinators.smart
 generalizations graphs.private kernel kernel.private math
-math.order namespaces quotations sequences
+math.order namespaces parser quotations sequences
 sequences.generalizations sequences.private sets shuffle
 stack-checker.transforms system words ;
 IN: combinators.extras
@@ -110,7 +110,7 @@ MACRO: cleave-array ( quots -- quot )
     currier quad@ ; inline
 
 MACRO: smart-plox ( true: ( ... -- x ) -- quot )
-    [ inputs [ 1 - [ and ] n*quot ] keep ] keep swap
+    [ inputs [ 1 - [ and ] n*quot ] keep ] 1check
     '[ _ _ [ _ ndrop f ] smart-if ] ;
 
 : throttle ( quot millis -- quot' )
@@ -122,11 +122,22 @@ MACRO: smart-plox ( true: ( ... -- x ) -- quot )
 : swap-when ( x y quot: ( x -- n ) quot: ( n n -- ? ) -- x' y' )
     '[ _ _ 2dup _ bi@ @ [ swap ] when ] call ; inline
 
+: >false ( obj -- f ) drop f ; inline
+: >2false ( obj1 obj2 -- f f ) 2drop f f ; inline
+: >3false ( obj1 obj2 obj3 -- f f f ) 3drop f f f ; inline
+: >4false ( obj1 obj2 obj3 obj4 -- f f f f ) 4drop f f f f ; inline
+
+: 2false-unless ( obj1 obj2 ? -- f f )
+    [ >2false ] unless ; inline
+
 : 2falsify ( obj1 obj2 -- obj1/f obj2/f )
-    2dup and [ 2drop f f ] unless ; inline
+    2dup and 2false-unless ; inline
+
+: 3false-unless ( obj1 obj2 obj3 ? -- f f f )
+    [ >3false ] unless ; inline
 
 : 3falsify ( obj1 obj2 obj3 -- obj1/f obj2/f obj3/f )
-    3dup and and [ 3drop f f f ] unless ; inline
+    3dup and and 3false-unless ; inline
 
 MACRO: n-and ( n -- quot )
     1 [-] [ and ] n*quot ;
@@ -271,14 +282,18 @@ PRIVATE>
 : closure-limit ( vertex quot: ( vertex -- edges ) n -- set )
     HS{ } closure-limit-as ; inline
 
-: 1check ( obj quot -- obj ? )
-    over [ call ] dip swap ; inline
+: 3both? ( x y z quot -- ? ) tri@ and and ; inline
 
-: 2check ( obj1 obj2 quot -- obj1 obj2 ? )
-    2over [ call ] 2dip rot ; inline
+: 3either? ( x y z quot -- ? ) tri@ or or ; inline
 
-: 1check-when ( ..a obj cond: ( ..a obj -- ? ) true: ( ..a obj -- ..b ) -- ..b )
-    [ 1check ] dip when ; inline
+: check2@ ( ..a x y quot: ( ..a -- ..a ? ) -- ..a ? ) '[ _ both? ] 2check ; inline
 
-: 2check-when ( ..a obj1 obj2 cond: ( ..a obj1 obj2 -- ? ) true: ( ..a obj1 obj2 -- ..b ) -- ..b )
-    [ 2check ] dip when ; inline
+: check3@ ( ..a x y z quot: ( ..a x -- ..a ? ) -- ..a ? ) '[ _ 3both? ] 3check ; inline
+
+: if? ( quot true false -- )
+    [ [ drop ] prepose ] dip 1if ; inline
+
+: if?? ( quot true false -- )
+    [ drop ] prepose 1if ; inline
+
+SYNTAX: ?[ parse-quotation [ ?call ] curry append! ;
