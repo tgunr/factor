@@ -5,17 +5,17 @@ calendar.parser combinators combinators.short-circuit
 combinators.smart formatting grouping http.download
 images.loader images.viewer io io.directories json json.http
 kernel math math.combinatorics math.order math.parser
-math.statistics namespaces random sequences sequences.deep
-sequences.extras sequences.generalizations sets sorting
-sorting.specification splitting splitting.extras strings
+math.statistics memoize namespaces random sequences
+sequences.deep sequences.extras sequences.generalizations sets
+sorting sorting.specification splitting splitting.extras strings
 ui.gadgets.panes unicode urls ;
 IN: scryfall
 
-CONSTANT: scryfall-oracle-json-path "resource:scryfall-oracle-json"
-CONSTANT: scryfall-artwork-json-path "resource:scryfall-artwork-json"
-CONSTANT: scryfall-default-json-path "resource:scryfall-default-json"
-CONSTANT: scryfall-all-json-path "resource:scryfall-all-json"
-CONSTANT: scryfall-rulings-json-path "resource:scryfall-rulings-json"
+CONSTANT: scryfall-oracle-json-path "resource:scryfall-oracle.json"
+CONSTANT: scryfall-artwork-json-path "resource:scryfall-artwork.json"
+CONSTANT: scryfall-default-json-path "resource:scryfall-default.json"
+CONSTANT: scryfall-all-json-path "resource:scryfall-all.json"
+CONSTANT: scryfall-rulings-json-path "resource:scryfall-rulings.json"
 CONSTANT: scryfall-images-path "resource:scryfall-images/"
 
 : ?write ( str/f -- ) [ write ] when* ;
@@ -34,17 +34,37 @@ CONSTANT: scryfall-images-path "resource:scryfall-images/"
 MEMO: mtg-oracle-cards ( -- json )
     "oracle_cards" scryfall-oracle-json-path load-scryfall-json ;
 
+: redownload-mtg-oracle-cards ( -- json )
+    scryfall-oracle-json-path ?delete-file
+    \ mtg-oracle-cards [ reset-memoized ] [ execute ] bi ;
+
 MEMO: mtg-artwork-cards ( -- json )
     "unique_artwork" scryfall-artwork-json-path load-scryfall-json ;
+
+: redownload-mtg-artwork-cards ( -- json )
+    scryfall-artwork-json-path ?delete-file
+    \ mtg-artwork-cards [ reset-memoized ] [ execute ] bi ;
 
 MEMO: scryfall-default-cards-json ( -- json )
     "default_cards" scryfall-default-json-path load-scryfall-json ;
 
+: redownload-mtg-default-cards ( -- json )
+    scryfall-default-json-path ?delete-file
+    \ scryfall-default-cards-json [ reset-memoized ] [ execute ] bi ;
+
 MEMO: scryfall-all-cards-json ( -- json )
     "all_cards" scryfall-all-json-path load-scryfall-json ;
 
+: redownload-mtg-all-cards ( -- json )
+    scryfall-all-json-path ?delete-file
+    \ scryfall-all-cards-json [ reset-memoized ] [ execute ] bi ;
+
 MEMO: scryfall-rulings-json ( -- json )
     "rulings" scryfall-rulings-json-path load-scryfall-json ;
+
+: redownload-mtg-rulings-cards ( -- json )
+    scryfall-rulings-json-path ?delete-file
+    \ scryfall-rulings-json [ reset-memoized ] [ execute ] bi ;
 
 : ensure-scryfall-images-directory ( -- )
     scryfall-images-path make-directories ;
@@ -588,6 +608,7 @@ MEMO: scryfall-rulings-json ( -- json )
 : filter-nightbound-text ( seq -- seq' ) "nightbound" filter-by-oracle-itext ;
 : filter-ninjutsu-text ( seq -- seq' ) "ninjutsu" filter-by-oracle-itext ;
 : filter-offering-text ( seq -- seq' ) "offering" filter-by-oracle-itext ;
+: filter-offspring-text ( seq -- seq' ) "offspring" filter-by-oracle-itext ;
 : filter-open-an-attraction-text ( seq -- seq' ) "open an attraction" filter-by-oracle-itext ;
 : filter-outlast-text ( seq -- seq' ) "outlast" filter-by-oracle-itext ;
 : filter-overload-text ( seq -- seq' ) "overload" filter-by-oracle-itext ;
@@ -798,6 +819,7 @@ MEMO: scryfall-rulings-json ( -- json )
 : filter-flashback-keyword ( seq -- seq' ) "flashback" filter-by-keyword ;
 : filter-flying-keyword ( seq -- seq' ) "flying" filter-by-keyword ;
 : filter-food-keyword ( seq -- seq' ) "food" filter-by-keyword ;
+: filter-forage-keyword ( seq -- seq' ) "forage" filter-by-keyword ;
 : filter-for-mirrodin!-keyword ( seq -- seq' ) "for-mirrodin!" filter-by-keyword ;
 : filter-forecast-keyword ( seq -- seq' ) "forecast" filter-by-keyword ;
 : filter-forestcycling-keyword ( seq -- seq' ) "forestcycling" filter-by-keyword ;
@@ -806,6 +828,7 @@ MEMO: scryfall-rulings-json ( -- json )
 : filter-formidable-keyword ( seq -- seq' ) "formidable" filter-by-keyword ;
 : filter-friends-forever-keyword ( seq -- seq' ) "friends-forever" filter-by-keyword ;
 : filter-fuse-keyword ( seq -- seq' ) "fuse" filter-by-keyword ;
+: filter-gift-keyword ( seq -- seq' ) "gift" filter-by-keyword ;
 : filter-goad-keyword ( seq -- seq' ) "goad" filter-by-keyword ;
 : filter-graft-keyword ( seq -- seq' ) "graft" filter-by-keyword ;
 : filter-haste-keyword ( seq -- seq' ) "haste" filter-by-keyword ;
@@ -943,6 +966,7 @@ MEMO: scryfall-rulings-json ( -- json )
 : filter-undying-keyword ( seq -- seq' ) "undying" filter-by-keyword ;
 : filter-unearth-keyword ( seq -- seq' ) "unearth" filter-by-keyword ;
 : filter-unleash-keyword ( seq -- seq' ) "unleash" filter-by-keyword ;
+: filter-valiant-keyword ( seq -- seq' ) "valiant" filter-by-keyword ;
 : filter-vanishing-keyword ( seq -- seq' ) "vanishing" filter-by-keyword ;
 : filter-venture-into-the-dungeon-keyword ( seq -- seq' ) "venture-into-the-dungeon" filter-by-keyword ;
 : filter-vigilance-keyword ( seq -- seq' ) "vigilance" filter-by-keyword ;
@@ -1084,7 +1108,8 @@ MEMO: mtg-sets-by-name ( -- assoc )
 : otj-cards-bonus ( -- seq ) mtg-oracle-cards "big" filter-set ;
 : otj-cards-all ( -- seq ) mtg-oracle-cards { "otj" "big" } filter-set-intersect ;
 : blb-cards ( -- seq ) mtg-oracle-cards "blb" filter-set ;
-: blb-cards-all ( -- seq ) mtg-oracle-cards { "blb" } filter-set-intersect ;
+: blb-cards-bonus ( -- seq ) mtg-oracle-cards "blc" filter-set ;
+: blb-cards-all ( -- seq ) mtg-oracle-cards { "blb" "blc" } filter-set-intersect ;
 
 ! modern
 : mh3-cards ( -- seq ) mtg-oracle-cards "mh3" filter-set ;

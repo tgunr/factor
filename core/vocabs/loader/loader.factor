@@ -78,8 +78,9 @@ PRIVATE>
     ] if ;
 
 : vocab-exists? ( name -- ? )
-    [ dup valid-vocab-name? [ lookup-vocab ] [ drop f ] if ]
-    [ find-vocab-root ] ?unless ;
+    [ valid-vocab-name? ]
+    [ [ lookup-vocab ] [ find-vocab-root ] ?unless ]
+    [ drop f ] 1if ;
 
 : vocab-append-path ( vocab path -- newpath )
     swap find-vocab-root [ prepend-path ] [ drop f ] if* ;

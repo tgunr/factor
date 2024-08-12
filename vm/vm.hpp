@@ -446,8 +446,12 @@ struct factor_vm {
   void primitive_fixnum_divmod();
   bignum* fixnum_to_bignum(fixnum);
   bignum* cell_to_bignum(cell);
-  bignum* long_long_to_bignum(int64_t n);
-  bignum* ulong_long_to_bignum(uint64_t n);
+  bignum* int64_to_bignum(int64_t n);
+  bignum* uint64_to_bignum(uint64_t n);
+#ifndef FACTOR_64
+  bignum* int32_to_bignum(int32_t n);
+  bignum* uint32_to_bignum(uint32_t n);
+#endif
   inline fixnum sign_mask(fixnum x);
   inline fixnum branchless_max(fixnum x, fixnum y);
   inline fixnum branchless_abs(fixnum x);
@@ -494,8 +498,12 @@ struct factor_vm {
   cell to_cell(cell tagged);
   cell from_signed_8(int64_t n);
   int64_t to_signed_8(cell obj);
+  cell from_signed_4(int32_t n);
+  int32_t to_signed_4(cell obj);
   cell from_unsigned_8(uint64_t n);
   uint64_t to_unsigned_8(cell obj);
+  cell from_unsigned_4(uint32_t n);
+  uint32_t to_unsigned_4(cell obj);
   float to_float(cell value);
   double to_double(cell value);
   inline void overflow_fixnum_add(fixnum x, fixnum y);
@@ -630,7 +638,6 @@ struct factor_vm {
   void* alien_pointer();
   void primitive_dlopen();
   void primitive_dlsym();
-  void primitive_dlsym_raw();
   void primitive_dlclose();
   void primitive_dll_validp();
   char* alien_offset(cell obj);
@@ -691,7 +698,6 @@ struct factor_vm {
   void init_ffi();
   void ffi_dlopen(dll* dll);
   cell ffi_dlsym(dll* dll, symbol_char* symbol);
-  cell ffi_dlsym_raw(dll* dll, symbol_char* symbol);
   void ffi_dlclose(dll* dll);
   void c_to_factor_toplevel(cell quot);
   void init_signals();

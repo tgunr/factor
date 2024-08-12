@@ -1,9 +1,10 @@
 ! Copyright (C) 2023 John Benediktsson
 ! See https://factorcode.org/license.txt for BSD license
 
-USING: accessors assocs hashtables http http.client
-io.encodings.string io.encodings.utf8 json json.http kernel
-mirrors namespaces sequences sorting urls ;
+USING: accessors assocs assocs.extras calendar calendar.format
+hashtables http http.client io.encodings.string
+io.encodings.utf8 json json.http kernel mirrors namespaces
+sequences sorting urls ;
 
 IN: openai
 
@@ -13,6 +14,9 @@ SYMBOL: openai-api-base
 SYMBOL: openai-api-key
 
 SYMBOL: openai-organization
+
+CONSTANT: cheapest-openai-model "gpt-4o-mini"
+CONSTANT: best-openai-model "gpt-4o-2024-08-06"
 
 <PRIVATE
 
@@ -40,8 +44,16 @@ SYMBOL: openai-organization
 
 PRIVATE>
 
+: add-human-readable-timestamps ( models -- models )
+    [
+        dup "created" of unix-time>timestamp timestamp>rfc3339
+        "created-string" pick set-at
+    ] map ;
+
 : list-models ( -- models )
-    "models" openai-get "data" of [ "created" of ] sort-by ;
+    "models" openai-get "data" of
+    [ "created" of ] sort-by
+    add-human-readable-timestamps ;
 
 : list-model-names ( -- names )
     list-models [ "id" of ] map ;
@@ -72,6 +84,9 @@ TUPLE: chat-completion model messages temperature top_p n stream
 
 : <chat-completion> ( messages model -- chat-completion )
     chat-completion new swap >>model swap >>messages ;
+
+: <cheapest-chat-completion> ( messages -- chat-completion )
+    cheapest-openai-model <chat-completion> ;
 
 : chat-completions ( chat-completion -- data )
     openai-input "chat/completions" openai-post ;

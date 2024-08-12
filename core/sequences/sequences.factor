@@ -774,15 +774,12 @@ M: slice equal? over slice? [ sequence= ] [ 2drop f ] if ;
 
 PRIVATE>
 
-: sequence-hashcode ( n seq -- x )
+: sequence-hashcode ( depth seq -- x )
     [ 0 ] 2dip [ hashcode* sequence-hashcode-step ] with each ; inline
 
 M: sequence hashcode* [ sequence-hashcode ] recursive-hashcode ;
 
-M: iota hashcode*
-    over 0 <= [ 2drop 0 ] [
-        nip length 0 swap [ sequence-hashcode-step ] each-integer
-    ] if ;
+M: iota hashcode* [ sequence-hashcode ] recursive-hashcode ;
 
 M: reversed hashcode* [ sequence-hashcode ] recursive-hashcode ;
 

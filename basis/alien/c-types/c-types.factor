@@ -174,7 +174,7 @@ TUPLE: long-long-type < c-type ;
     pick void? [ drop nip call ] [ nip call ] if ; inline
 
 SYMBOLS:
-    ptrdiff_t intptr_t uintptr_t size_t
+    ptrdiff_t intptr_t uintptr_t size_t ssize_t
     c-string int8_t uint8_t int16_t uint16_t
     int32_t uint32_t int64_t uint64_t ;
 
@@ -357,13 +357,13 @@ M: pointer lookup-c-type
         <c-type>
             integer >>class
             integer >>boxed-class
-            [ alien-signed-cell ] >>getter
-            [ set-alien-signed-cell ] >>setter
+            [ alien-signed-8 ] >>getter
+            [ set-alien-signed-8 ] >>setter
             8 >>size
             t >>signed
             8 >>align
             8 >>align-first
-            "from_signed_cell" >>boxer
+            "from_signed_8" >>boxer
             "to_signed_8" >>unboxer
             [ >integer ] >>unboxer-quot
         \ longlong typedef
@@ -372,13 +372,13 @@ M: pointer lookup-c-type
         <c-type>
             integer >>class
             integer >>boxed-class
-            [ alien-unsigned-cell ] >>getter
-            [ set-alien-unsigned-cell ] >>setter
+            [ alien-unsigned-8 ] >>getter
+            [ set-alien-unsigned-8 ] >>setter
             8 >>size
             8 >>align
             8 >>align-first
-            "from_unsigned_cell" >>boxer
-            "to_cell" >>unboxer
+            "from_unsigned_8" >>boxer
+            "to_unsigned_8" >>unboxer
             [ >integer ] >>unboxer-quot
         \ ulonglong typedef
 
@@ -392,8 +392,9 @@ M: pointer lookup-c-type
 
         \ longlong lookup-c-type \ ptrdiff_t typedef
         \ longlong lookup-c-type \ intptr_t typedef
-
         \ ulonglong lookup-c-type \ uintptr_t typedef
+
+        \ longlong lookup-c-type \ ssize_t typedef
         \ ulonglong lookup-c-type \ size_t typedef
 
         \ longlong lookup-c-type \ isize typedef
@@ -403,14 +404,14 @@ M: pointer lookup-c-type
         <c-type>
             integer >>class
             integer >>boxed-class
-            [ alien-signed-cell ] >>getter
-            [ set-alien-signed-cell ] >>setter
+            [ alien-signed-4 ] >>getter
+            [ set-alien-signed-4 ] >>setter
             4 >>size
             t >>signed
             4 >>align
             4 >>align-first
-            "from_signed_cell" >>boxer
-            "to_fixnum" >>unboxer
+            "from_signed_4" >>boxer
+            "to_signed_4" >>unboxer
             [ >integer ] >>unboxer-quot
         \ int typedef
 
@@ -418,13 +419,13 @@ M: pointer lookup-c-type
         <c-type>
             integer >>class
             integer >>boxed-class
-            [ alien-unsigned-cell ] >>getter
-            [ set-alien-unsigned-cell ] >>setter
+            [ alien-unsigned-4 ] >>getter
+            [ set-alien-unsigned-4 ] >>setter
             4 >>size
             4 >>align
             4 >>align-first
-            "from_unsigned_cell" >>boxer
-            "to_cell" >>unboxer
+            "from_unsigned_4" >>boxer
+            "to_unsigned_4" >>unboxer
             [ >integer ] >>unboxer-quot
         \ uint typedef
 
@@ -460,8 +461,9 @@ M: pointer lookup-c-type
 
         \ int lookup-c-type \ ptrdiff_t typedef
         \ int lookup-c-type \ intptr_t typedef
-
         \ uint lookup-c-type \ uintptr_t typedef
+
+        \ int lookup-c-type \ ssize_t typedef
         \ uint lookup-c-type \ size_t typedef
 
         \ int lookup-c-type \ isize typedef

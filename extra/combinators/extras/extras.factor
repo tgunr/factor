@@ -297,3 +297,39 @@ PRIVATE>
     [ drop ] prepose 1if ; inline
 
 SYNTAX: ?[ parse-quotation [ ?call ] curry append! ;
+
+: ?1guard ( ..a x  quot: ( ..a x -- ..b ? ) -- ..b x/f ? )
+    1check [ t ] [ drop f f ] if ; inline
+
+: ?2guard ( ..a x y quot: ( ..a x y -- ..b ? ) -- ..b x/f y/f ? )
+    2check [ t ] [ 2drop f f f ] if ; inline
+
+: ?3guard ( ..a x y z quot: ( ..a x y z -- ..b ? ) -- ..b x/f y/f z/f ? )
+    3check [ t ] [ 3drop f f f f ] if ; inline
+
+: ?1if ( ..a x pred: ( ..a x quot: ( ..a x -- ..b ? ) -- ..b x ? ) true: ( ..b x -- ..c ) false: ( ..b x -- ..c ) -- ..c )
+    [ ?1guard ] 2dip if ; inline
+
+: ?1when ( ..a x pred: ( ..a x quot: ( ..a x -- ..b ? ) -- ..b x ? ) true: ( ..b x -- ..c ) -- ..c )
+    [ ] ?1if ; inline
+
+: ?1unless ( ..a x pred: ( ..a x quot: ( ..a x -- ..b ? ) -- ..b x ? ) false: ( ..b x -- ..c ) -- ..c )
+    [ ] swap ?1if ; inline
+
+: ?2if ( ..a x pred: ( ..a x y quot: ( ..a x y -- ..b ? ) -- ..b x ? ) true: ( ..b x y -- ..c ) false: ( ..b x y -- ..c ) -- ..c )
+    [ ?2guard ] 2dip if ; inline
+
+: ?2when ( ..a x pred: ( ..a x y quot: ( ..a x y -- ..b ? ) -- ..b x ? ) true: ( ..b x y -- ..c )  -- ..c )
+    [ ] ?2if ; inline
+
+: ?2unless ( ..a x pred: ( ..a x y quot: ( ..a x y -- ..b ? ) -- ..b x ? ) false: ( ..b x y -- ..c ) -- ..c )
+    [ ] swap ?2if ; inline
+
+: ?3if ( ..a x y z pred: ( ..a x quot: ( ..a x y z -- ..b ? ) -- ..b x ? ) true: ( ..b x y z -- ..c ) false: ( ..b x y z -- ..c ) -- ..c )
+    [ ?3guard ] 2dip if ; inline
+
+: ?3when ( ..a x y z pred: ( ..a x quot: ( ..a x y z -- ..b ? ) -- ..b x ? ) true: ( ..b x y z -- ..c ) -- ..c )
+    [ ] ?3if ; inline
+
+: ?3unless ( ..a x y z pred: ( ..a x quot: ( ..a x y z -- ..b ? ) -- ..b x ? ) false: ( ..b x y z -- ..c ) -- ..c )
+    [ ] swap ?3if ; inline

@@ -39,18 +39,26 @@ void sleep_nanos(uint64_t nsec) {
     fatal_error("nanosleep failed", 0);
 }
 
+void* native_dlopen(const char* path) {
+  return dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
+}
+
+void* native_dlsym(void* handle, const char* symbol) {
+  return dlsym(handle, symbol);
+}
+
+void native_dlclose(void* handle) {
+  dlclose(handle);
+}
+
 void factor_vm::init_ffi() { null_dll = dlopen(NULL, RTLD_LAZY); }
 
 void factor_vm::ffi_dlopen(dll* dll) {
   dll->handle = dlopen(alien_offset(dll->path), RTLD_LAZY | RTLD_GLOBAL);
 }
 
-cell factor_vm::ffi_dlsym_raw(dll* dll, symbol_char* symbol) {
-  return (cell)dlsym(dll ? dll->handle : null_dll, symbol);
-}
-
 cell factor_vm::ffi_dlsym(dll* dll, symbol_char* symbol) {
-  return FUNCTION_CODE_POINTER(ffi_dlsym_raw(dll, symbol));
+  return (cell)dlsym(dll ? dll->handle : null_dll, symbol);
 }
 
 void factor_vm::ffi_dlclose(dll* dll) {
