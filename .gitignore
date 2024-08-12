@@ -39,3 +39,6 @@ xcuserdata
 bin
 git-id
 tags
+.vscode
+factor-arm
+launch.json
