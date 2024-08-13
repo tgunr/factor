@@ -58,7 +58,12 @@ void print_prot_bits(int prot) {
     printf((prot & PROT_EXEC) == 0 ? "-" : "X");
 }
 void *try_mmap_jit(size_t size, int prot) {
+    #if defined(__APPLE__) && defined(FACTOR_ARM64)
     int map_flags = MAP_ANON | MAP_PRIVATE | MAP_JIT;
+    #else
+    int map_flags = MAP_ANON | MAP_PRIVATE | MAP_FIXED ;
+    #endif
+
     printf("Try mmap with MAP_JIT: ");
     print_prot_bits(prot);
     void *mem = mmap(NULL, size, prot, map_flags, -1, 0);
@@ -107,7 +112,7 @@ void trymmap() {
 
 #include "master.hpp"
 int main(int argc, char** argv) {
-    trymmap();
+    //trymmap();
 #if defined(__APPLE__) && defined(FACTOR_ARM64)
     pthread_jit_write_protect_np(0);
 #endif
