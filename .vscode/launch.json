@@ -1,0 +1,82 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "GDB factor",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/factor",
+      "args": [
+        "-i=boot.unix-arm.64.image"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for lldb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "LLDB",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/factor",
+      "args": [
+        "-i=boot.unix-arm.64.image"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIDebuggerPath": "/path/to/lldb"
+    },
+    {
+      "name": "LLDB factor-osx",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/factorOSX.image",
+      "args": [
+        "-i=factor-osx.image"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "targetArchitecture": "x86_64", // Explicitly specify the target architecture
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for lldb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "LLDB factor",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/factor",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for lldb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
