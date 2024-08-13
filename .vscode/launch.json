@@ -24,6 +24,17 @@
       ]
     },
     {
+      "name": "Build and Run",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/factor",
+      "args": [
+        "-i=boot.unix-arm.64.image"
+      ],
+      "preLaunchTask": "build",
+      "cwd": "${workspaceFolder}",
+    },
+    {
       "name": "LLDB",
       "type": "lldb",
       "request": "launch",
@@ -31,11 +42,7 @@
       "args": [
         "-i=boot.unix-arm.64.image"
       ],
-      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIDebuggerPath": "/path/to/lldb"
     },
     {
       "name": "LLDB factor-osx",
