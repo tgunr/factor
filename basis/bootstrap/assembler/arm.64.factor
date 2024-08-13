@@ -29,7 +29,7 @@ big-endian off
 ! X30/LR  non-volatile link register
 
 : words ( n -- n ) 4 * ; inline
-: stack-frame-size ( -- n ) 8 bootstrap-cells ; inline
+: stack-frame-size ( -- n ) 2 bootstrap-cells ; inline
 
 : return-reg ( -- reg ) X0 ; inline
 : arg1 ( -- reg ) X0 ; inline
@@ -51,8 +51,10 @@ big-endian off
 : ctx-reg ( -- reg ) X25 ; inline
 : return-address ( -- reg ) X24 ; inline
 
-: push-link-reg ( -- ) -16 stack-reg link-reg STRpre ;
-: pop-link-reg ( -- ) 16 stack-reg link-reg LDRpost ;
+! : push-link-reg ( -- ) -16 stack-reg link-reg STRpre ;
+! : pop-link-reg ( -- ) 16 stack-reg link-reg LDRpost ;
+: push-link-reg ( -- ) -16 stack-reg link-reg stack-frame-reg STPpre ;
+: pop-link-reg ( -- ) 16 stack-reg link-reg stack-frame-reg LDPpost ;
 
 : load0 ( -- ) 0 ds-reg temp0 LDRuoff ;
 : load1 ( -- ) -8 ds-reg temp1 LDUR ;
@@ -116,9 +118,14 @@ big-endian off
     3 words Br
     NOP NOP f rc-absolute-cell ; inline
 
+: annotate ( n -- )
+    2 words Br
+    BRK ;
+
 ! This is used when a word is called at the end of a quotation.
 ! JIT-WORD-CALL is used for other word calls.
 [
+    0x0001 annotate
     5 words return-address ADR
     absolute-jump rel-word-pic-tail
 ] JIT-WORD-JUMP jit-define
@@ -126,6 +133,7 @@ big-endian off
 ! This is used when a word is called.
 ! JIT-WORD-JUMP is used if the word is the last piece of code in a quotation.
 [
+    0x0002 annotate
     absolute-call rel-word-pic
 ] JIT-WORD-CALL jit-define
 
