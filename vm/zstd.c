@@ -21512,19 +21512,23 @@ ZSTD_compressSubBlock_sequences(const ZSTD_fseCTables_t* fseTables,
     /* Sequences Header */
     RETURN_ERROR_IF((oend-op) < 3 /*max nbSeq Size*/ + 1 /*seqHead*/,
                     dstSize_tooSmall, "");
-    if (nbSeq < 128)
+    if (nbSeq < 128) {
         *op++ = (BYTE)nbSeq;
-    else if (nbSeq < LONGNBSEQ)
-        op[0] = (BYTE)((nbSeq>>8) + 0x80), op[1] = (BYTE)nbSeq, op+=2;
-    else
-        op[0]=0xFF, MEM_writeLE16(op+1, (U16)(nbSeq - LONGNBSEQ)), op+=3;
-    if (nbSeq==0) {
+    } else if (nbSeq < LONGNBSEQ) {
+        op[0] = (BYTE)((nbSeq>>8) + 0x80);
+        op[1] = (BYTE)nbSeq;
+        op += 2;
+    } else {
+        op[0] = 0xFF;
+        MEM_writeLE16(op+1, (U16)(nbSeq - LONGNBSEQ));
+        op += 3;
+    }
+    if (nbSeq == 0) {
         return (size_t)(op - ostart);
     }
 
     /* seqHead : flags for FSE encoding type */
     seqHead = op++;
-
     DEBUGLOG(5, "ZSTD_compressSubBlock_sequences (seqHeadSize=%u)", (unsigned)(op-ostart));
 
     if (writeEntropy) {
