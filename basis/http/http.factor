@@ -36,7 +36,8 @@ CONSTANT: max-redirects 10
         [ header-value>string check-header-string write crlf ] bi*
     ] assoc-each crlf ;
 
-TUPLE: cookie name value version comment path domain expires max-age http-only secure ;
+TUPLE: cookie name value version comment path domain expires max-age http-only secure
+priority samesite sameparty hostprefix domainprefix ;
 
 : <cookie> ( value name -- cookie )
     cookie new
@@ -57,6 +58,11 @@ TUPLE: cookie name value version comment path domain expires max-age http-only s
                 { "path" [ >>path ] }
                 { "httponly" [ drop t >>http-only ] }
                 { "secure" [ drop t >>secure ] }
+                { "priority" [ >>priority ] }
+                { "samesite" [ >>samesite ] }
+                { "sameparty" [ >>sameparty ] }
+                { "hostprefix" [ >>hostprefix ] }
+                { "domainprefix" [ >>domainprefix ] }
                 [ drop rot <cookie> dup , ]
             } case nip
         ] assoc-each
@@ -122,6 +128,11 @@ TUPLE: cookie name value version comment path domain expires max-age http-only s
         "max-age" over max-age>> unparse-cookie-value
         "httponly" over http-only>> unparse-cookie-value
         "secure" over secure>> unparse-cookie-value
+        "priority" over priority>> unparse-cookie-value
+        "samesite" over samesite>> unparse-cookie-value
+        "sameparty" over sameparty>> unparse-cookie-value
+        "hostprefix" over hostprefix>> unparse-cookie-value
+        "domainprefix" over domainprefix>> unparse-cookie-value
         drop
     ] { } make "; " join ;
 
@@ -143,6 +154,11 @@ TUPLE: request
 
 : delete-header ( request/response key -- request/response )
     over header>> delete-at ;
+
+: bearer-auth ( token -- string ) "Bearer " prepend ;
+
+: set-bearer-auth ( request token -- request )
+    bearer-auth "Authorization" set-header ;
 
 : basic-auth ( username password -- str )
     ":" glue >base64 "Basic " "" prepend-as ;

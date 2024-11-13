@@ -261,6 +261,10 @@ strings tools.test ;
 { "cdef" } [ 2 f "abcdef" subseq* ] unit-test
 { "cd" } [ -4 -2 "abcdef" subseq* ] unit-test
 
+{ { } } [ "abcabc" "abcd" subseq-indices ] unit-test
+{ { 0 3 } } [ "abcabc" "abc" subseq-indices ] unit-test
+{ { 0 3 } } [ "abcabcabc" "abcabc" subseq-indices ] unit-test
+
 { "foo" "" } [ "foo" [ ascii:blank? ] cut-when ] unit-test
 { "foo" " " } [ "foo " [ ascii:blank? ] cut-when ] unit-test
 { "" " foo" } [ " foo" [ ascii:blank? ] cut-when ] unit-test
@@ -469,6 +473,62 @@ strings tools.test ;
 { 0 } [ 0 CHAR: a "abba" nth-index ] unit-test
 { 3 } [ 1 CHAR: a "abba" nth-index ] unit-test
 { f } [ 2 CHAR: a "abba" nth-index ] unit-test
+
+{ 1 5 } [ 1 { 3 5 7 9 11 } [ odd? ] find-nth ] unit-test
+{ 3 9 } [ 3 { 3 5 7 9 11 } [ odd? ] find-nth ] unit-test
+{ 4 11 } [ 3 1 { 3 5 7 9 11 } [ odd? ] find-nth-from ] unit-test
+{ 3 9 } [ 1 { 3 5 7 9 11 } [ odd? ] find-nth-last ] unit-test
+{ 1 5 } [ 3 { 3 5 7 9 11 } [ odd? ] find-nth-last ] unit-test
+{ 1 5 } [ 1 2 { 3 5 7 9 11 } [ odd? ] find-nth-last-from ] unit-test
+
+{ f f  } [ -2 2 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ 0 11 } [ -1 2 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ 2 13 } [  0 2 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ 4 15 } [  1 2 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ f f  } [  2 2 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+
+{ f f  } [ -2 2 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ 4 15 } [ -1 2 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ 2 13 } [  0 2 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ 0 11 } [  1 2 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ f f  } [  2 2 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+
+{ f f  } [ -2 2 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ 1 12 } [ -1 2 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ 3 14 } [  0 2 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ f f  } [  1 2 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ f f  } [  2 2 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+
+{ f f  } [ -2 2 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ 3 14 } [ -1 2 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ 1 12 } [  0 2 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ f f  } [  1 2 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ f f  } [  2 2 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+
+
+{ f f  } [ -2 1 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ 0 11 } [ -1 1 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ 2 13 } [  0 1 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ 4 15 } [  1 1 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+{ f f  } [  2 1 { 11 12 13 14 15 } [ odd? ] find-nth-from ] unit-test
+
+{ 4 15 } [ -2 1 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ 2 13 } [ -1 1 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ 0 11 } [  0 1 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ f f  } [  1 1 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+{ f f  } [  2 1 { 11 12 13 14 15 } [ odd? ] find-nth-last-from ] unit-test
+
+{ f f  } [ -2 1 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ f f  } [ -1 1 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ 1 12 } [  0 1 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ 3 14 } [  1 1 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+{ f f  } [  2 1 { 11 12 13 14 15 } [ even? ] find-nth-from ] unit-test
+
+{ f f  } [ -2 1 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ 3 14 } [ -1 1 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ 1 12 } [  0 1 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ f f  } [  1 1 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
+{ f f  } [  2 1 { 11 12 13 14 15 } [ even? ] find-nth-last-from ] unit-test
 
 { { -995 11 26 61 } } [
     1000 V{ 5 16 42 103 } [ - ] { } map-prior-identity-as

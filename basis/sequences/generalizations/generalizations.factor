@@ -1,7 +1,8 @@
 ! Copyright (C) 2009 Joe Groff.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: arrays combinators generalizations kernel math math.order
-memoize.private quotations sequences sequences.private ;
+memoize.private quotations sequences sequences.padded
+sequences.private ;
 IN: sequences.generalizations
 
 MACRO: (nsequence) ( n -- quot )
@@ -36,13 +37,13 @@ MACRO: set-firstn ( n -- quot )
     ] if-zero ;
 
 MACRO: ?firstn ( n -- quot )
-    dup '[ _ f pad-tail _ firstn-unsafe ] ;
+    dup '[ _ f <padded-tail> _ firstn-unsafe ] ;
 
 : lastn ( seq n -- elts... )
     [ tail-slice* ] [ firstn-unsafe ] bi ; inline
 
 : ?lastn ( seq n -- elts... )
-    [ f pad-head ] [ lastn ] bi ; inline
+    [ f <padded-head> ] [ lastn ] bi ; inline
 
 : set-lastn ( elts... seq n -- )
     [ tail-slice* ] [ set-firstn-unsafe ] bi ; inline

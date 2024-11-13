@@ -8,7 +8,7 @@ models.range opengl opengl.demo-support opengl.gl sequences
 threads ui ui.commands ui.gadgets ui.gadgets.borders
 ui.gadgets.buttons ui.gadgets.frames ui.gadgets.grids
 ui.gadgets.labeled ui.gadgets.labels ui.gadgets.packs
-ui.gadgets.sliders ui.render ui.tools.common ;
+ui.gadgets.sliders ui.render ui.theme ui.tools.common ;
 
 QUALIFIED-WITH: models.range mr
 IN: boids
@@ -49,7 +49,7 @@ M: boids-gadget ungraft*
     ] with-translation ;
 
 : draw-boids ( boids -- )
-    0.0 0.0 0.0 0.5 glColor4f
+    details-color >rgba-components drop 0.5 glColor4f
     [ draw-boid ] each ;
 
 M: boids-gadget draw-gadget* ( boids-gadget -- )
@@ -97,11 +97,11 @@ M: range-observer model-changed
 
     { 5 5 } <border> white-interior
 
-    behavior class-of name>> COLOR: gray <framed-labeled-gadget> ;
+    behavior class-of name>> heading-color <framed-labeled-gadget> ;
 
 :: set-population ( n boids-gadget -- )
     boids-gadget [
-        dup length n - dup 0 >
+        dup length n >integer - dup 0 >
         [ head* ]
         [ neg random-boids append ] if
     ] change-boids drop ;
@@ -145,7 +145,7 @@ PRIVATE>
 
     { 5 5 } <border> add-gadget
 
-    "simulation" COLOR: gray <framed-labeled-gadget> ;
+    "simulation" heading-color <framed-labeled-gadget> ;
 
 TUPLE: boids-frame < pack ;
 
@@ -171,4 +171,4 @@ boids-frame "touchbar" f {
 } define-command-map
 
 MAIN-WINDOW: boids { { title "Boids" } }
-    <boids-frame> >>gadgets ;
+    <boids-frame> white-interior >>gadgets ;

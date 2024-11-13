@@ -1,6 +1,6 @@
 ! Copyright (C) 2023 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: assocs http http.client json kernel sequences ;
+USING: assocs http http.client http.json json kernel sequences ;
 IN: solr
 
 : solr-request ( url -- json )
@@ -11,7 +11,7 @@ IN: solr
             { "Accept" "text/plain" }
         } set-headers
     ] unless
-    http-request nip json> ;
+    http-request-json nip ;
 
 : solr-docs ( url -- json )
     solr-request "response" of "docs" of ;

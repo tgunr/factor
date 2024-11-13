@@ -1,48 +1,76 @@
 namespace factor {
 
-#include <sys/syscall.h>
-#include <unistd.h>
-
 #define FACTOR_CPU_STRING "arm.64"
 
-#define __ARM_NR_cacheflush 0x0f0002
-
 inline static void flush_icache(cell start, cell len) {
-  int result;
-  cell end = start + len;
-
-  // From compiler-rt, Apache-2.0 WITH LLVM-exception
-  register int start_reg __asm("r0") = (int)(intptr_t)start;
-  const register int end_reg __asm("r1") = (int)(intptr_t)end;
-  const register int flags __asm("r2") = 0;
-  const register int syscall_nr __asm("r7") = __ARM_NR_cacheflush;
-  __asm __volatile("svc 0x0"
-                   : "=r"(start_reg)
-                   : "r"(syscall_nr), "r"(start_reg), "r"(end_reg), "r"(flags));
-  //if (start_reg == 0)
-    //critical_error("flush_icache() failed", result);
-
-  uint64_t xstart = (uint64_t)(uintptr_t)start;
-  uint64_t xend = (uint64_t)(uintptr_t)end;
-  uint64_t addr;
-
-  // Get Cache Type Info
-  uint64_t ctr_el0;
-  __asm __volatile("mrs %0, ctr_el0" : "=r"(ctr_el0));
-
-  // dc & ic instructions must use 64bit registers so we don't use
-  // uintptr_t in case this runs in an IPL32 environment.
-  const size_t dcache_line_size = 4 << ((ctr_el0 >> 16) & 15);
-  for (addr = xstart & ~(dcache_line_size - 1); addr < xend;
-       addr += dcache_line_size)
-    __asm __volatile("dc cvau, %0" ::"r"(addr));
-  __asm __volatile("dsb ish");
-
-  const size_t icache_line_size = 4 << ((ctr_el0 >> 0) & 15);
-  for (addr = xstart & ~(icache_line_size - 1); addr < xend;
-       addr += icache_line_size)
-    __asm __volatile("ic ivau, %0" ::"r"(addr));
-  __asm __volatile("isb sy");
+  __builtin___clear_cache((char *)start, (char *)(start + len));
 }
+
+#define CALLSTACK_BOTTOM(ctx) (ctx->callstack_seg->end - sizeof(cell) * 6)
+
+// void c_to_factor(cell quot);
+// void lazy_jit_compile(cell quot);
+
+// 3 B of LDR=BLR
+static const unsigned int call_opcode = 0x14000003;
+// X9 BR of LDR=BR
+static const unsigned int jmp_opcode = 0xd61f0120;
+
+inline static unsigned int call_site_opcode(cell return_address) {
+  return *(unsigned int*)(return_address - 12);
+}
+
+inline static void check_call_site(cell return_address) {
+  unsigned char opcode = call_site_opcode(return_address);
+  FACTOR_ASSERT(opcode == call_opcode || opcode == jmp_opcode);
+  (void)opcode; // suppress warning when compiling without assertions
+}
+
+inline static void* get_call_target(cell return_address) {
+  check_call_site(return_address);
+  return (void*)(*(cell*)(return_address - sizeof(cell)));
+}
+
+inline static void set_call_target(cell return_address, cell target) {
+  check_call_site(return_address);
+  *(cell*)(return_address - sizeof(cell)) = target;
+}
+
+inline static bool tail_call_site_p(cell return_address) {
+  switch (call_site_opcode(return_address)) {
+    case jmp_opcode:
+      return true;
+    case call_opcode:
+      return false;
+    default:
+      abort();
+      return false;
+  }
+}
+
+// inline static unsigned int fpu_status(unsigned int status) {
+//   unsigned int r = 0;
+
+//   if (status & 0x01)
+//     r |= FP_TRAP_INVALID_OPERATION;
+//   if (status & 0x04)
+//     r |= FP_TRAP_ZERO_DIVIDE;
+//   if (status & 0x08)
+//     r |= FP_TRAP_OVERFLOW;
+//   if (status & 0x10)
+//     r |= FP_TRAP_UNDERFLOW;
+//   if (status & 0x20)
+//     r |= FP_TRAP_INEXACT;
+
+//   return r;
+// }
+
+// Must match the stack-frame-size constant in
+// basis/bootstrap/assembler/arm.64.factor
+static const unsigned JIT_FRAME_SIZE = 64;
+
+// Must match the calculation in word jit-signal-handler-prolog in
+// basis/bootstrap/assembler/arm.64.factor
+static const unsigned SIGNAL_HANDLER_STACK_FRAME_SIZE = 288;
 
 }

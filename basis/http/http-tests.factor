@@ -1,5 +1,5 @@
-USING: accessors combinators.short-circuit continuations db
-db.sqlite db.tuples destructors furnace furnace.actions
+USING: accessors calendar combinators.short-circuit
+continuations db db.sqlite destructors furnace.actions
 furnace.alloy furnace.auth furnace.auth.login
 furnace.conversations furnace.db furnace.redirection
 furnace.sessions html.components html.forms http http.client
@@ -8,9 +8,9 @@ http.server.dispatchers http.server.redirection
 http.server.requests http.server.responses http.server.static io
 io.crlf io.directories io.encodings.ascii io.encodings.binary
 io.encodings.utf8 io.files io.files.temp io.servers io.sockets
-io.streams.string kernel literals locals make multiline
-namespaces random sequences splitting threads tools.test urls
-validators xml xml.data xml.traversal ;
+io.streams.string kernel literals make multiline namespaces
+random sequences splitting tools.test urls validators xml
+xml.data xml.traversal ;
 IN: http.tests
 
 { "text/plain" "UTF-8" } [ "text/plain" parse-content-type ] unit-test
@@ -179,6 +179,44 @@ ${ read-response-test-1' } [
     "rmid=732423sdfs73242; path=/; domain=.example.net; expires=Fri, 31-Dec-2010 23:59:59 GMT"
     dup parse-set-cookie first unparse-set-cookie =
 ] unit-test
+
+! Test `priority` and `samesite` cookie attributes
+{
+    {
+        T{ cookie
+            { name "__Secure-3PSIDCC" }
+            { value
+                "AKEyXzVzit6DPX4hTh2K1BGVcH0nEbGhHeomHuFtM9XxKZ8nN61hx0n3"
+            }
+            { path "/" }
+            { domain ".google.com" }
+            { expires
+                T{ timestamp
+                    { year 2025 }
+                    { month 8 }
+                    { day 21 }
+                    { hour 2 }
+                    { minute 20 }
+                    { second 50 }
+                }
+            }
+            { http-only t }
+            { secure t }
+            { priority "high" }
+            { samesite "none" }
+        }
+    }
+} [
+    "__Secure-3PSIDCC=AKEyXzVzit6DPX4hTh2K1BGVcH0nEbGhHeomHuFtM9XxKZ8nN61hx0n3; expires=Thu, 21-Aug-2025 02:20:50 GMT; path=/; domain=.google.com; Secure; HttpOnly; priority=high; SameSite=none" parse-set-cookie
+] unit-test
+
+! Test cookie round trip
+{ t } [
+    "__Secure-3PSIDCC=AKEyXzVzit6DPX4hTh2K1BGVcH0nEbGhHeomHuFtM9XxKZ8nN61hx0n3; expires=Thu, 21-Aug-2025 02:20:50 GMT; path=/; domain=.google.com; Secure; HttpOnly; priority=high; SameSite=none"
+    dup parse-set-cookie first unparse-set-cookie
+    [ parse-set-cookie ] bi@ =
+] unit-test
+
 
 {
     {
