@@ -54,8 +54,8 @@ ifdef CONFIG
 	endif
 
 	ifneq ($(DEBUG), 0)
-		CFLAGS += -g -DFACTOR_DEBUG
-		CXXFLAGS += -g -DFACTOR_DEBUG
+		CFLAGS += -g -O0 -DFACTOR_DEBUG
+		CXXFLAGS += -g -O0 -DFACTOR_DEBUG
 	else
 		OPTIMIZATION := -O3
 		CFLAGS += $(CC_OPT) $(OPTIMIZATION)
@@ -216,7 +216,7 @@ help:
 	@echo "LTO=1  compile VM with Link Time Optimization"
 	@echo "X11=1  force link with X11 libraries instead of Cocoa (only on macOS)"
 
-ALL = factor-executable factor-ffi-test factor-lib
+ALL := factor-executable factor-ffi-test factor-lib factor.dSYM
 
 freebsd-x86-32:
 	$(MAKE) $(ALL) CONFIG=vm/Config.freebsd.x86.32
@@ -335,9 +335,10 @@ clean:
 	rm -f factor.dll
 	rm -f factor.lib
 	rm -f factor.dll.lib
-	rm -f libfactor.*
+	rm -fr libfactor.*
 	rm -f libfactor-ffi-test.*
 	rm -f Factor.app/Contents/Frameworks/libfactor.dylib
+	rm -fr libfactor.dylib.dSYM
 
 .PHONY: factor-executable factor-lib factor-console factor-ffi-test tags clean help macos.app
 .PHONY: linux-x86-32 linux-x86-64 linux-ppc-32 linux-ppc-64 linux-arm-64 freebsd-x86-32 freebsd-x86-64 macos-x86-32 macos-x86-64 macos-x86-fat macos-arm64 windows-x86-32 windows-x86-64
