@@ -3,20 +3,30 @@ namespace factor {
 static const cell free_list_count = 32;
 static const cell allocation_page_size = 1024;
 
+// Represents a free block in the heap
+// The header stores both size and status information:
+// - Lowest bit (bit 0) is set to 1 for free blocks, 0 for allocated blocks
+// - Bits 1-2 are reserved (masked out with ~7)
+// - Remaining bits store the block size
 struct free_heap_block {
+  // Header word containing size and status bits
   cell header;
 
+  // Returns true if this block is free (bit 0 is set)
   bool free_p() const { return (header & 1) == 1; }
 
+  // Returns the size of this block by masking off the status bits
   cell size() const {
-    cell size = header & ~7;
+    cell size = header & ~7; // Clear bottom 3 bits
     FACTOR_ASSERT(size > 0);
     return size;
   }
 
+  // Marks block as free and sets its size
+  // Sets bit 0 to indicate the block is free
   void make_free(cell size) {
     FACTOR_ASSERT(size > 0);
-    header = size | 1;
+    header = size | 1; // Set size and free bit
   }
 };
 
@@ -297,12 +307,20 @@ void free_list_allocator<Block>::compact(Iterator& iter, Fixup fixup,
 template <typename Block>
 template <typename Iterator, typename Fixup>
 void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
+  // This method iterates through all non-free blocks in the heap, applying the iterator
+  // function to each block. It uses a fixup object to properly calculate block sizes
+  // during compaction.
+  
+  // Start scanning from the beginning of the heap
   cell scan = this->start;
+  
+  // Continue until we reach the end of the heap
   while (scan != this->end) {
     Block* block = (Block*)scan;
     cell size = fixup.size(block);
     if (!block->free_p())
       iter(block, size);
+    // Move to next block
     scan += size;
   }
 }

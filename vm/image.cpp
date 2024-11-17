@@ -180,9 +180,14 @@ struct startup_fixup {
   cell data_offset;
   cell code_offset;
 
+  // Constructor for startup_fixup that takes the offsets between where data/code were saved
+  // and where they are now loaded in memory. These offsets are used to adjust pointers 
+  // during image loading to account for the heap being loaded at a different address.
+  //
+  // @param data_offset The difference between saved and loaded data heap addresses
+  // @param code_offset The difference between saved and loaded code heap addresses
   startup_fixup(cell data_offset, cell code_offset)
       : data_offset(data_offset), code_offset(code_offset) {}
-
   object* fixup_data(object* obj) {
     return (object*)((cell)obj + data_offset);
   }
@@ -208,17 +213,58 @@ struct startup_fixup {
   }
 };
 
+/**
+ * Adjusts all pointers in the Factor VM after loading an image file into memory.
+ * 
+ * When a Factor image is loaded, it may be loaded at a different memory address 
+ * than where it was saved. This method "fixes up" or "relocates" all pointers 
+ * in both the data and code heaps to account for this difference.
+ * 
+ * @param data_offset The difference between where the data heap was saved and where it's now loaded
+ * @param code_offset The difference between where the code heap was saved and where it's now loaded
+ * 
+ * The method:
+ * - Visits all objects in both heaps
+ * - Adjusts any pointers they contain by adding the appropriate offset
+ * - Updates internal references between objects
+ * - Handles special cases like alien objects and DLLs
+ * 
+ * This is crucial for Factor's performance since it uses direct memory addresses,
+ * which need to remain valid regardless of where the image is loaded in memory.
+ */
 void factor_vm::fixup_heaps(cell data_offset, cell code_offset) {
+  // Create a fixup object to handle pointer adjustments based on heap offsets
   startup_fixup fixup(data_offset, code_offset);
+  
+  // Create a visitor that will traverse and update all pointers
   slot_visitor<startup_fixup> visitor(this, fixup);
+  
+  // First visit and update all root pointers (special objects, contexts etc)
   visitor.visit_all_roots();
 
+  // Lambda to process each object in the data heap
   auto start_object_updater = [&](object *obj, cell size) {
+    // Validate object pointer is within data heap bounds
+    FACTOR_ASSERT(obj != nullptr);
+    FACTOR_ASSERT((cell)obj >= data->tenured->start);
+    FACTOR_ASSERT((cell)obj < data->tenured->end);
+    
+    // Validate object size is reasonable
+    FACTOR_ASSERT(size > 0); 
+    FACTOR_ASSERT((cell)obj + size <= data->tenured->end);
+    
     (void)size;
+
+    // Record where this object starts for GC
     data->tenured->starts.record_object_start_offset(obj);
+
+    // Visit and update all slots (pointers) in this object
     visitor.visit_slots(obj);
+
+    // Handle special cases based on object type
     switch (obj->type()) {
       case ALIEN_TYPE: {
+        // For alien objects, update memory address or mark as expired
         alien* ptr = (alien*)obj;
         if (to_boolean(ptr->base))
           ptr->update_address();
@@ -227,23 +273,33 @@ void factor_vm::fixup_heaps(cell data_offset, cell code_offset) {
         break;
       }
       case DLL_TYPE: {
+        // For DLLs, reload the library
         ffi_dlopen((dll*)obj);
         break;
       }
       default: {
+        // For other objects, visit any code block references
         visitor.visit_object_code_block(obj);
         break;
       }
     }
   };
+
+  // Iterate through all objects in data heap
   data->tenured->iterate(start_object_updater, fixup);
 
+  // Lambda to process each code block
   auto updater = [&](code_block* compiled, cell size) {
     (void)size;
+    // Update any object references in the code block
     visitor.visit_code_block_objects(compiled);
+    
+    // Calculate relative base address and update instruction operands
     cell rel_base = compiled->entry_point() - fixup.code_offset;
     visitor.visit_instruction_operands(compiled, rel_base);
   };
+
+  // Iterate through all code blocks
   code->allocator->iterate(updater, fixup);
 }
 
@@ -266,15 +322,18 @@ char *threadsafe_strerror(int errnum) {
 // Read an image file from disk, only done once during startup
 // This function also initializes the data and code heaps
 void factor_vm::load_image(vm_parameters* p) {
-
+  // Open the image file for reading
   FILE* file = OPEN_READ(p->image_path);
   if (file == NULL) {
+    // Print error if file can't be opened
     std::cout << "Cannot open image file: " << AS_UTF8(p->image_path) << std::endl;
     char *msg = threadsafe_strerror(errno);
     std::cout << "strerror: " << msg << std::endl;
     free(msg);
     exit(1);
   }
+
+  // Handle embedded images by reading footer and seeking to image offset
   if (p->embedded_image) {
     embedded_image_footer footer;
     if (!read_embedded_image_footer(file, &footer)) {
@@ -284,6 +343,7 @@ void factor_vm::load_image(vm_parameters* p) {
     safe_fseek(file, (off_t)footer.image_offset, SEEK_SET);
   }
 
+  // Read and validate the image header
   image_header h;
   if (raw_fread(&h, sizeof(image_header), 1, file) != 1)
     fatal_error("Cannot read image header", 0);
@@ -294,6 +354,7 @@ void factor_vm::load_image(vm_parameters* p) {
   if (h.version != image_version)
     fatal_error("Bad image: version number check failed", h.version);
 
+  // Handle version 4 image format changes
   if (!h.version4_escape) {
     h.data_size = h.escaped_data_size;
   } else {
@@ -301,6 +362,7 @@ void factor_vm::load_image(vm_parameters* p) {
     h.compressed_code_size = h.code_size;
   }
 
+  // Load the data and code heaps from the image file
   load_data_heap(file, &h, p);
   load_code_heap(file, &h, p);
 
@@ -309,6 +371,7 @@ void factor_vm::load_image(vm_parameters* p) {
   // Certain special objects in the image are known to the runtime
   memcpy(special_objects, h.special_objects, sizeof(special_objects));
 
+  // Calculate offsets between saved and current heap locations
   cell data_offset = data->tenured->start - h.data_relocation_base;
   cell code_offset = code->allocator->start - h.code_relocation_base;
   fixup_heaps(data_offset, code_offset);
