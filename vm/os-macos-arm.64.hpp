@@ -66,8 +66,8 @@ inline static void mach_clear_fpu_status(x86_float_state64_t* float_state) {
   memset(&X87SW(float_state), 0, sizeof(X87SW(float_state)));
 }
 
-inline static void uap_clear_fpu_status(void* uap) {
-  mach_clear_fpu_status(UAP_FS(uap));
+inline static void uap_clear_fpu_status(void*) {
+  // mach_clear_fpu_status(UAP_FS(uap));
 }
 
 // Must match the stack-frame-size constant in
@@ -114,7 +114,7 @@ inline static unsigned int uap_fpu_status(void* uap) {
 }
 
 // omg
-inline static void uap_clear_fpu_status(void* uap) {
+inline static void uap_clear_fpu_status(void*) {
   // mach_clear_fpu_status(UAP_FS(uap));
 }
 
@@ -125,9 +125,8 @@ inline static void mach_clear_fpu_status(arm_neon_state64_t* float_state) {
 }
 
 // omg
-inline static unsigned int fpu_status(unsigned int status) {
+inline static unsigned int fpu_status(unsigned int status __attribute__((unused))) {
   unsigned int r = 0;
-
 /*
   if (status & 0x01)
     r |= FP_TRAP_INVALID_OPERATION;
