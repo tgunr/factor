@@ -36,26 +36,28 @@ void factor_vm::prepare_boot_image() {
 }
 
 void factor_vm::init_factor(vm_parameters* p) {
-  // Kilobytes
+  // Convert stack sizes from KB to bytes and align to page boundaries
   p->datastack_size = align_page(p->datastack_size << 10);
-  p->retainstack_size = align_page(p->retainstack_size << 10);
+  p->retainstack_size = align_page(p->retainstack_size << 10); 
   p->callstack_size = align_page(p->callstack_size << 10);
   p->callback_size = align_page(p->callback_size << 10);
 
-  // Megabytes
+  // Convert heap sizes from MB to bytes
   p->young_size <<= 20;
   p->aging_size <<= 20;
-  p->tenured_size <<= 20;
+  p->tenured_size <<= 20; 
   p->code_size <<= 20;
 
-  // Disable GC during init as a sanity check
+  // Disable garbage collection during initialization for safety
   gc_off = true;
 
-  // OS-specific initialization
+  // Initialize OS-specific functionality
   early_init();
 
+  // Get path to Factor executable
   p->executable_path = vm_executable_path();
 
+  // Determine image path - either embedded, specified, or default
   if (p->image_path == NULL) {
     if (embedded_image_p()) {
       p->embedded_image = true;
@@ -64,19 +66,25 @@ void factor_vm::init_factor(vm_parameters* p) {
       p->image_path = default_image_path();
   }
 
+  // Initialize random number generator and FFI
   srand((unsigned int)nano_count());
   init_ffi();
 
+  // Set up stack sizes
   datastack_size = p->datastack_size;
   retainstack_size = p->retainstack_size;
   callstack_size = p->callstack_size;
 
+  // Initialize contexts
   ctx = NULL;
   spare_ctx = new_context();
 
+  // Set up callback heap and load Factor image
   callbacks = new callback_heap(p->callback_size, this);
   load_image(p);
   max_pic_size = (int)p->max_pic_size;
+
+  // Initialize special objects with basic system info
   special_objects[OBJ_CELL_SIZE] = tag_fixnum(sizeof(cell));
   special_objects[OBJ_ARGS] = false_object;
   special_objects[OBJ_EMBEDDED] = false_object;
@@ -88,6 +96,7 @@ void factor_vm::init_factor(vm_parameters* p) {
 #define VALID_HANDLE(handle,mode) (handle)
 #endif
 
+  // Initialize array of system objects and their corresponding alien values
   cell aliens[][2] = {
     {OBJ_STDIN,           (cell)(VALID_HANDLE (stdin ,"r"))},
     {OBJ_STDOUT,          (cell)(VALID_HANDLE (stdout,"w"))},
@@ -104,24 +113,27 @@ void factor_vm::init_factor(vm_parameters* p) {
     {WIN_EXCEPTION_HANDLER, (cell)&factor::exception_handler}
 #endif
   };
+
+  // Create alien objects for each system object
   int n_items = sizeof(aliens) / sizeof(cell[2]);
   for (int n = 0; n < n_items; n++) {
     cell idx = aliens[n][0];
     special_objects[idx] = allot_alien(false_object, aliens[n][1]);
   }
 
-  // We can GC now
+  // Re-enable garbage collection
   gc_off = false;
 
+  // Prepare boot image if needed
   if (!to_boolean(special_objects[OBJ_STAGE2]))
     prepare_boot_image();
 
+  // Initialize signals and console if requested
   if (p->signals)
     init_signals();
 
   if (p->console)
     open_console();
-
 }
 
 // Allocates memory
