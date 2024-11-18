@@ -46,7 +46,9 @@ load-help? off
 
         "resource:basis/bootstrap/stage2.factor"
         dup file-exists? [
-            run-file
+            ! run-file
+            "Starting listener..." print
+            drop "listener" run
         ] [
             "Cannot find " write write "." print
             "Please move " write image-path write " into the same directory as the Factor sources," print
