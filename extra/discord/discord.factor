@@ -3,11 +3,11 @@
 USING: accessors alien.syntax arrays assocs byte-arrays calendar
 combinators combinators.short-circuit concurrency.mailboxes
 continuations destructors formatting hashtables help http
-http.client http.websockets io io.encodings.string
-io.encodings.utf8 io.streams.string json kernel math multiline
-namespaces prettyprint prettyprint.sections random sequences
-sets splitting strings threads tools.hexdump unicode vocabs
-words ;
+http.client http.json http.websockets io io.encodings.string
+io.encodings.utf8 io.sockets io.streams.string json kernel
+literals math multiline namespaces prettyprint
+prettyprint.sections random sequences sets splitting strings
+threads tools.hexdump unicode vocabs words ;
 IN: discord
 
 CONSTANT: discord-api-url "https://discord.com/api/v10"
@@ -21,6 +21,7 @@ TUPLE: discord-bot-config
     permissions intents
     user-callback obey-names
     metadata
+    { reconnect-time initial: $[ 2 seconds ] }
     discord-bot mailbox connect-thread ;
 
 TUPLE: discord-bot < disposable
@@ -31,12 +32,12 @@ TUPLE: discord-bot < disposable
     application user session_id resume_gateway_url
     guilds channels ;
 
-: <discord-bot> ( in out config -- discord-bot )
+: <discord-bot> ( config -- discord-bot )
     discord-bot new-disposable
         swap >>config
-        swap >>out
-        swap >>in
-        t >>send-heartbeat?
+        ! swap >>out
+        ! swap >>in
+        f >>send-heartbeat?
         t >>reconnect?
         f >>stop?
         V{ } clone >>messages
@@ -49,8 +50,6 @@ TUPLE: discord-bot < disposable
 : add-json-header ( request -- request )
     "application/json" "Content-Type" set-header ;
 
-: json-request-headers ( request -- headers json ) http-request utf8 decode json> ;
-: json-request ( request -- json ) json-request-headers nip ;
 : gwrite ( string -- ) [ write ] with-global ;
 : gprint ( string -- ) [ print ] with-global ;
 : gprint-flush ( string -- ) [ print flush ] with-global ;
@@ -64,7 +63,7 @@ TUPLE: discord-bot < disposable
 : discord-get-request ( route -- request )
     >discord-url <get-request> add-discord-auth-header ;
 : discord-get ( route -- json )
-    discord-get-request json-request ;
+    discord-get-request http-json ;
 : discord-post-request ( payload route -- request )
     >discord-url <post-request> add-discord-auth-header ;
 : discord-patch-request ( payload route -- request )
@@ -72,15 +71,15 @@ TUPLE: discord-bot < disposable
 : discord-delete-request ( route -- request )
     >discord-url <delete-request> add-discord-auth-header ;
 : discord-post ( payload route -- json )
-    discord-post-request json-request ;
+    discord-post-request http-json ;
 : discord-post-json ( payload route -- json )
-    [ >json ] dip discord-post-request add-json-header json-request ;
+    [ >json ] dip discord-post-request add-json-header http-json ;
 : discord-post-json-no-resp ( payload route -- )
     [ >json ] dip discord-post-request add-json-header http-request 2drop ;
 : discord-patch-json ( payload route -- json )
-    [ >json ] dip discord-patch-request add-json-header json-request ;
+    [ >json ] dip discord-patch-request add-json-header http-json ;
 : discord-delete-json ( route -- json )
-    discord-delete-request add-json-header json-request ;
+    discord-delete-request add-json-header http-json ;
 
 : bot-guild-join-uri ( discord-bot-config -- uri )
     [ permissions>> ] [ client-id>> ] [ guild-id>> ] tri
@@ -140,7 +139,7 @@ TUPLE: discord-bot < disposable
 : get-discord-bot-gateway ( -- json ) "/gateway/bot" discord-get ;
 
 : gateway-identify-json ( -- json )
-    \ discord-bot get
+    discord-bot get
     [ config>> ] ?call
     [ [ token>> ] ?call "0" or  ]
     [ [ intents>> ] ?call 3276541 or ] bi
@@ -196,17 +195,26 @@ ENUM: discord-opcode
     { INVALIDATE_SESSION 9 }
     { HELLO              10 }
     { HEARTBEAT_ACK      11 }
-    { GUILD_SYNC         12 } ;
+    { REQUEST_SOUNDBOARD_SOUNDS 31 } ;
 
 SINGLETONS:
     AUTOMOD_ACTION AUTOMOD_RULE_CREATE AUTOMOD_RULE_DELETE AUTOMOD_RULE_UPDATE
-    CHANNEL_CREATE CHANNEL_DELETE CHANNEL_PINS_UPDATE CHANNEL_UPDATE
-    GUILD_AVAILABLE GUILD_BAN_ADD GUILD_BAN_REMOVE
+    GUILD_CREATE GUILD_UPDATE GUILD_DELETE
+    GUILD_ROLE_CREATE GUILD_ROLE_UPDATE GUILD_ROLE_DELETE
+    CHANNEL_CREATE CHANNEL_UPDATE CHANNEL_DELETE CHANNEL_PINS_UPDATE
+    THREAD_CREATE THREAD_UPDATE THREAD_DELETE THREAD_LIST_SYNC
+    THREAD_JOIN
+    THREAD_MEMBER_UPDATE THREAD_MEMBER_DELETE THREAD_MEMBER_LIST_UPDATE
+    GUILD_BAN_ADD GUILD_BAN_REMOVE
+    GUILD_EMOJIS_UPDATE GUILD_INTEGRATION_UPDATE
+    GUILD_MEMBER_ADD GUILD_MEMBER_REMOVE GUILD_MEMBER_UPDATE
+    GUILD_MEMBERS_CHUNK
+    GUILD_AUDIT_LOG_ENTRY_CREATE
+    GUILD_SCHEDULED_EVENT_CREATE GUILD_SCHEDULED_EVENT_DELETE GUILD_SCHEDULED_EVENT_UPDATE
+    GUILD_SCHEDULED_EVENT_USER_ADD GUILD_SCHEDULED_EVENT_USER_REMOVE GUILD_SCHEDULED_EVENT_USER_UPDATE
     GUILD_CHANNEL_CREATE GUILD_CHANNEL_DELETE GUILD_CHANNEL_PINS_UPDATE GUILD_CHANNEL_UPDATE
-    GUILD_CREATE GUILD_EMOJIS_UPDATE GUILD_INTEGRATION_UPDATE GUILD_JOIN
-    GUILD_MEMBER_ADD GUILD_MEMBER_REMOVE GUILD_MEMBER_UPDATE GUILD_REMOVE
-    GUILD_ROLE_CREATE GUILD_ROLE_DELETE GUILD_ROLE_UPDATE
-    GUILD_STICKERS_UPDATE GUILD_UNAVAILABLE GUILD_UPDATE
+    GUILD_JOIN GUILD_REMOVE
+    GUILD_STICKERS_UPDATE GUILD_AVAILABLE GUILD_UNAVAILABLE
     INTERACTION_CREATE
     INVITE_CREATE INVITE_DELETE
     MEMBER_BAN MEMBER_JOIN MEMBER_REMOVE MEMBER_UNBAN MEMBER_UPDATE
@@ -218,9 +226,8 @@ SINGLETONS:
     SCHEDULED_EVENT_CREATE SCHEDULED_EVENT_REMOVE SCHEDULED_EVENT_UPDATE
     SCHEDULED_EVENT_USER_ADD SCHEDULED_EVENT_USER_REMOVE
     SHARD_CONNECT SHARD_DISCONNECT
-    SHARD_READY SHARD_RESUMED THREAD_CREATE
-    THREAD_DELETE THREAD_JOIN
-    THREAD_MEMBER_JOIN THREAD_MEMBER_REMOVE THREAD_UPDATE
+    SHARD_READY SHARD_RESUMED
+    THREAD_MEMBER_JOIN THREAD_MEMBER_REMOVE
     VOICE_SERVER_UPDATE VOICE_STATE_UPDATE
     READY TYPING_START USER_UPDATE WEBHOOKS_UPDATE ;
 
@@ -290,6 +297,7 @@ M: CHANNEL_UPDATE dispatch-message drop handle-channel-message ;
 M: CHANNEL_DELETE dispatch-message drop handle-channel-message ;
 M: CHANNEL_PINS_UPDATE dispatch-message 2drop ;
 M: GUILD_CREATE dispatch-message drop handle-guild-message ;
+M: GUILD_REMOVE dispatch-message 2drop ;
 M: GUILD_UPDATE dispatch-message drop handle-guild-message ;
 M: GUILD_EMOJIS_UPDATE dispatch-message 2drop ;
 M: GUILD_STICKERS_UPDATE dispatch-message 2drop ;
@@ -299,7 +307,6 @@ M: GUILD_CHANNEL_UPDATE dispatch-message 2drop ;
 M: GUILD_CHANNEL_DELETE dispatch-message 2drop ;
 M: GUILD_CHANNEL_PINS_UPDATE dispatch-message 2drop ;
 M: GUILD_JOIN dispatch-message 2drop ;
-M: GUILD_REMOVE dispatch-message 2drop ;
 M: GUILD_AVAILABLE dispatch-message 2drop ;
 M: GUILD_UNAVAILABLE dispatch-message 2drop ;
 M: GUILD_MEMBER_ADD dispatch-message 2drop ;
@@ -401,6 +408,8 @@ M: TYPING_START dispatch-message drop
 
 : handle-discord-HEARTBEAT_ACK ( json -- ) drop ;
 
+: handle-discord-REQUEST_SOUNDBOARD_SOUNDS ( json -- ) drop ;
+
 : parse-discord-op ( json -- )
     [
         clone now "timestamp" pick set-at discord-bot get
@@ -408,6 +417,7 @@ M: TYPING_START dispatch-message drop
     ] keep
     [ ] [ "s" of discord-bot get sequence-number<< ] [ "op" of ] tri {
         { 0 [
+            ! dup g... gflush
             [ "d" of ] [ "t" of [ "discord" lookup-word ] transmute ] bi
             [ dispatch-message ]
             [
@@ -419,13 +429,13 @@ M: TYPING_START dispatch-message drop
         { 7 [ handle-discord-RECONNECT ] }
         { 10 [ handle-discord-HELLO ] }
         { 11 [ handle-discord-HEARTBEAT_ACK ] }
+        { 31 [ handle-discord-REQUEST_SOUNDBOARD_SOUNDS ] }
         [ "unknown opcode:" gwrite g. g... gflush ]
     } case ;
 
 : stopping-discord-bot ( -- )
     discord-bot get t >>stop? drop ;
 
-DEFER: discord-reconnect
 : handle-discord-websocket ( obj opcode -- )
     "opcode: " gwrite dup g. over dup byte-array? [ utf8 decode json> ] when g... gflush
     {
@@ -452,25 +462,27 @@ DEFER: discord-reconnect
     } case ;
 
 : discord-reconnect ( -- )
-    "reconnect" g.
+    "reconnect" gprint-flush
+    discord-bot-config get [ <discord-bot> ] keep discord-bot<<
     discord-bot-gateway <get-request>
     add-discord-auth-header
     [ drop ] do-http-request
     dup response? [
         throw
     ] [
-        [ in>> stream>> ] [ out>> stream>> ] bi \ discord-bot-config get
-        <discord-bot>
-        [ discord-bot-config get discord-bot<< ] keep
+        [ in>> stream>> ] [ out>> stream>> ] bi
+        discord-bot-config get discord-bot>>
+        [ out<< ] [ in<< ] [ t >>send-heartbeat? ] tri
         dup '[
-            _ \ discord-bot [
+            _ discord-bot [
                 discord-bot get [ in>> ] [ out>> ] bi
                 [
                     [ handle-discord-websocket discord-bot-config get discord-bot>> stop?>> not ] read-websocket-loop
                 ] with-streams
             ] with-variable
-            discord-bot-config get mailbox>> "disconnected" swap mailbox-put
-        ] "Discord Bot" spawn >>bot-thread discord-bot-config get discord-bot<<
+        ] "Discord Bot" <thread>
+        [ discord-bot-config get mailbox>> "disconnected" swap mailbox-put ]
+        >>exit-handler dup (spawn) >>bot-thread discord-bot-config get discord-bot<<
     ] if ;
 
 M: discord-bot dispose*
@@ -488,14 +500,18 @@ M: discord-bot-config dispose
 
 : discord-connect ( config -- )
     <mailbox> >>mailbox
-    \ discord-bot-config [
+    discord-bot-config [
         [
             [
-                "connecting" g.
-                discord-reconnect
+                "connecting" gprint-flush
+                [
+                    discord-reconnect
+                    discord-bot-config get
+                    ! wait here for signal to maybe reconnect
+                    mailbox>> mailbox-get
+                ] [ addrinfo-error? ] ignore-error
                 discord-bot-config get
-                ! wait here for signal to maybe reconnect
-                [ mailbox>> mailbox-get ] [ discord-bot>> ] bi
+                [ reconnect-time>> sleep ] [ discord-bot>> ] bi
                 [ reconnect?>> ] [ stop?>> not ] bi and
             ] loop
         ] "Discord bot connect loop" spawn discord-bot-config get connect-thread<<

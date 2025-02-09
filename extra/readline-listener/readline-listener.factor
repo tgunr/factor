@@ -1,9 +1,12 @@
 ! Copyright (C) 2011 Erik Charlebois.
 ! See https://factorcode.org/license.txt for BSD license.
 
-USING: accessors assocs colors combinators editors io kernel
-listener readline sequences sets splitting threads
-tools.completion unicode.data vocabs vocabs.hierarchy ;
+USING: accessors assocs colors combinators editors io
+io.streams.256color io.streams.ansi kernel listener
+readline sequences sets splitting threads terminfo
+tools.completion ui.theme ui.theme.switching
+ui.tools.listener.history unicode.data vocabs
+vocabs.hierarchy ;
 
 IN: readline-listener
 
@@ -49,7 +52,7 @@ M: readline-reader prompt.
     named-colors prefixed ;
 
 : prefixed-editors ( prefix -- editors )
-    available-editors [ "editors." ?head drop ] map prefixed ;
+    available-editors prefixed ;
 
 : prefixed-chars ( prefix -- chars )
     name-map keys prefixed ;
@@ -77,7 +80,15 @@ PRIVATE>
         swap get-completions ?nth
         [ clear-completions f ] unless*
     ] set-completion
-    readline-reader new [ listener-main ] with-input-stream* ;
+    history-file [
+        dark-theme switch-theme-if-default
+        [ readline-reader new [ listener-main ] with-input-stream* ]
+        {
+            { [ tty-supports-256color? ] [ with-256color ] }
+            { [ tty-supports-ansicolor? ] [ with-ansi ] }
+            [ call ]
+        } cond
+    ] with-history ;
 
 : ?readline-listener ( -- )
     has-readline? [ readline-listener ] [ listener ] if ;

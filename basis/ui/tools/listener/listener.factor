@@ -67,12 +67,22 @@ M: vocab-word-completion (word-at-caret)
     [ '[ _ word-at-caret ] ] bi
     <arrow> ;
 
-SYMBOL: interactor-font
-monospace-font interactor-font set-global
+SYMBOL: interactor-style
+H{ } interactor-style set-global
+
+: interactor-font ( -- font )
+    monospace-font interactor-style get {
+        [ font-style of [ { bold bold-italic } member? [ t >>bold? ] when ] when* ]
+        [ font-style of [ { italic bold-italic } member? [ t >>italic? ] when ] when* ]
+        [ font-name of [ >>name ] when* ]
+        [ font-size of [ >>size ] when* ]
+        [ foreground of [ >>foreground ] when* ]
+        [ background of [ >>background ] when* ]
+    } cleave ;
 
 : <interactor> ( -- gadget )
     interactor new-editor
-        interactor-font get >>font
+        interactor-font >>font
         <flag> >>flag
         dup one-word-elt <element-model> >>token-model
         dup <word-model> >>word-model
@@ -97,15 +107,16 @@ GENERIC: (print-input) ( object -- )
 SYMBOL: listener-input-style
 H{
     { font-style bold }
-    { foreground $ text-color }
 } listener-input-style set-global
 
 SYMBOL: listener-word-style
 H{
     { font-name "sans-serif" }
     { font-style bold }
-    { foreground $ text-color }
 } listener-word-style set-global
+
+SYMBOL: listener-output-style
+H{ } listener-output-style set-global
 
 M: input (print-input)
     dup presented associate [
@@ -193,10 +204,10 @@ M: interactor dispose drop ;
 
 TUPLE: listener-gadget < tool error-summary output scroller input ;
 
-listener-gadget default-font-size  { 50 58 } n*v set-tool-dim
+listener-gadget default-font-size { 50 58 } n*v set-tool-dim
 
 : listener-streams ( listener -- input output )
-    [ input>> ] [ output>> <pane-stream> H{ } clone <style-stream> ] bi ;
+    [ input>> ] [ output>> <pane-stream> listener-output-style get <style-stream> ] bi ;
 
 : init-input/output ( listener -- listener )
     <interactor>
@@ -405,7 +416,7 @@ interactor "completion" f {
 
 : introduction. ( -- )
     [
-        H{ { font-size $ default-font-size } } [
+        default-font-size font-size associate [
             { $tip-of-the-day } print-element nl
             { $strong "Press " { $snippet "F1" } " at any time for help." } print-element nl
             vm-info print-element
@@ -508,13 +519,11 @@ M: listener-gadget ungraft*
 <PRIVATE
 
 :: adjust-listener-font-size ( listener delta -- )
+    listener delta adjust-font-size
     listener input>> :> interactor
     interactor output>> :> output
-    interactor
-        [ clone [ delta + ] change-size ] change-font
-        f >>line-height
-    font>> size>> font-size output style>> set-at
-    listener delta adjust-font-size ;
+    interactor f >>line-height font>> size>>
+    font-size output style>> set-at ;
 
 : com-font-size-plus ( listener -- )
     2 adjust-listener-font-size ;

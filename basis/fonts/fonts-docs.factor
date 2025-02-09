@@ -1,11 +1,11 @@
 ! Copyright (C) 2009 Slava Pestov
 ! See https://factorcode.org/license.txt for BSD license.
-USING: help.markup help.syntax kernel colors ;
+USING: help.markup help.syntax kernel colors strings ;
 IN: fonts
 
 HELP: <font>
-{ $values { "font" font } }
-{ $description "Creates a new font." } ;
+{ $values { "name" string } { "font" font } }
+{ $description "Creates a new font with the given " { $snippet "name" } " and " { $link default-font-size } ", " { $link default-font-foreground } ", and " { $link default-font-background } "." } ;
 
 HELP: font
 { $class-description "The class of fonts." } ;
@@ -35,11 +35,20 @@ ARTICLE: "fonts" "Fonts"
     font-with-foreground
     font-with-background
 }
-"Useful constants:"
+"Useful constructors:"
 { $subsections
     monospace-font
     sans-serif-font
     serif-font
+}
+"Variables controlling default values:"
+{ $subsections
+    default-font-size
+    default-font-foreground
+    default-font-background
+    default-monospace-font-name
+    default-sans-serif-font-name
+    default-serif-font-name
 }
 "A data type for font metrics. The " { $vocab-link "fonts" } " vocabulary does not provide any means of computing font metrics, it simply defines a common data type that other vocabularies, such as " { $vocab-link "ui.text" } " may use:"
 { $subsections metrics } ;

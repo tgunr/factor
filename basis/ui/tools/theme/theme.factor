@@ -2,13 +2,18 @@ USING: assocs fonts help.stylesheet help.tips io.styles kernel
 listener memoize namespaces prettyprint.private
 prettyprint.stylesheet sequences ui.gadgets.panes.private
 ui.theme ui.theme.switching ui.tools.listener vectors
-vocabs.prettyprint words ;
-IN: ui.theme.switching.tools
+vocabs.loader vocabs.prettyprint words ;
+IN: ui.tools.theme
+
+: set-tools-font-size ( size -- )
+    \ default-font-size set-global
+    \ specified-font reset-memoized
+    "help.stylesheet" reload ;
 
 : update-tools-style ( -- )
     ! fonts
-    text-color default-font-foreground-color set-global
-    content-background default-font-background-color set-global
+    text-color \ default-font-foreground set-global
+    content-background \ default-font-background set-global
 
     ! help.stylesheet
     default-style text-color foreground update-style

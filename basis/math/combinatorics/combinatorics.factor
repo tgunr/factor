@@ -96,7 +96,7 @@ DEFER: next-permutation
 
 <PRIVATE
 
-: <permutation-iota> ( seq -- <iota> )
+: <permutation-iota> ( seq -- iota )
     length factorial <iota> ; inline
 
 : permutations-quot ( seq quot -- seq quot' )
@@ -121,8 +121,7 @@ PRIVATE>
     permutations-quot all? ; inline
 
 : find-permutation ( ... seq quot: ( ... elt -- ... ? ) -- ... elt/f )
-    [ permutations-quot find drop ]
-    [ drop over [ permutation ] [ 2drop f ] if ] 2bi ; inline
+    '[ _ keep and ] permutations-quot map-find drop ; inline
 
 : reduce-permutations ( ... seq identity quot: ( ... prev elt -- ... next ) -- ... result )
     swapd each-permutation ; inline
@@ -218,7 +217,7 @@ PRIVATE>
     combinations-with-replacement-quot all? ; inline
 
 : find-combination-with-replacement ( ... seq k quot: ( ... elt -- ... ? ) -- ... elt/f )
-    [ f ] 3dip '[ nip _ 1check ] combinations-with-replacement-quot find drop and* ; inline
+    '[ _ keep and ] combinations-with-replacement-quot map-find drop ; inline
 
 : reduce-combinations-with-replacement ( ... seq k identity quot: ( ... prev elt -- ... next ) -- ... result )
     -rotd each-combination-with-replacement ; inline
@@ -308,7 +307,7 @@ PRIVATE>
     combinations-quot all? ; inline
 
 : find-combination ( ... seq k quot: ( ... elt -- ... ? ) -- ... elt/f )
-    [ f ] 3dip '[ nip _ 1check ] combinations-quot find drop and* ; inline
+    '[ _ keep and ] combinations-quot map-find drop ; inline
 
 : reduce-combinations ( ... seq k identity quot: ( ... prev elt -- ... next ) -- ... result )
     -rotd each-combination ; inline
@@ -352,7 +351,7 @@ PRIVATE>
     selections-quot all? ; inline
 
 : find-selection ( ... seq n quot: ( ... elt -- ... ? ) -- ... elt/f )
-    [ f ] 3dip '[ nip _ 1check ] selections-quot find drop and* ; inline
+    '[ _ keep and ] selections-quot map-find drop ; inline
 
 : reduce-selections ( ... seq n identity quot: ( ... prev elt -- ... next ) -- ... result )
     -rotd each-selection ; inline
