@@ -359,3 +359,38 @@ sequences tools.test ;
 { H{ { 1 100 } } t } [
     H{ { 1 100 } } 1 101 maybe-set-of
 ] unit-test
+
+{ { { 1 4 7 } { 2 5 8 } { 3 6 9 } } } [
+    { 1 2 3 } { 4 5 6 } { 7 8 9 } 3 nzip
+] unit-test
+
+{ { 1 2 3 } { 4 5 6 } { 7 8 9 } } [
+    { { 1 4 7 } { 2 5 8 } { 3 6 9 } } 3 nunzip
+] unit-test
+
+{ { 1 2 3 } } [ { 1 2 3 } [ ] map-zip ] unit-test
+
+{
+    {
+        { 1 10 100 }
+        { 2 20 400 }
+        { 3 30 900 }
+        { 4 40 1600 }
+    }
+} [
+    { 1 2 3 4 } [ dup 10 * dup sq ] map-zip
+] unit-test
+
+{ { 3 7 } } [ { { 1 2 } { 3 4 } } [ + ] map-zip ] unit-test
+
+{ { 1 2 3 } } [ { 1 2 3 } [ ] map-unzip ] unit-test
+
+{
+    { 3 7 }
+    { 9 49 }
+    { 81 2401 }
+} [
+    { { 1 2 } { 3 4 } } [ + dup sq dup sq ] map-unzip
+] unit-test
+
+{ { 10 20 30 } } [ { 1 2 3 } [ 10 * ] map-unzip ] unit-test

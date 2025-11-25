@@ -38,8 +38,8 @@ CONSTANT: base32-alphabet $[ "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567" >byte-array ]
 : (encode-base32) ( stream column -- )
     5 pick stream-read dup length {
         { 0 [ 3drop ] }
-        { 5 [ encode5 write-lines (encode-base32) ] }
-        [ encode-pad write-lines (encode-base32) ]
+        { 5 [ encode5 wrap-lines (encode-base32) ] }
+        [ encode-pad wrap-lines (encode-base32) ]
     } case ;
 
 PRIVATE>
@@ -58,11 +58,9 @@ PRIVATE>
     [ write ] [ B{ 0 4 0 3 2 0 1 } nth head-slice write ] if-zero ; inline
 
 : (decode-base32) ( stream -- )
-    8 "\n\r" pick read-ignoring dup length {
-        { 0 [ 2drop ] }
-        { 8 [ decode8 (decode-base32) ] }
-        [ drop 8 CHAR: = pad-tail decode8 (decode-base32) ]
-    } case ;
+    8 "\n\r" pick read-ignoring [ drop ] [
+        8 CHAR: = pad-tail decode8 (decode-base32)
+    ] if-empty ;
 
 PRIVATE>
 
@@ -109,8 +107,8 @@ CONSTANT: base32hex-alphabet $[ "0123456789ABCDEFGHIJKLMNOPQRSTUV" >byte-array ]
 : (encode-base32hex) ( stream column -- )
     5 pick stream-read dup length {
         { 0 [ 3drop ] }
-        { 5 [ encode5hex write-lines (encode-base32hex) ] }
-        [ encode-padhex write-lines (encode-base32hex) ]
+        { 5 [ encode5hex wrap-lines (encode-base32hex) ] }
+        [ encode-padhex wrap-lines (encode-base32hex) ]
     } case ;
 
 PRIVATE>
@@ -129,11 +127,9 @@ PRIVATE>
     [ write ] [ B{ 0 4 0 3 2 0 1 } nth head-slice write ] if-zero ; inline
 
 : (decode-base32hex) ( stream -- )
-    8 "\n\r" pick read-ignoring dup length {
-        { 0 [ 2drop ] }
-        { 8 [ decode8hex (decode-base32hex) ] }
-        [ drop 8 CHAR: = pad-tail decode8hex (decode-base32hex) ]
-    } case ;
+    8 "\n\r" pick read-ignoring [ drop ] [
+        8 CHAR: = pad-tail decode8hex (decode-base32hex)
+    ] if-empty ;
 
 PRIVATE>
 
@@ -212,8 +208,8 @@ CONSTANT: zbase32-alphabet $[ "ybndrfg8ejkmcpqxot1uwisza345h769" >byte-array ]
 : (encode-zbase32) ( stream column -- )
     5 pick stream-read dup length {
         { 0 [ 3drop ] }
-        { 5 [ zencode5 write-lines (encode-zbase32) ] }
-        [ zencode-pad write-lines (encode-zbase32) ]
+        { 5 [ zencode5 wrap-lines (encode-zbase32) ] }
+        [ zencode-pad wrap-lines (encode-zbase32) ]
     } case ;
 
 PRIVATE>
@@ -232,11 +228,9 @@ PRIVATE>
     [ write ] [ B{ 0 4 0 3 2 0 1 } nth head-slice write ] if-zero ; inline
 
 : (decode-zbase32) ( stream -- )
-    8 "\n\r" pick read-ignoring dup length {
-        { 0 [ 2drop ] }
-        { 8 [ zdecode8 (decode-zbase32) ] }
-        [ drop 8 CHAR: = pad-tail zdecode8 (decode-zbase32) ]
-    } case ;
+    8 "\n\r" pick read-ignoring [ drop ] [
+        8 CHAR: = pad-tail zdecode8 (decode-zbase32)
+    ] if-empty ;
 
 PRIVATE>
 

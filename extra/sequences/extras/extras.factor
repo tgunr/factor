@@ -1,7 +1,7 @@
 USING: accessors arrays assocs assocs.extras combinators
-generalizations grouping growable hash-sets heaps kernel math
-math.order ranges sequences sequences.private sets shuffle
-sorting splitting vectors ;
+combinators.smart continuations generalizations grouping
+growable hash-sets heaps kernel math math.order ranges sequences
+sequences.private sets shuffle sorting splitting vectors ;
 IN: sequences.extras
 
 : find-all ( ... seq quot: ( ... elt -- ... ? ) -- ... elts )
@@ -424,6 +424,9 @@ PRIVATE>
     2dup bounds-check? [ nth-unsafe t ] [ 2drop f f ] if ; inline
 : ??nth-of ( seq n -- elt/f ? ) swap ??nth ; inline
 
+: deep-nth ( index-seq nested-seq -- elt ) [ nth-of ] reduce ;
+: deep-nth-of ( nested-seq index-seq -- elt ) [ nth-of ] each ;
+
 : reduce-of ( seq quot: ( prev elt -- next ) identity -- result )
     swap reduce ; inline
 
@@ -529,6 +532,9 @@ PRIVATE>
 : 2map-sum ( ... seq1 seq2 quot: ( ... elt1 elt2 -- ... n ) -- ... n )
     [ 0 ] 3dip [ dip + ] curry [ rot ] prepose 2each ; inline
 
+: 2none? ( ... seq1 seq2 quot: ( ... elt1 elt2 -- ... ? ) -- ... ? )
+    2any? not ; inline
+
 : 2count ( ... seq1 seq2 quot: ( ... elt1 elt2 -- ... ? ) -- ... n )
     [ 1 0 ? ] compose 2map-sum ; inline
 
@@ -630,7 +636,7 @@ PRIVATE>
 : 2map-index ( ... seq1 seq2 quot: ( ... elt1 elt2 index -- ... newelt ) -- ... newseq )
     pick [ 2sequence-index-iterator ] dip map-integers-as ; inline
 
-TUPLE: evens < sequence-view ;
+TUPLE: evens < wrapped-sequence ;
 
 C: <evens> evens
 
@@ -638,7 +644,7 @@ M: evens length seq>> length 1 + 2/ ; inline
 
 M: evens virtual@ [ 2 * ] [ seq>> ] bi* ; inline
 
-TUPLE: odds < sequence-view ;
+TUPLE: odds < wrapped-sequence ;
 
 C: <odds> odds
 
@@ -766,25 +772,22 @@ PRIVATE>
     [ find-index ] (map-find-index) ; inline
 
 : find-from* ( ... n seq quot: ( ... elt -- ... ? ) -- ... elt i/f )
-    '[ _ do-find-from element/index ] bounds-check-call ; inline
+    find-from swap ; inline
 
 : find* ( ... seq quot: ( ... elt -- ... ? ) -- ... elt i/f )
-    [ 0 ] 2dip do-find-from element/index ; inline
+    find swap ; inline
 
 : find-last-from* ( ... n seq quot: ( ... elt -- ... ? ) -- ... elt i/f )
-    '[ _ find-last-from-unsafe element/index ] bounds-check-call ; inline
+    find-last-from swap ; inline
 
 : find-last* ( ... seq quot: ( ... elt -- ... ? ) -- ... elt i/f )
-    [ index-of-last ] dip find-last-from* ; inline
+    find-last swap ; inline
 
 : find-index-from* ( ... n seq quot: ( ... elt i -- ... ? ) -- ... elt i/f )
-    '[
-        _ [ sequence-index-operator find-integer-from ] keepd
-        element/index
-    ] bounds-check-call ; inline
+    find-index-from swap ; inline
 
 : find-index* ( ... seq quot: ( ... elt i -- ... ? ) -- ... elt i/f )
-    [ 0 ] 2dip find-index-from* ; inline
+    find-index swap ; inline
 
 : filter-length ( seq n -- seq' ) '[ length _ = ] filter ;
 
@@ -1000,7 +1003,7 @@ ALIAS: map-infimum map-minimum deprecated
 : find-last-index-from ( ... n seq quot: ( ... elt i -- ... ? ) -- ... i elt )
     '[
         _ [ sequence-index-operator-last find-last-integer ] keepd
-        index/element
+        ?nth-unsafe
     ] bounds-check-call ; inline
 
 : find-last-index ( ... seq quot: ( ... elt i -- ... ? ) -- ... i elt )
@@ -1093,7 +1096,7 @@ ALIAS: map-infimum map-minimum deprecated
 TUPLE: step-slice
     { from integer read-only initial: 0 }
     { to integer read-only initial: 0 }
-    { seq read-only }
+    { seq sequence read-only }
     { step integer read-only } ;
 
 :: <step-slice> ( from/f to/f step seq -- step-slice )
@@ -1111,6 +1114,8 @@ TUPLE: step-slice
     seq dup slice? [ collapse-slice ] when
     step step-slice boa ;
 
+M: slice virtual-exemplar seq>> ; inline
+
 M: step-slice virtual@
     [ step>> * ] [ from>> + ] [ seq>> ] tri ; inline
 
@@ -1119,7 +1124,7 @@ M: step-slice length
     dup 0 < [ [ neg 0 max ] dip neg ] when /mod
     zero? [ 1 + ] unless ; inline
 
-INSTANCE: step-slice wrapped-sequence
+INSTANCE: step-slice virtual-sequence
 
 : 2nested-each* ( seq1 seq-quot: ( n -- seq ) quot: ( a b -- ) -- )
     '[
@@ -1271,3 +1276,36 @@ INSTANCE: virtual-zip-index immutable-sequence
         2 cut [ first2 cartesian-product concat ] dip swap
         [ [ suffix ] cartesian-map concat ] reduce
     ] if ;
+
+: throws? ( quot -- ? )
+    [ '[ _ drop-outputs f ] ] [ '[ drop _ drop-inputs t ] ] bi recover ; inline
+
+: filter-errors-as ( ... seq quot: ( ... elt -- ... ? ) -- ... subseq )
+    [ '[ _ throws? ] ] dip filter-as ; inline
+
+: filter-errors ( ... seq quot: ( ... elt -- ... ? ) -- ... subseq )
+    over filter-errors-as ; inline
+
+: reject-errors-as ( ... seq quot: ( ... elt -- ... ? ) -- ... subseq )
+    [ '[ _ throws? ] ] dip reject-as ; inline
+
+: reject-errors ( ... seq quot: ( ... elt -- ... ? ) -- ... subseq )
+    over reject-errors-as ; inline
+
+:: all-same? ( seq quot: ( elt -- obj/f ) -- ? )
+    seq [ t ] [
+        unclip-slice quot call
+        '[ quot call _ = ] all?
+    ] if-empty ; inline
+
+:: all-same-eq? ( seq quot: ( elt -- obj/f ) -- ? )
+    seq [ t ] [
+        unclip-slice quot call
+        '[ quot call _ = ] all-eq?
+    ] if-empty ; inline
+
+: adjacent-differences ( seq -- seq' )
+    f swap [ over [ [ swap - ] keep swap ] [ nip dup ] if ] map nip ;
+
+: partial-sums ( seq -- seq' )
+    0 swap [ + dup ] map nip ;

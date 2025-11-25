@@ -132,8 +132,7 @@ SYMBOL: redirects
 
 : read-chunked ( quot: ( chunk -- ) -- )
     read-chunk-size [ drop ] [
-        read [ swap call ] [ drop ] 2bi
-        read-crlf B{ } assert= read-chunked
+        read [ swap call ] keepd read-crlf B{ } assert= read-chunked
     ] if-zero ; inline recursive
 
 : read-response-body ( quot: ( chunk -- ) response -- )
@@ -221,8 +220,8 @@ SYMBOL: redirects
         [ response? ]
         [ code>> 101 = ]
         [ message>> >lower "switching protocols" = ]
-        [ header>> "connection" of "upgrade" = ]
-        [ header>> "upgrade" of "websocket" = ]
+        [ header>> "connection" of >lower "upgrade" = ]
+        [ header>> "upgrade" of >lower "websocket" = ]
     } 1&& ;
 
 PRIVATE>

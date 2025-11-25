@@ -133,3 +133,13 @@ tools.test ;
 { { { 4 } { 3 } { 2 } { 1 } } } [ 3 { 1 2 3 4 } all-removals ] unit-test
 { { { } } } [ 4 { 1 2 3 4 } all-removals ] unit-test
 { { } } [ 5 { 1 2 3 4 } all-removals ] unit-test
+
+{ { 0 1 3 6 2 7 13 20 12 21 } } [ 10 recaman ] unit-test
+{ 1057164 } [ 1,000,000 nth-recaman ] unit-test
+
+{ 0 } [ 0 tribonacci ] unit-test
+{ 1 } [ 1 tribonacci ] unit-test
+{ 1 } [ 2 tribonacci ] unit-test
+{ 2 } [ 3 tribonacci ] unit-test
+
+{ 98079530178586034536500564 } [ 100 tribonacci ] unit-test
