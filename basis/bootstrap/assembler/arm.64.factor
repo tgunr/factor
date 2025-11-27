@@ -256,14 +256,14 @@ big-endian off
 
 ! Contexts
 : jit-switch-context ( reg -- )
-    ! ! Push a bogus return address so the GC can track this frame back
-    ! ! to the owner
-    ! 0 CALL
-    0 BL ! ?!
+    ! Push a bogus return address so the GC can track this frame back
+    ! to the owner. On ARM64, BL only stores return address in LR - it does
+    ! NOT push to stack like x86-64 CALL. We must explicitly push to stack
+    ! for GC to find frame markers when walking suspended context stacks.
+    0 temp0 ADR                                  ! Get current PC into temp0
+    -16 SP temp0 FP STPpre                       ! Push FP and bogus return address
 
-    ! ! Make the new context the current one
-    ! ctx-reg swap MOV
-    ! vm-reg vm-context-offset [+] ctx-reg MOV
+    ! Make the new context the current one
     ctx-reg MOVr
     vm-context-offset vm-reg ctx-reg STRuoff
 
