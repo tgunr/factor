@@ -1,29 +1,29 @@
 ! Copyright (C) 2010 John Benediktsson
 ! See https://factorcode.org/license.txt for BSD license
 
-USING: ini-file linked-assocs tools.test ;
+USING: ini-file tools.test ;
 
-{ LH{ } } [ "" string>ini ] unit-test
+{ H{ } } [ "" string>ini ] unit-test
 
-{ LH{ { "section" LH{ } } } } [ "[section]" string>ini ] unit-test
+{ H{ { "section" H{ } } } } [ "[section]" string>ini ] unit-test
 
 { "[\"test \\\"section with quotes\\\"\"]\n\n" } [
     "[test \"section with quotes\"]" string>ini ini>string
 ] unit-test
 
-{ LH{ { "section" LH{ } } } } [ "[\"section\" ]" string>ini ] unit-test
+{ H{ { "section" H{ } } } } [ "[\"section\" ]" string>ini ] unit-test
 
-{ LH{ { "   some name with spaces " LH{ } } } }
+{ H{ { "   some name with spaces " H{ } } } }
 [ "[ \"   some name with spaces \"]" string>ini ] unit-test
 
-{ LH{ { "[]" LH{ } } } } [ "[\\[\\]]" string>ini ] unit-test
+{ H{ { "[]" H{ } } } } [ "[\\[\\]]" string>ini ] unit-test
 
-{ LH{ { "foo" "bar" } } } [ "foo=bar" string>ini ] unit-test
+{ H{ { "foo" "bar" } } } [ "foo=bar" string>ini ] unit-test
 
-{ LH{ { "foo" "bar" } { "baz" "quz" } } }
+{ H{ { "foo" "bar" } { "baz" "quz" } } }
 [ "foo=bar\nbaz= quz" string>ini ] unit-test
 
-{ LH{ { "section" LH{ { "foo" "abc def" } } } } }
+{ H{ { "section" H{ { "foo" "abc def" } } } } }
 [
     "
     [section]
@@ -31,7 +31,7 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "section" LH{ { "foo" "abc def" } } } } }
+{ H{ { "section" H{ { "foo" "abc def" } } } } }
 [
     "
     [section]
@@ -40,7 +40,7 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "section" LH{ { "foo" "abc def" } } } } }
+{ H{ { "section" H{ { "foo" "abc def" } } } } }
 [
     "
     [section]
@@ -49,14 +49,14 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "section" LH{ { "foo" "abc def" } } } } }
+{ H{ { "section" H{ { "foo" "abc def" } } } } }
 [
     "
     [section]   foo = \"abc def\"
     " string>ini
 ] unit-test
 
-{ LH{ { "section" LH{ { "foo" "abc def" } } } } }
+{ H{ { "section" H{ { "foo" "abc def" } } } } }
 [
     "
     [section]   foo = abc \\
@@ -64,7 +64,7 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "section" LH{ { "foo" "" } } } } }
+{ H{ { "section" H{ { "foo" "" } } } } }
 [
     "
     [section]
@@ -72,7 +72,7 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "section" LH{ { "foo" "" } } } } }
+{ H{ { "section" H{ { "foo" "" } } } } }
 [
     "
     [section]
@@ -80,7 +80,7 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "" LH{ { "" "" } } } } }
+{ H{ { "" H{ { "" "" } } } } }
 [
     "
     []
@@ -88,9 +88,9 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "owner" LH{ { "name" "John Doe" }
-                    { "organization" "Acme Widgets Inc." } } }
-    { "database" LH{ { "server" "192.0.2.62" }
+{ H{ { "owner" H{ { "name" "John Doe" }
+                  { "organization" "Acme Widgets Inc." } } }
+    { "database" H{ { "server" "192.0.2.62" }
                      { "port" "143" }
                      { "file" "payroll.dat" } } } } }
 [
@@ -107,8 +107,8 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "a long section name"
-       LH{ { "a long key name" "a long value name" } } } } }
+{ H{ { "a long section name"
+       H{ { "a long key name" "a long value name" } } } } }
 [
     "
     [a long section name ]
@@ -116,8 +116,8 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "section with \n escape codes"
-    LH{ { "a long key name" "a long value name" } } } } }
+{ H{ { "section with \n escape codes"
+    H{ { "a long key name" "a long value name" } } } } }
 [
     "
     [section with \\n escape codes]
@@ -125,8 +125,8 @@ USING: ini-file linked-assocs tools.test ;
     " string>ini
 ] unit-test
 
-{ LH{ { "key with \n esc\ape \r codes \""
-        "value with \t esc\ape codes" } } }
+{ H{ { "key with \n esc\ape \r codes \""
+       "value with \t esc\ape codes" } } }
 [
     "
     key with \\n esc\\ape \\r codes \\\" = value with \\t esc\\ape codes
@@ -136,14 +136,14 @@ USING: ini-file linked-assocs tools.test ;
 
 { "\"key with \\n esc\\ape \\r codes \\\"\"=value with \\t esc\\ape codes\n" }
 [
-    LH{ { "key with \n esc\ape \r codes \""
+    H{ { "key with \n esc\ape \r codes \""
          "value with \t esc\ape codes" } } ini>string
 ] unit-test
 
-{ LH{ { "save_path" "C:\\Temp\\" } } } [
+{ H{ { "save_path" "C:\\Temp\\" } } } [
     "save_path = \"C:\\\\Temp\\\\\"" string>ini
 ] unit-test
 
 { "save_path=\"C\\:\\\\Temp\\\\\"\n" } [
-    LH{ { "save_path" "C:\\Temp\\" } } ini>string
+    H{ { "save_path" "C:\\Temp\\" } } ini>string
 ] unit-test

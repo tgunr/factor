@@ -179,7 +179,7 @@ PRIVATE>
 PRIVATE>
 
 : derive-url ( base url -- url' )
-    [ >url clone ] dip >url over {
+    [ clone ] dip over {
         [ [ protocol>>  ] either? >>protocol ]
         [ [ username>>  ] either? >>username ]
         [ [ password>>  ] either? >>password ]

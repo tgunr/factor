@@ -8,7 +8,8 @@ IN: ui.tools.listener.popups
     [
         [ [ editor-caret ] [ model>> ] bi ] dip
         prev-elt
-    ] keepd loc>point ;
+    ] [ drop ] 2bi
+    loc>point ;
 
 : relevant-rect ( interactor element -- rect )
     [ caret-loc ] [ drop caret-dim { 0 1 } v+ ] 2bi <rect> ;

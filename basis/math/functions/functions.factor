@@ -94,10 +94,6 @@ M: complex e^ >rect [ e^ ] dip polar> ; inline
     [ make-bits 1 ] dip dup
     '[ [ over * _ mod ] when [ sq _ mod ] dip ] reduce nip ; inline
 
-: >minimum-mod ( x n -- y ) 2dup 2/ > [ - ] [ drop ] if ; foldable
-
-: >positive-mod ( x n -- y ) over 0 < [ + ] [ drop ] if ; foldable
-
 PRIVATE>
 
 : ^ ( x y -- x^y )
@@ -115,8 +111,9 @@ PRIVATE>
 ERROR: non-trivial-divisor n ;
 
 : mod-inv ( x n -- y )
-    [ gcd 1 = ] 1check
-    [ >positive-mod ] [ non-trivial-divisor ] if ; foldable
+    [ nip ] [ gcd 1 = ] 2bi
+    [ dup 0 < [ + ] [ nip ] if ]
+    [ non-trivial-divisor ] if ; foldable
 
 : ^mod ( x y n -- z )
     over 0 <

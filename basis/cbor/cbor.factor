@@ -4,9 +4,8 @@
 USING: accessors arrays assocs base64 byte-arrays calendar
 calendar.format calendar.parser combinators endian io
 io.encodings.binary io.encodings.string io.encodings.utf8
-io.streams.byte-array io.streams.string kernel linked-assocs
-math math.bitwise math.floats.half present sequences strings
-urls ;
+io.streams.byte-array io.streams.string kernel math math.bitwise
+math.floats.half present sequences strings urls ;
 
 IN: cbor
 
@@ -54,13 +53,13 @@ TUPLE: cbor-simple value ;
         [ read-cbor ] replicate
     ] if ;
 
-: read-map ( info -- assoc )
+: read-map ( info -- alist )
     read-unsigned dup +cbor-indefinite+ = [
         drop [ read-cbor dup +cbor-break+ = not ]
         [ read-cbor 2array ] produce nip
     ] [
         [ read-cbor read-cbor 2array ] replicate
-    ] if >linked-hash ;
+    ] if ;
 
 : read-tagged ( info -- tagged )
     read-unsigned read-cbor swap {
@@ -141,7 +140,7 @@ M: sequence write-cbor
     dup length 4 write-integer [ write-cbor ] each ;
 
 M: assoc write-cbor
-    dup assoc-size 5 write-integer [ [ write-cbor ] bi@ ] assoc-each ;
+    dup length 5 write-integer [ [ write-cbor ] bi@ ] assoc-each ;
 
 M: timestamp write-cbor
     0 6 write-integer timestamp>rfc3339 write-cbor ;

@@ -1,14 +1,14 @@
 ! Copyright (C) 2023 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: arrays assocs concurrency.combinators continuations
-github hashtables http.client http.json io.encodings.string
+github hashtables http.client io.encodings.string
 io.encodings.utf8 json kernel math.order semver sequences
 sorting.specification splitting strings ;
 IN: npm
 
 MEMO: get-npm-json ( name -- json )
     "https://registry.npmjs.org/" prepend
-    [ http-get-json nip ] [ 2drop H{ } clone ] recover ;
+    [ http-get nip utf8 decode json> ] [ 2drop H{ } clone ] recover ;
 
 ! "@babel/core-7.12": "npm:@babel/core@7.12.9"
 : dep-names8 ( deps -- dep-names )

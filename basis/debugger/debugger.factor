@@ -118,7 +118,8 @@ HOOK: signal-error. os ( obj -- )
     "Library: " write dup fourth .
     third symbol>string
     [ "Symbol: " write print ]
-    [ "DlError: " write find-ffi-error print ] bi ;
+    [ "DlError: " write find-ffi-error print ] bi
+    "See https://concatenative.org/wiki/view/Factor/Requirements" print ;
 
 : stack-underflow. ( obj name -- )
     write " stack underflow" print drop ;

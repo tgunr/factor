@@ -15,5 +15,5 @@ TUPLE: db-pool < pool db ;
 M: db-pool make-connection
     db>> db-open ;
 
-: with-db-pooled-connection ( pool quot -- )
+: with-pooled-db ( pool quot -- )
     '[ db-connection _ with-variable ] with-pooled-connection ; inline

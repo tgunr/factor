@@ -1,10 +1,9 @@
 ! Copyright (C) 2005, 2010 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors assocs combinators fry grouping kernel literals
-math math.order math.vectors models models.range sequences
-ui.commands ui.gadgets ui.gadgets.borders ui.gadgets.buttons
+USING: accessors assocs combinators fry kernel math math.order
+math.vectors models models.range ui.gadgets ui.gadgets.buttons
 ui.gadgets.icons ui.gadgets.tracks ui.gestures ui.pens
-ui.pens.polygon ui.pens.rounded ui.pens.solid ui.theme ;
+ui.pens.image ui.pens.tile ui.theme.images ;
 IN: ui.gadgets.sliders
 
 TUPLE: slider < track elevator thumb saved line ;
@@ -29,7 +28,7 @@ TUPLE: elevator < gadget direction ;
 
 : find-slider ( gadget -- slider/f ) [ slider? ] find-parent ;
 
-CONSTANT: elevator-padding 0
+CONSTANT: elevator-padding 4
 
 : elevator-length ( slider -- n )
     [ elevator>> dim>> ] [ orientation>> ] bi vdot
@@ -80,6 +79,38 @@ thumb H{
     { T{ button-up } [ drop ] }
     { T{ drag } [ do-drag ] }
 } set-gestures
+
+CONSTANT: horizontal-thumb-tiles
+    {
+        { "horizontal-scroller-handle-left" f }
+        { "horizontal-scroller-handle-middle" 1/2 }
+        { "horizontal-scroller-handle-grip" f }
+        { "horizontal-scroller-handle-middle" 1/2 }
+        { "horizontal-scroller-handle-right" f }
+    }
+
+CONSTANT: vertical-thumb-tiles
+    {
+        { "vertical-scroller-handle-top" f }
+        { "vertical-scroller-handle-middle" 1/2 }
+        { "vertical-scroller-handle-grip" f }
+        { "vertical-scroller-handle-middle" 1/2 }
+        { "vertical-scroller-handle-bottom" f }
+    }
+
+: build-thumb ( thumb -- thumb )
+    dup orientation>> {
+        { horizontal [ horizontal-thumb-tiles ] }
+        { vertical [ vertical-thumb-tiles ] }
+    } case
+    [ [ theme-image <icon> ] dip track-add ] assoc-each ;
+
+: <thumb> ( orientation -- thumb )
+    thumb new-track
+        0 >>fill
+        1/2 >>align
+        build-thumb
+        t >>root? ;
 
 : compute-direction ( elevator -- -1/1 )
     [ hand-click-rel ] [ find-slider ] bi
@@ -132,7 +163,53 @@ M: elevator layout*
 : add-thumb-to-elevator ( object -- object )
     [ elevator>> ] [ thumb>> ] bi add-gadget ;
 
+: <slide-button-pen> ( orientation left right -- pen )
+    [ horizontal = ] 2dip ?
+    [ f f ] [ theme-image <image-pen> f f ] bi* <button-pen> ;
+
+TUPLE: slide-button < repeat-button ;
+
+: <slide-button> ( orientation amount left right -- button )
+    [ swap ] 2dip
+    [
+        [ <gadget> ] dip
+        '[ _ swap find-slider slide-by-line ]
+        slide-button new-button
+    ] 3dip
+    <slide-button-pen> >>interior ;
+
+M: slide-button pref-dim* dup interior>> pen-pref-dim ;
+
+: <up-button> ( orientation -- button )
+    -1
+    "horizontal-scroller-leftarrow-clicked"
+    "vertical-scroller-uparrow-clicked"
+    <slide-button> ;
+
+: <down-button> ( orientation -- button )
+    1
+    "horizontal-scroller-rightarrow-clicked"
+    "vertical-scroller-downarrow-clicked"
+    <slide-button> ;
+
 TUPLE: slider-pen enabled disabled ;
+
+: <slider-pen> ( orientation -- pen )
+    {
+        { horizontal [
+            "horizontal-scroller-left" theme-image
+            "horizontal-scroller-middle" theme-image
+            "horizontal-scroller-right" theme-image
+            "horizontal-scroller-right-disabled" theme-image
+        ] }
+        { vertical [
+            "vertical-scroller-top" theme-image
+            "vertical-scroller-middle" theme-image
+            "vertical-scroller-bottom" theme-image
+            "vertical-scroller-bottom-disabled" theme-image
+        ] }
+    } case
+    [ f f <tile-pen> ] bi-curry@ 2bi slider-pen boa ;
 
 : current-pen ( slider pen -- pen )
     [ slider-enabled? ] [ [ enabled>> ] [ disabled>> ] bi ] bi* ? ;
@@ -143,53 +220,11 @@ M: slider-pen draw-interior
 M: slider-pen draw-boundary
     dupd current-pen draw-boundary ;
 
-: build-thumb ( thumb -- thumb )
-    dup orientation>> <reversed> <track>
-    dup orientation>> <reversed> <track> { 1 1 } >>gap
-    3 [ <gadget> { 1 1 } >>dim content-background <solid> >>interior ] replicate
-    [ f track-add <gadget> { 1 1 } >>dim f track-add ] each { 2 2 } <filled-border>
-    1/2 track-add
-    0 >>fill 1/2 >>align line-color min-thumb-dim <rounded> >>interior 1/2 track-add
-    { 1 1 } <filled-border> ;
+M: slider-pen pen-pref-dim
+    enabled>> pen-pref-dim ;
 
-: <thumb> ( orientation -- thumb )
-    thumb new-track
-        1 >>fill
-        1/2 >>align
-        build-thumb
-        t >>root? ;
-
-: <slide-button-pen> ( -- pen )
-    content-background <solid> dup
-    toolbar-button-pressed-background <solid> dup dup
-    <button-pen> ;
-
-: <slide-button> ( orientation amount left right -- button )
-    [ swap horizontal = ] 2dip ? swap
-    '[ _ swap find-slider slide-by-line ]
-    <repeat-button> { 1 1 } >>min-dim { 1 1 } >>size
-    <slide-button-pen> >>interior ;
-
-CONSTANT: scroll-arrow-dim 10
-CONSTANT: scroll-arrow-dim/2 $[ $ scroll-arrow-dim 2 / ]
-CONSTANT: up-triangle-points { { 0 $ scroll-arrow-dim } { $ scroll-arrow-dim/2 0 } { $ scroll-arrow-dim $ scroll-arrow-dim } }
-CONSTANT: left-triangle-points { { 0 $ scroll-arrow-dim/2 } { $ scroll-arrow-dim  0 } { $ scroll-arrow-dim $ scroll-arrow-dim } }
-CONSTANT: down-triangle-points { { 0 0  } { $ scroll-arrow-dim/2 $ scroll-arrow-dim } { $ scroll-arrow-dim 0 } }
-CONSTANT: right-triangle-points { { 0 $ scroll-arrow-dim } { $ scroll-arrow-dim $ scroll-arrow-dim/2 } { 0 0 } }
-
-: <up-button> ( orientation -- button )
-    -1 left-triangle-points up-triangle-points [ line-color swap <polygon-gadget> ] bi@ <slide-button> ;
-: <down-button> ( orientation -- button )
-    1 right-triangle-points down-triangle-points [ line-color swap <polygon-gadget> ] bi@ <slide-button> ;
-
-: <slider-pen> ( -- pen )
-    content-background <solid> line-color <solid> slider-pen boa ;
-
-M: slider-pen pen-pref-dim 2drop { 2 2 } ;
-: slider-required-width ( slider -- min-dim )
-    children>> [ button? ] filter first pref-dim ;
 M: slider pref-dim*
-    [ dup slider-enabled? [ t >>visible? slider-required-width ] [ f >>visible? drop { 0 0 } ] if ]
+    [ dup slider-enabled? [ dup interior>> pen-pref-dim ] [ drop { 0 0 } ] if ]
     [ drop { 100 100 } ]
     [ orientation>> ] tri set-axis ;
 
@@ -199,13 +234,12 @@ PRIVATE>
     slider new-track
         swap >>model
         16 >>line
-        <slider-pen> >>interior
         dup orientation>> {
+            [ <slider-pen> >>interior ]
             [ <thumb> >>thumb ]
             [ <elevator> >>elevator ]
             [ drop dup add-thumb-to-elevator 1 track-add ]
             [ <up-button> f track-add ]
-            [ drop <gadget> { 1 1 } >>dim f track-add ]
             [ <down-button> f track-add ]
+            [ drop <gadget> { 1 1 } >>dim f track-add ]
         } cleave ;
-

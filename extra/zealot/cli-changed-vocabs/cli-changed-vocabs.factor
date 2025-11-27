@@ -3,7 +3,7 @@
 USING: io sequences zealot.factor ;
 IN: zealot.cli-changed-vocabs
 
-: zealot-changed-vocabs ( -- ) ci-vocabs-to-test write-lines ;
+: zealot-changed-vocabs ( -- ) ci-vocabs-to-test [ print ] each ;
 
 MAIN: zealot-changed-vocabs
 

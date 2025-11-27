@@ -18,8 +18,6 @@ M: mixin-class reset-class
 
 M: mixin-class rank-class drop 8 ;
 
-M: mixin-class definer drop \ MIXIN: f ;
-
 <PRIVATE
 
 : redefine-mixin-class ( class members -- )
@@ -32,7 +30,7 @@ M: mixin-class definer drop \ MIXIN: f ;
     [ 2dup class-members member-eq? ] 2dip if ; inline
 
 : change-mixin-class ( class mixin quot -- )
-    [ [ class-members swap bootstrap-word ] dip call ] keepd
+    [ [ class-members swap bootstrap-word ] dip call ] [ drop ] 2bi
     swap redefine-mixin-class ; inline
 
 : (add-mixin-instance) ( class mixin -- )

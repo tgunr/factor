@@ -1,8 +1,8 @@
 ! Copyright (C) 2010-2012 Slava Pestov, John Benediktsson.
 ! See https://factorcode.org/license.txt for BSD license.
 
-USING: assocs http.client http.json json kernel namespaces sequences
-urls ;
+USING: assocs http.client json kernel namespaces sequences urls
+;
 
 IN: bitly
 
@@ -25,7 +25,7 @@ ERROR: bad-response json status ;
     ] unless ;
 
 : json-data ( url -- json )
-    http-get-json nip check-status "data" of ;
+    http-get nip json> check-status "data" of ;
 
 : get-short-url ( short-url path -- data )
     <bitly-url> swap "shortUrl" set-query-param json-data ;

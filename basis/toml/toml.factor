@@ -1,11 +1,9 @@
 ! Copyright (C) 2019 John Benediktsson
 ! See https://factorcode.org/license.txt for BSD license
 
-USING: accessors ascii assocs calendar calendar.format
-calendar.parser classes hashtables io io.encodings.utf8 io.files
-io.streams.string kernel linked-assocs make math math.parser peg
-peg.parsers prettyprint regexp sequences splitting strings
-strings.parser ;
+USING: accessors ascii assocs calendar.parser hashtables
+io.encodings.utf8 io.files kernel make math.parser peg
+peg.parsers regexp sequences splitting strings.parser ;
 
 ! https://github.com/toml-lang/toml/blob/main/toml.abnf
 
@@ -26,8 +24,8 @@ TUPLE: entry key value ;
 
 : check-no-value ( key assoc -- table )
     over '[
-        [ dup assoc? [ _ duplicate-key ] unless ]
-        [ LH{ } clone ] if* dup
+        [ dup hashtable? [ _ duplicate-key ] unless ]
+        [ H{ } clone ] if* dup
     ] change-at ;
 
 : entries-at ( table keys -- key entries )
@@ -43,7 +41,7 @@ M: entry update-toml
 
 M: table update-toml
     nip dupd [ name>> entries-at ] [ array?>> ] bi
-    [ LH{ } clone [ -rot push-at ] keep ] [ check-no-value ] if ;
+    [ H{ } clone [ -rot push-at ] keep ] [ check-no-value ] if ;
 
 : ws ( -- parser )
     [ " \t" member? ] satisfy repeat0 ;
@@ -240,7 +238,7 @@ DEFER: key-value-parser
         ws-comment-newline hide ,
         "}" token hide ,
     ] seq* [
-        first [ length <hashtable> <linked-assoc> ] keep [ update-toml ] each
+        first [ length <hashtable> ] keep [ update-toml ] each
     ] action ;
 
 : value-parser ( -- parser )
@@ -324,40 +322,7 @@ PEG: parse-toml ( string -- ast )
 PRIVATE>
 
 : toml> ( string -- assoc )
-    [ LH{ } clone dup ] dip parse-toml [ update-toml ] each drop ;
+    [ H{ } clone dup ] dip parse-toml [ update-toml ] each drop ;
 
 : path>toml ( path -- assoc )
     utf8 file-contents toml> ;
-
-<PRIVATE
-
-GENERIC: write-toml-value ( obj -- )
-
-M: boolean write-toml-value "true" "false" ? write ;
-
-M: number write-toml-value number>string write ;
-
-M: string write-toml-value unparse write ;
-
-M: sequence write-toml-value
-    "[ " write [ ", " write ] [ write-toml-value ] interleave " ]" write ;
-
-M: timestamp write-toml-value write-rfc3339 ;
-
-M: assoc write-toml-value
-    "{ " write >alist [ ", " write ] [
-        first2
-        [ string check-instance write " = " write ]
-        [ write-toml-value ] bi*
-    ] interleave " }" write ;
-
-PRIVATE>
-
-: write-toml ( assoc -- )
-    [
-        [ string check-instance write " = " write ]
-        [ write-toml-value nl ] bi*
-    ] assoc-each ;
-
-: >toml ( assoc -- string )
-    [ write-toml ] with-string-writer ;

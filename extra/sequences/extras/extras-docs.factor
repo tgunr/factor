@@ -705,12 +705,8 @@ HELP: drop-while
 
 HELP: each-index-from
 { $values
-    { "seq" sequence } { "quot" { $quotation ( ... elt index -- ... ) } } { "i" "a starting index" } }
-{ $description "Calls the quotation with the element of the sequence and its index on the stack, with the index on the top of the stack, from a starting index." }
-{ $examples { $example "USING: arrays sequences.extras prettyprint ;"
-"{ 10 20 30 } [ 2array . ] 1 each-index-from"
-"{ 20 1 }\n{ 30 2 }"
-} } ;
+    { "seq" sequence } { "quot" quotation } { "i" integer }
+} ;
 
 HELP: each-integer-with-previous
 { $values
@@ -1066,68 +1062,6 @@ HELP: nth-of
 { $values { "seq" sequence } { "n" "a non-negative integer" } { "elt" "the element at the " { $snippet "n" } "th index" } }
 { $contract "Outputs the " { $snippet "n" } "th element of the sequence. Elements are numbered from zero, so the last element has an index one less than the length of the sequence. All sequences support this operation." }
 { $errors "Throws a " { $link bounds-error } " if the index is negative, or greater than or equal to the length of the sequence." } ;
-
-HELP: deep-nth
-{ $values
-    { "index-seq" sequence } { "nested-seq" sequence }
-    { "elt" object }
-}
-{ $description "A version of " { $link nth } " that drills into a nested seq. Gets element n1 from " { $snippet nested-seq } ", then element n2 from that result, and so on, where n1, n2, etc come from " { $snippet index-seq } ". When " { $snippet index-seq } " is exhausted, the result is put on the stack.
-
-Note that this usage of \"deep\" is different from those in " { $vocab-link "sequences.deep" } "."
-} 
-{ $examples "An empty " { $snippet index-seq } " leaves " { $snippet nested-seq } " on the stack:"
-  { $example
-    "USING: sequences.extras prettyprint ;"
-    "{ } { 1 2 3 } deep-nth ."
-    "{ 1 2 3 }"
-  }
-  "An " { $snippet index-seq } " with one element is the same as calling " { $link nth } " with that element:"
-  { $example
-    "USING: kernel sequences sequences.extras prettyprint ;"
-    "{ 1 } \"abc\" deep-nth"
-    "1 \"abc\" nth = ."
-    "t"
-  }
-  "Multiple elements in " { $snippet index-seq } " act like repeated calls to " { $link nth } ":"
-  { $example
-    "USING: sequences.extras prettyprint ;"
-    "{ 1 1 } { \"zero\" { \"one-zero\" \"one-one\" } } deep-nth ."
-    "\"one-one\""
-  }
-}
-{ $errors "Throws a " { $link bounds-error } " if any of the indices are negative, or greater than or equal to the length of " { $snippet nested-seq } " (at the corresponding nesting level)." } ;
-
-HELP: deep-nth-of
-{ $values
-    { "nested-seq" sequence } { "index-seq" sequence }
-    { "elt" object }
-}
-{ $description "A version of " { $link nth-of } " that drills into a nested seq. Gets element n1 from " { $snippet nested-seq } ", then element n2 from that result, and so on, where n1, n2, etc come from " { $snippet index-seq } ". When " { $snippet index-seq } " is exhausted, the result is put on the stack.
-
-Note that this usage of \"deep\" is different from those in " { $vocab-link "sequences.deep" } "."
-} 
-{ $examples "An empty " { $snippet index-seq } " leaves " { $snippet nested-seq } " on the stack:"
-  { $example
-    "USING: sequences.extras prettyprint ;"
-    "{ 1 2 3 } { } deep-nth-of ."
-    "{ 1 2 3 }"
-  }
-  "An " { $snippet index-seq } " with one element is the same as calling " { $link nth-of } " with that element:"
-  { $example
-    "USING: kernel sequences.extras prettyprint ;"
-    "\"abc\" { 1 } deep-nth-of"
-    "\"abc\" 1 nth-of = ."
-    "t"
-  }
-  "Multiple elements in " { $snippet index-seq } " act like repeated calls to " { $link nth-of } ":"
-  { $example
-    "USING: sequences.extras prettyprint ;"
-    "{ \"zero\" { \"one-zero\" \"one-one\" } } { 1 1 } deep-nth-of ."
-    "\"one-one\""
-  }
-}
-{ $errors "Throws a " { $link bounds-error } " if any of the indices are negative, or greater than or equal to the length of " { $snippet nested-seq } " (at the corresponding nesting level)." } ;
 
 HELP: nth*
 { $values

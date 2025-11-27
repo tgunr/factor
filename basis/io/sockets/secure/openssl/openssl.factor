@@ -130,7 +130,7 @@ ERROR: file-expected path ;
 
 : default-pasword ( ctx -- alien )
     [ config>> password>> latin1 malloc-string ] [ aliens>> ] bi
-    [ push ] keepd ;
+    [ push ] [ drop ] 2bi ;
 
 : set-default-password ( ctx -- )
     [ config>> password>> ] 1check

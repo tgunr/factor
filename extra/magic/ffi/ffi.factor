@@ -6,10 +6,10 @@ alien.syntax combinators literals system ;
 
 IN: magic.ffi
 
-C-LIBRARY: magic {
-    { macos "libmagic.dylib" }
-    { unix "libmagic.so" }
-}
+<< "magic" {
+    { [ os macos? ] [ "libmagic.dylib" ] }
+    { [ os unix? ] [ "libmagic.so" ] }
+} cond cdecl add-library >>
 
 LIBRARY: magic
 

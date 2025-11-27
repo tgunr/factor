@@ -2,15 +2,7 @@
 
 USING: accessors assocs combinators kernel make math
 parser persistent.assocs persistent.hashtables.nodes
-prettyprint.backend prettyprint.custom ;
-
-! Use these explicitly because they define needed methods which are not loaded
-! otherwise
-USE: persistent.hashtables.nodes.empty
-USE: persistent.hashtables.nodes.leaf
-USE: persistent.hashtables.nodes.full
-USE: persistent.hashtables.nodes.bitmap
-USE: persistent.hashtables.nodes.collision
+prettyprint.custom ;
 
 IN: persistent.hashtables
 
@@ -58,8 +50,7 @@ SYNTAX: PH{ \ } [ >persistent-hash ] parse-literal ;
 
 M: persistent-hash pprint-delims drop \ PH{ \ } ;
 M: persistent-hash >pprint-sequence >alist ;
-M: persistent-hash pprint*
-    [ pprint-object ] with-extra-nesting-level ;
+M: persistent-hash pprint* pprint-object ;
 
 : passociate ( value key -- phash )
     T{ persistent-hash } new-at ; inline

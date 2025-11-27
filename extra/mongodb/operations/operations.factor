@@ -53,7 +53,7 @@ SYMBOL: msg-bytes-read
     read-longlong >>cursor
     read-int32 >>start#
     read-int32 [ >>returned# ] keep
-    [ H{ } read-bson-assoc ] collector [ times ] dip >>objects ;
+    [ H{ } clone stream>assoc ] collector [ times ] dip >>objects ;
 
 : (read-message) ( message opcode -- message )
     OP_Reply =
@@ -104,8 +104,8 @@ PRIVATE>
             [ collection>> write-cstring ]
             [ skip#>> write-int32 ]
             [ return#>> write-int32 ]
-            [ build-query-object write-assoc ]
-            [ returnfields>> [ write-assoc ] when* ]
+            [ build-query-object assoc>stream ]
+            [ returnfields>> [ assoc>stream ] when* ]
         } cleave
     ] (write-message) ; inline
 
@@ -113,7 +113,7 @@ PRIVATE>
     [
         [ flags>> write-int32 ]
         [ collection>> write-cstring ]
-        [ objects>> [ write-assoc ] each ] tri
+        [ objects>> [ assoc>stream ] each ] tri
     ] (write-message) ; inline
 
 : write-update-message ( message -- )
@@ -122,8 +122,8 @@ PRIVATE>
             [ flags>> write-int32 ]
             [ collection>> write-cstring ]
             [ update-flags>> write-int32 ]
-            [ selector>> write-assoc ]
-            [ object>> write-assoc ]
+            [ selector>> assoc>stream ]
+            [ object>> assoc>stream ]
         } cleave
     ] (write-message) ; inline
 
@@ -133,7 +133,7 @@ PRIVATE>
             [ flags>> write-int32 ]
             [ collection>> write-cstring ]
             [ delete-flags>> write-int32 ]
-            [ selector>> write-assoc ]
+            [ selector>> assoc>stream ]
         } cleave
     ] (write-message) ; inline
 

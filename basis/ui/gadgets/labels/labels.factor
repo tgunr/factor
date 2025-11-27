@@ -1,9 +1,10 @@
 ! Copyright (C) 2005, 2009 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors arrays classes fonts kernel make math.functions
-models namespaces opengl sequences splitting strings
-ui.baseline-alignment ui.gadgets ui.gadgets.tracks ui.render
-ui.text ;
+USING: accessors arrays classes colors combinators
+fonts fry kernel make math.functions models namespaces sequences
+splitting strings ui.baseline-alignment ui.gadgets
+ui.gadgets.tracks ui.pens.solid ui.render ui.text
+ui.theme.images ;
 IN: ui.gadgets.labels
 
 ! A label gadget draws a string.
@@ -45,7 +46,7 @@ M: label string<<
     [ font>> ] [ text>> ] bi ; inline
 
 M: label pref-dim*
-    >label< text-dim first2 gl-ceiling 2array ;
+    >label< text-dim first2 ceiling 2array ;
 
 <PRIVATE
 

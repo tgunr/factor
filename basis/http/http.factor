@@ -142,14 +142,9 @@ TUPLE: request
     proxy-url
     version
     header
-    data
+    post-data
     cookies
     redirects ;
-
-! These are for backwards compatibility
-SLOT: post-data
-M: request post-data>> data>> ;
-M: request post-data<< data<< ;
 
 : set-header ( request/response value key -- request/response )
     pick header>> set-at ;

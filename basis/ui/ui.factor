@@ -3,11 +3,10 @@
 USING: accessors arrays assocs boxes classes.tuple
 classes.tuple.parser combinators combinators.short-circuit
 concurrency.flags concurrency.promises continuations deques
-destructors dlists hash-sets.identity kernel lexer make math
-math.functions math.order namespaces opengl parser sequences
-sets slots.private strings threads ui.backend ui.gadgets
-ui.gadgets.private ui.gadgets.worlds ui.gestures ui.render
-vectors vocabs.parser words ;
+destructors dlists kernel lexer make math math.functions
+namespaces parser sequences sets strings threads ui.backend
+ui.gadgets ui.gadgets.private ui.gadgets.worlds ui.gestures
+ui.render vectors vocabs.parser words ;
 IN: ui
 
 <PRIVATE
@@ -181,7 +180,7 @@ SYMBOL: ui-thread
 PRIVATE>
 
 : open-world-window ( world -- )
-    dup pref-dim [ gl-ceiling ] map >>dim dup relayout graft ;
+    dup pref-dim [ ceiling ] map >>dim dup relayout graft ;
 
 : open-window* ( gadget title/attributes -- window )
     ?attributes <world> [ open-world-window ] keep ;
@@ -197,24 +196,6 @@ PRIVATE>
 
 : toggle-fullscreen ( gadget -- )
     dup fullscreen? not set-fullscreen ;
-
-<PRIVATE
-
-:: (adjust-font-size) ( seen gadget delta -- )
-    gadget seen ?adjoin [
-        "font" gadget ?offset-of-slot [
-            gadget swap
-            [ slot clone [ delta + 1 max ] change-size ]
-            [ set-slot ] 2bi
-            gadget relayout
-        ] when*
-        seen gadget [ delta (adjust-font-size) ] with each-child
-    ] when ;
-
-PRIVATE>
-
-: adjust-font-size ( gadget delta -- )
-    [ IHS{ } clone ] 2dip (adjust-font-size) ;
 
 : raise-window ( gadget -- )
     find-world raise-window* ;

@@ -244,22 +244,15 @@ browser-gadget "scrolling"
     { T{ key-down f f "PAGE_DOWN" } com-page-down }
 } define-command-map
 
-<PRIVATE
-
-: adjust-browser-font-size ( browser delta -- )
-    [ adjust-font-size ]
-    [ adjust-help-font-size model>> notify-connections ] 2bi ;
-
 : com-font-size-plus ( browser -- )
-    2 adjust-browser-font-size ;
+    2 adjust-help-font-size model>> notify-connections ;
 
 : com-font-size-minus ( browser -- )
-    -2 adjust-browser-font-size ;
+    -2 adjust-help-font-size model>> notify-connections ;
 
 : com-font-size-normal ( browser -- )
-    font-size-span default-style get font-size of - adjust-browser-font-size ;
-
-PRIVATE>
+    font-size-span default-style get font-size of -
+    adjust-help-font-size model>> notify-connections ;
 
 browser-gadget "fonts" f {
     { T{ key-down f ${ os macos? M+ C+ ? } "+" } com-font-size-plus }

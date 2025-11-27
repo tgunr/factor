@@ -1,11 +1,8 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors alien.c-types alien.data arrays grouping kernel
-math math.constants math.functions opengl opengl.gl sequences
-specialized-arrays
-specialized-arrays.instances.alien.c-types.float ui.gadgets
-ui.pens ;
-FROM: alien.c-types => float ;
+USING: accessors alien.c-types alien.data kernel opengl
+opengl.gl sequences specialized-arrays ui.gadgets ui.pens ;
+SPECIALIZED-ARRAY: float
 IN: ui.pens.polygon
 
 ! Polygon pen
@@ -14,8 +11,6 @@ interior-vertices
 interior-count
 boundary-vertices
 boundary-count ;
-
-M: polygon pen-pref-dim boundary-vertices>> 2 <groups> max-dims nip ;
 
 : close-path ( points -- points' )
     dup first suffix ;
@@ -41,9 +36,3 @@ M: polygon draw-interior
 : <polygon-gadget> ( color points -- gadget )
     [ <polygon> ] [ max-dims ] bi
     [ <gadget> ] 2dip [ >>interior ] [ >>dim ] bi* ;
-
-:: polygon-circle ( n diameter -- vertices )
-    n 1 + <iota> [ 2 pi * * n / [ sin ] [ cos ] bi 2array ] map
-    diameter 2 / '[ [ _ [ * ] [ + ] bi round >fixnum ] map ] map ;
-
-

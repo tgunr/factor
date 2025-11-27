@@ -77,18 +77,18 @@ M: lazy-map cdr
 M: lazy-map nil?
     cons>> nil? ;
 
-TUPLE: lazy-take cons n ;
+TUPLE: lazy-take n cons ;
 
 C: <lazy-take> lazy-take
 
-: ltake ( list n -- result )
-    dup zero? [ 2drop nil ] [ <lazy-take> ] if ;
+: ltake ( n list -- result )
+    over zero? [ 2drop nil ] [ <lazy-take> ] if ;
 
 M: lazy-take car
     cons>> car ;
 
 M: lazy-take cdr
-    [ cons>> cdr ] [ n>> 1 - ltake ] bi ;
+    [ n>> 1 - ] [ cons>> cdr ltake ] bi ;
 
 M: lazy-take nil?
     dup n>> zero? [ drop t ] [ cons>> nil? ] if ;

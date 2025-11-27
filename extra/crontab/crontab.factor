@@ -5,7 +5,7 @@ USING: accessors arrays ascii assocs assocs.extras calendar
 calendar.english calendar.format calendar.parser
 calendar.private circular combinators combinators.short-circuit
 io kernel literals math math.order math.parser prettyprint
-random ranges sequences sets sorting splitting strings ;
+random ranges sequences sets sorting splitting ;
 
 IN: crontab
 
@@ -73,8 +73,7 @@ CONSTANT: aliases H{
 PRIVATE>
 
 : parse-cronentry ( entry -- cronentry )
-    [ blank? ] trim-head " " split1
-    [ aliases ?at drop ] dip " " glue
+    " " split1 [ aliases ?at drop ] dip " " glue
     " " split1 " " split1 " " split1 " " split1 " " split1 {
         [ [ string>number ] T{ range f 0 60 1 } parse-value ]
         [ [ string>number ] T{ range f 0 24 1 } parse-value ]
@@ -158,17 +157,8 @@ PRIVATE>
 : next-times ( cronentry n -- timestamps )
     now next-times-after ;
 
-GENERIC: parse-crontab ( input -- entries )
-
-M: object parse-crontab
-    [ [ blank? not ] find nip { f CHAR: # } member? ] reject
-    [ parse-cronentry ] map ;
-
-M: string parse-crontab
-    split-lines parse-crontab ;
-
 : read-crontab ( -- entries )
-    read-lines parse-crontab ;
+    read-lines harvest [ parse-cronentry ] map ;
 
 : group-crons ( cronstrings from-timestamp until-timestamp -- entries )
     '[ _ _ next-times-from-until [ timestamp>unix-time ] map ] zip-with

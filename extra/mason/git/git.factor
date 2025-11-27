@@ -64,7 +64,8 @@ IN: mason.git
 : repo-dirty-body ( error -- string )
     [
         "Dirty repository on " write host-name write " will be re-cloned." print
-        "Modified and untracked files:" print nl write-lines
+        "Modified and untracked files:" print nl
+        [ print ] each
     ] with-string-writer ;
 
 : git-repo-dirty ( files -- )

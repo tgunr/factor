@@ -1,8 +1,8 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors assocs cache formatting images images.loader
+USING: accessors assocs cache combinators images images.loader
 kernel math namespaces opengl opengl.textures sequences
-splitting ui.gadgets.worlds ;
+splitting system ui.gadgets.worlds vocabs ;
 IN: ui.images
 
 TUPLE: image-name path ;
@@ -11,18 +11,17 @@ C: <image-name> image-name
 
 <PRIVATE
 
-MEMO: (cached-image) ( path -- image ) load-image ;
+MEMO: cached-image-path ( path -- image )
+    [ load-image ] [ "@2x" subseq-of? >>2x? ] bi ;
 
 PRIVATE>
 
 GENERIC: cached-image ( image -- image )
 
 M: image-name cached-image
-    path>> gl-scale-factor get-global [
-        dup 2.0 < [ drop ] [
-            [ "." split1-last ] [ "@%dx." sprintf glue ] bi*
-        ] if
-    ] when* (cached-image) ;
+    path>> gl-scale-factor get-global [ 1.0 > ] [ f ] if* [
+        "." split1-last "@2x." glue
+    ] when cached-image-path ;
 
 M: image cached-image ;
 
@@ -44,4 +43,14 @@ PRIVATE>
     rendered-image draw-scaled-texture ;
 
 : image-dim ( image -- dim )
-    cached-image dim>> gl-scale-factor get-global [ '[ _ /i ] map ] when* ;
+    cached-image [ dim>> ] [ 2x?>> [ [ 2 / ] map ] when ] bi ;
+
+{
+    { [ os macos? ] [ "images.loader.cocoa" require ] }
+    { [ os windows?  ] [ "images.loader.gdiplus" require ] }
+    { [ os { freebsd } member? ] [
+        "images.png" require
+        "images.tiff" require
+    ] }
+    [ "images.loader.gtk" require ]
+} cond

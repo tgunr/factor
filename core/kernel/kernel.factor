@@ -362,9 +362,6 @@ UNION: boolean POSTPONE: t POSTPONE: f ;
 : until ( ..a pred: ( ..a -- ..b ? ) body: ( ..b -- ..a ) -- ..b )
     [ negate ] dip while ; inline
 
-: until* ( ..a pred: ( ..a -- ..b ? ) body: ( ..b -- ..a ) -- ..b ? )
-    [ [ dup ] compose ] dip [ drop ] prepose until ; inline
-
 ! Object protocol
 GENERIC: hashcode* ( depth obj -- code ) flushable
 

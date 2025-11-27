@@ -13,6 +13,7 @@ USING: base32 byte-arrays kernel sequences strings tools.test ;
 { "MFRGG===" } [ "abc" >base32 "" like ] unit-test
 { "MFRGGZA=" } [ "abcd" >base32 "" like ] unit-test
 { "MFRGGZDF" } [ "abcde" >base32 "" like ] unit-test
+
 { B{ } } [ f base32> ] unit-test
 { B{ } } [ B{ } base32> ] unit-test
 { "\0" } [ "AA======" base32> "" like ] unit-test
@@ -89,21 +90,3 @@ USING: base32 byte-arrays kernel sequences strings tools.test ;
 { 1234 } [ "i6JD" base32-crockford-checksum> ] unit-test
 { 0 } [ "0" base32-crockford> ] unit-test
 { 0 } [ "00" base32-crockford-checksum> ] unit-test
-
-{ t } [ 256 <iota> >byte-array dup >zbase32 zbase32> = ] unit-test
-
-{ "" } [ "" >zbase32 >string ] unit-test
-{ "ca" } [ "f" >zbase32 >string ] unit-test
-{ "c3zo" } [ "fo" >zbase32 >string ] unit-test
-{ "c3zs6" } [ "foo" >zbase32 >string ] unit-test
-{ "c3zs6ao" } [ "foob" >zbase32 >string ] unit-test
-{ "c3zs6aub" } [ "fooba" >zbase32 >string ] unit-test
-{ "c3zs6aubqe" } [ "foobar" >zbase32 >string ] unit-test
-
-{ "" } [ "" zbase32> >string ] unit-test
-{ "f" } [ "ca" zbase32> >string ] unit-test
-{ "fo" } [ "c3zo" zbase32> >string ] unit-test
-{ "foo" } [ "c3zs6" zbase32> >string ] unit-test
-{ "foob" } [ "c3zs6ao" zbase32> >string ] unit-test
-{ "fooba" } [ "c3zs6aub" zbase32> >string ] unit-test
-{ "foobar" } [ "c3zs6aubqe" zbase32> >string ] unit-test

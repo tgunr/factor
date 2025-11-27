@@ -6,11 +6,11 @@ math.order math.parser namespaces sequences system
 tools.disassembler.private tools.memory ;
 IN: tools.disassembler.udis
 
-C-LIBRARY: libudis86 {
-    { windows "libudis86.dll" }
-    { macos "libudis86.dylib" }
-    { unix "libudis86.so" }
-}
+<< "libudis86" {
+    { [ os windows? ] [ "libudis86.dll" ] }
+    { [ os macos? ] [ "libudis86.dylib" ] }
+    { [ os unix? ] [ "libudis86.so" ] }
+} cond cdecl add-library >>
 
 LIBRARY: libudis86
 

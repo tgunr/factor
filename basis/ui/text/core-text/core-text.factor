@@ -7,6 +7,25 @@ ui.text.private ;
 IN: ui.text.core-text
 SINGLETON: core-text-renderer
 
+<PRIVATE
+
+: scale-dim ( dim -- dim' )
+    gl-scale-factor get-global [ [ gl-unscale ] map ] when ; inline
+
+: scale-metrics ( metrics -- metrics' )
+    gl-scale-factor get-global [
+        clone
+            [ gl-unscale ] change-width
+            [ gl-unscale ] change-ascent
+            [ gl-unscale ] change-descent
+            [ gl-unscale ] change-height
+            [ gl-unscale ] change-leading
+            [ gl-unscale ] change-cap-height
+            [ gl-unscale ] change-x-height
+    ] when ; inline
+
+PRIVATE>
+
 M: core-text-renderer string-dim
     [ " " string-dim { 0 1 } v* ]
     [ cached-line dim>> scale-dim ]
@@ -34,11 +53,11 @@ M:: core-text-renderer offset>x ( n font string -- x )
     CTLineGetOffsetForStringIndex gl-unscale ;
 
 M: core-text-renderer font-metrics
-    cache-font-metrics clone scale-metrics ;
+    cache-font-metrics ;
 
 M: core-text-renderer line-metrics
-    [ " " line-metrics 0 >>width ]
-    [ cached-line metrics>> clone scale-metrics ]
+    [ " " line-metrics clone 0 >>width ]
+    [ cached-line metrics>> scale-metrics ]
     if-empty ;
 
 core-text-renderer font-renderer set-global

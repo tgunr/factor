@@ -38,8 +38,8 @@ CONSTANT: base32-alphabet $[ "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567" >byte-array ]
 : (encode-base32) ( stream column -- )
     5 pick stream-read dup length {
         { 0 [ 3drop ] }
-        { 5 [ encode5 wrap-lines (encode-base32) ] }
-        [ encode-pad wrap-lines (encode-base32) ]
+        { 5 [ encode5 write-lines (encode-base32) ] }
+        [ encode-pad write-lines (encode-base32) ]
     } case ;
 
 PRIVATE>
@@ -58,9 +58,11 @@ PRIVATE>
     [ write ] [ B{ 0 4 0 3 2 0 1 } nth head-slice write ] if-zero ; inline
 
 : (decode-base32) ( stream -- )
-    8 "\n\r" pick read-ignoring [ drop ] [
-        8 CHAR: = pad-tail decode8 (decode-base32)
-    ] if-empty ;
+    8 "\n\r" pick read-ignoring dup length {
+        { 0 [ 2drop ] }
+        { 8 [ decode8 (decode-base32) ] }
+        [ drop 8 CHAR: = pad-tail decode8 (decode-base32) ]
+    } case ;
 
 PRIVATE>
 
@@ -107,8 +109,8 @@ CONSTANT: base32hex-alphabet $[ "0123456789ABCDEFGHIJKLMNOPQRSTUV" >byte-array ]
 : (encode-base32hex) ( stream column -- )
     5 pick stream-read dup length {
         { 0 [ 3drop ] }
-        { 5 [ encode5hex wrap-lines (encode-base32hex) ] }
-        [ encode-padhex wrap-lines (encode-base32hex) ]
+        { 5 [ encode5hex write-lines (encode-base32hex) ] }
+        [ encode-padhex write-lines (encode-base32hex) ]
     } case ;
 
 PRIVATE>
@@ -127,9 +129,11 @@ PRIVATE>
     [ write ] [ B{ 0 4 0 3 2 0 1 } nth head-slice write ] if-zero ; inline
 
 : (decode-base32hex) ( stream -- )
-    8 "\n\r" pick read-ignoring [ drop ] [
-        8 CHAR: = pad-tail decode8hex (decode-base32hex)
-    ] if-empty ;
+    8 "\n\r" pick read-ignoring dup length {
+        { 0 [ 2drop ] }
+        { 8 [ decode8hex (decode-base32hex) ] }
+        [ drop 8 CHAR: = pad-tail decode8hex (decode-base32hex) ]
+    } case ;
 
 PRIVATE>
 
@@ -181,67 +185,3 @@ PRIVATE>
 
 : >base32-crockford-checksum ( n -- base32 )
     [ >base32-crockford ] keep 37 mod base32-crockford-checksum nth suffix ;
-
-ERROR: malformed-zbase32 ;
-
-<PRIVATE
-
-<<
-CONSTANT: zbase32-alphabet $[ "ybndrfg8ejkmcpqxot1uwisza345h769" >byte-array ]
->>
-
-: ch>zbase32 ( ch -- ch )
-    zbase32-alphabet nth ; inline
-
-: zbase32>ch ( ch -- ch )
-    $[ zbase32-alphabet alphabet-inverse 0 CHAR: = pick set-nth ] nth
-    [ malformed-zbase32 ] unless* { fixnum } declare ; inline
-
-: zencode5 ( seq -- byte-array )
-    be> { -35 -30 -25 -20 -15 -10 -5 0 } '[
-        shift 0x1f bitand ch>zbase32
-    ] with B{ } map-as ; inline
-
-: zencode-pad ( seq n -- byte-array )
-    [ 5 0 pad-tail zencode5 ] [ B{ 0 2 4 5 7 } nth ] bi* head ;
-
-: (encode-zbase32) ( stream column -- )
-    5 pick stream-read dup length {
-        { 0 [ 3drop ] }
-        { 5 [ zencode5 wrap-lines (encode-zbase32) ] }
-        [ zencode-pad wrap-lines (encode-zbase32) ]
-    } case ;
-
-PRIVATE>
-
-: encode-zbase32 ( -- )
-    input-stream get f (encode-zbase32) ;
-
-: encode-zbase32-lines ( -- )
-    input-stream get 0 (encode-zbase32) ;
-
-<PRIVATE
-
-: zdecode8 ( seq -- )
-    [ 0 [ zbase32>ch swap 5 shift bitor ] reduce 5 >be ]
-    [ [ CHAR: = = ] count ] bi
-    [ write ] [ B{ 0 4 0 3 2 0 1 } nth head-slice write ] if-zero ; inline
-
-: (decode-zbase32) ( stream -- )
-    8 "\n\r" pick read-ignoring [ drop ] [
-        8 CHAR: = pad-tail zdecode8 (decode-zbase32)
-    ] if-empty ;
-
-PRIVATE>
-
-: decode-zbase32 ( -- )
-    input-stream get (decode-zbase32) ;
-
-: >zbase32 ( seq -- zbase32 )
-    binary [ binary [ encode-zbase32 ] with-byte-reader ] with-byte-writer ;
-
-: zbase32> ( zbase32 -- seq )
-    binary [ binary [ decode-zbase32 ] with-byte-reader ] with-byte-writer ;
-
-: >zbase32-lines ( seq -- zbase32 )
-    binary [ binary [ encode-zbase32-lines ] with-byte-reader ] with-byte-writer ;

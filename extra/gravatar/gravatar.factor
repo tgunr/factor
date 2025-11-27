@@ -2,7 +2,7 @@
 ! See https://factorcode.org/license.txt for BSD license
 
 USING: ascii assocs checksums checksums.md5 classes.tuple
-formatting hex-strings http.client http.json images.http
+formatting hex-strings http.client images.http
 io.encodings.string io.encodings.utf8 json kernel namespaces
 sequences urls ;
 
@@ -17,7 +17,7 @@ profileBackground profileUrl requestHash thumbnailUrl urls ;
 
 : gravatar-info ( email -- info )
     gravatar-id "https://gravatar.com/%s.json" sprintf
-    http-get-json nip "entry" of first info from-slots ;
+    http-get nip utf8 decode json> "entry" of first info from-slots ;
 
 ! optional .jpg
 SYMBOL: gravatar-image-extension?

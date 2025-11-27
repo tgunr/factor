@@ -8,11 +8,11 @@ IN: glib.ffi
 
 LIBRARY: glib
 
-C-LIBRARY: glib {
-    { windows "glib-2.0-0.dll" }
-    { macos "libglib-2.0.dylib" }
-    { unix "libglib-2.0.so" }
-}
+<< "glib" {
+    { [ os windows? ] [ "glib-2.0-0.dll" ] }
+    { [ os macos? ] [ "libglib-2.0.dylib" ] }
+    { [ os unix? ] [ "libglib-2.0.so" ] }
+} cond cdecl add-library >>
 
 IMPLEMENT-STRUCTS: GError GPollFD GSource GSourceFuncs ;
 

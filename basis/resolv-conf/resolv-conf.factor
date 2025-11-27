@@ -1,11 +1,12 @@
 ! Copyright (C) 2010 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors combinators io.encodings.utf8 io.files kernel
-math math.parser sequences splitting unicode ;
+USING: accessors combinators constructors io.encodings.utf8
+io.files kernel math math.parser sequences splitting
+unicode ;
 IN: resolv-conf
 
 TUPLE: network ip netmask ;
-C: <network> network
+CONSTRUCTOR: <network> network ( ip netmask -- network ) ;
 
 TUPLE: options
 debug?
@@ -17,12 +18,11 @@ insecure2?
 { attempts integer initial: 2 }
 rotate? no-check-names? inet6? tcp? ;
 
-: <options> ( -- options ) options new ;
+CONSTRUCTOR: <options> options ( -- options ) ;
 
 TUPLE: resolv.conf nameserver domain lookup search sortlist options ;
 
-: <resolv.conf> ( -- resolv.conf )
-    resolv.conf new
+CONSTRUCTOR: <resolv.conf> resolv.conf ( -- resolv.conf )
     V{ } clone >>nameserver
     V{ } clone >>domain
     V{ } clone >>search

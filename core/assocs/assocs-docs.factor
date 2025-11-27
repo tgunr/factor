@@ -16,23 +16,23 @@ $nl
 "To make an assoc into an alist:"
 { $subsections >alist } ;
 
-ARTICLE: "enumerateds" "Enumerated sequences"
-"An enumerated sequence provides a view of a sequence as an assoc mapping integer indices to elements:"
+ARTICLE: "enums" "Enumerations"
+"An enumeration provides a view of a sequence as an assoc mapping integer indices to elements:"
 { $subsections
     enumerated
     <enumerated>
 }
-"Inverting a permutation using enumerated sequences:"
+"Inverting a permutation using enumerations:"
 { $example "IN: scratchpad" ": invert ( perm -- perm' )" "    <enumerated> sort-values keys ;" "{ 2 0 4 1 3 } invert ." "{ 1 3 0 4 2 }" } ;
 
 HELP: enumerated
 { $class-description "An associative structure which wraps a sequence and maps integers to the corresponding elements of the sequence."
 $nl
-"Enumerated sequences are mutable; note that deleting a key calls " { $link remove-nth! } ", which results in all subsequent elements being shifted down." } ;
+"Enumerations are mutable; note that deleting a key calls " { $link remove-nth! } ", which results in all subsequent elements being shifted down." } ;
 
 HELP: <enumerated>
 { $values { "seq" sequence } { "enumerated" enumerated } }
-{ $description "Creates a new enumerated sequence." } ;
+{ $description "Creates a new enumeration." } ;
 
 ARTICLE: "assocs-protocol" "Associative mapping protocol"
 "All associative mappings must be instances of a mixin class:"
@@ -139,6 +139,8 @@ ARTICLE: "assocs-conversions" "Associative mapping conversions"
 
 ARTICLE: "assocs-combinators" "Associative mapping combinators"
 "The following combinators can be used on any associative mapping."
+$nl
+"The " { $link assoc-find } " combinator is part of the " { $link "assocs-protocol" } " and must be implemented once for each class of assoc. All other combinators are implemented in terms of this combinator."
 $nl
 "The standard functional programming idioms:"
 { $subsections

@@ -140,7 +140,7 @@ MACRO: undo ( quot -- quot ) [undo] ;
 \ not define-involution
 \ >boolean [ dup { t f } member-eq? assure ] define-inverse
 
-\ pack-tuple \ unpack-tuple define-dual
+\ tuple>array \ >tuple define-dual
 \ reverse define-involution
 
 \ undo 1 [ ] define-pop-inverse

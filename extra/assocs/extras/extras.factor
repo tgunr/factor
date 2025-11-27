@@ -1,7 +1,7 @@
 ! Copyright (C) 2012 John Benediktsson, Doug Coleman
 ! See https://factorcode.org/license.txt for BSD license
-USING: arrays assocs assocs.private combinators.smart kernel
-math math.statistics sequences sequences.generalizations sets ;
+USING: arrays assocs assocs.private kernel math math.statistics
+sequences sets ;
 IN: assocs.extras
 
 : set-of ( assoc key value -- assoc )
@@ -82,7 +82,7 @@ IN: assocs.extras
     over '[ swap _ push-at ] assoc-each ;
 
 : assoc-collect ( assoc1 assoc2 -- newassoc )
-    [ [ [ assoc-size ] bi@ + ] keepd new-assoc ] 2keep
+    [ [ [ assoc-size ] bi@ + ] [ drop ] 2bi new-assoc ] 2keep
     [ assoc-collect! ] bi@ ;
 
 ! iterate over assoc2, replace conflicting values
@@ -308,30 +308,3 @@ PRIVATE>
 
 : assoc-interleave ( ... assoc between quot: ( ... key value -- ... ) -- ... )
     [ >alist ] 2dip [ first2 ] prepose interleave ; inline
-
-MACRO: nzip ( n -- quot )
-    dup '[ [ _ narray ] { } _ nmap-as ] ;
-
-MACRO: nunzip ( n -- quot )
-    '[ flip _ firstn ] ;
-
-<PRIVATE
-
-: unpacking ( n -- quot )
-    dup 1 > [ '[ _ firstn ] ] [ drop [ ] ] if ;
-
-: packing ( n -- quot )
-    dup 1 > [ '[ _ narray ] ] [ drop [ ] ] if ;
-
-: unzipping ( n -- quot )
-    dup 1 > [ '[ _ nunzip ] ] [ drop [ ] ] if ;
-
-PRIVATE>
-
-MACRO: map-zip ( quot -- quot' )
-    [ inputs/outputs [ unpacking ] [ packing ] bi* ] keep swap
-    '[ [ @ @ @ ] map ] ;
-
-MACRO: map-unzip ( quot -- quot' )
-    [ inputs/outputs dup [ unpacking ] [ packing ] [ unzipping ] tri* ] keep -rot
-    '[ [ @ @ @ ] map @ ] ;

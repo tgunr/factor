@@ -111,10 +111,13 @@ render-loc render-dim render-ext ;
     loc first
     metrics ascent>> dim second loc second + - 1 - 2array ;
 
+: load-2x? ( -- ? )
+    gl-scale-factor get-global [ 1.0 > ] [ f ] if* ;
+
 :: <line> ( font string -- line )
     [
         line new-disposable
-        font cache-font :> open-font
+        font load-2x? [ cache-font@2x ] [ cache-font ] if :> open-font
         string open-font font foreground>> <CTLine> |CFRelease :> line
         open-font line compute-line-metrics
         [ >>metrics ] [ metrics>dim >>dim ] bi
@@ -157,7 +160,7 @@ render-loc render-dim render-ext ;
             [ loc set-text-position ]
             [ [ ctline ] dip CTLineDraw ]
         } cleave
-    ] make-bitmap-image ;
+    ] make-bitmap-image load-2x? >>2x? ;
 
 : line>image ( line -- image )
     dup image>> [ render >>image ] unless image>> ;

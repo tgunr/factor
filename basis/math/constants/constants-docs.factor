@@ -1,4 +1,4 @@
-USING: help.markup help.syntax kernel math ;
+USING: help.markup help.syntax kernel ;
 IN: math.constants
 
 ARTICLE: "math-constants" "Constants"
@@ -8,7 +8,6 @@ ARTICLE: "math-constants" "Constants"
     euler
     phi
     pi
-    2pi
     epsilon
     single-epsilon
 } ;
@@ -16,29 +15,20 @@ ARTICLE: "math-constants" "Constants"
 ABOUT: "math-constants"
 
 HELP: e
-{ $values { "e" number } }
-{ $description "The base of natural logarithm, sometimes called Euler's number or Napier's constant." } ;
+{ $values { "e" "base of natural logarithm" } } ;
 
 HELP: euler
-{ $values { "gamma" number } }
+{ $values { "gamma" "Euler-Mascheroni constant" } }
 { $description "The Euler-Mascheroni constant, also called \"Euler's constant\" or \"the Euler constant\"." } ;
 
 HELP: phi
-{ $values { "phi" number } }
-{ $description "The golden ratio, also known as the golden number, golden proportion, or the divine proportion. Usually written as the Greek letter phi." } ;
+{ $values { "phi" "golden ratio" } } ;
 
 HELP: pi
-{ $values { "pi" number } }
-{ $description "The ratio of a circle's circumference to its diameter." } ;
-
-HELP: 2pi
-{ $values { "2pi" number } }
-{ $description "The ratio of a circle's circumference to its radius." } ;
+{ $values { "pi" "circumference of circle with diameter 1" } } ;
 
 HELP: epsilon
-{ $values { "epsilon" number } }
-{ $description "The smallest double-precision floating point value you can add to 1 without underflow." } ;
+{ $values { "epsilon" "smallest double-precision floating point value you can add to 1 without underflow" } } ;
 
 HELP: single-epsilon
-{ $values { "epsilon" number } }
-{ $description "The smallest single-precision floating point value you can add to 1 without underflow." } ;
+{ $values { "epsilon" "smallest single-precision floating point value you can add to 1 without underflow" } } ;

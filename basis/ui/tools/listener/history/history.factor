@@ -30,11 +30,8 @@ TUPLE: history document elements start index ;
         ] [ [ index>> ] keep start<< ] bi
     ] [ drop ] if ;
 
-: <history-from-file> ( document -- history )
-    read-history dup length dup history boa ;
-
 : <history> ( document -- history )
-    V{ } clone 0 0 history boa ;
+    read-history dup length dup history boa ;
 
 <PRIVATE
 

@@ -58,7 +58,7 @@ C: <continuation> continuation
 
 PRIVATE>
 
-: ifcc ( capture restore -- obj )
+: ifcc ( capture restore -- )
     [ dummy-1 current-continuation or? ] 2dip [ dummy-2 ] prepose if ; inline
 
 : callcc0 ( quot -- ) [ drop ] ifcc ; inline
@@ -159,7 +159,7 @@ callback-error-hook [ [ die rethrow ] ] initialize
     '[ dup @ [ drop f ] [ rethrow ] if ] recover ; inline
 
 : cleanup ( try cleanup-always cleanup-error -- )
-    [ '[ [ @ @ ] dip rethrow ] recover ] keepd call ; inline
+    [ '[ [ @ @ ] dip rethrow ] recover ] [ drop ] 2bi call ; inline
 
 : finally ( try cleanup-always -- )
     [ ] cleanup ; inline

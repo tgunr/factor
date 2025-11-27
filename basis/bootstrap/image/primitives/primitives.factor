@@ -246,7 +246,7 @@ CONSTANT: all-primitives {
                 { integer c-ptr alien } { integer } f
             }
             {
-                "fseek" ( offset whence alien -- ) "fseek"
+                "fseek" ( alien offset whence -- ) "fseek"
                 { integer integer alien } { } f
             }
             { "ftell" ( alien -- n ) "ftell" { alien } { integer } f }

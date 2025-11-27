@@ -4,10 +4,10 @@ system words ;
 
 IN: curl.ffi
 
-C-LIBRARY: curl {
-    { macos "libcurl.dylib" }
-    { unix "libcurl.so" }
-}
+<< "curl" {
+    { [ os macos? ] [ "libcurl.dylib" ] }
+    { [ os unix? ] [ "libcurl.so" ] }
+} cond cdecl add-library >>
 
 LIBRARY: curl
 

@@ -25,6 +25,3 @@ CONSTANT: b { 0 0 0 0 2 3 1 }
     weighted-cosine-similarity
 ] unit-test
 
-
-{ 0.7333333333333334 } [ "CRATE" "TRACE" jaro-similarity ] unit-test
-{ 0.8842592592592592 } [ "FARMVILLE" "FAREMVIEL" jaro-similarity ] unit-test

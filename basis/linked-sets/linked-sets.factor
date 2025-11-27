@@ -1,12 +1,9 @@
 ! Copyright (C) 2016 John Benediktsson
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors assocs deques dlists hashtables kernel parser
-sets vocabs.loader ;
+USING: accessors assocs deques dlists hashtables kernel sets ;
 IN: linked-sets
 
-TUPLE: linked-set
-    { assoc hashtable read-only }
-    { dlist dlist read-only } ;
+TUPLE: linked-set { assoc hashtable read-only } { dlist dlist read-only } ;
 
 : <linked-set> ( capacity -- linked-set )
     <hashtable> <dlist> linked-set boa ;
@@ -49,7 +46,3 @@ INSTANCE: linked-set set
 
 M: linked-set set-like
     drop dup linked-set? [ >linked-set ] unless ;
-
-SYNTAX: LS{ \ } [ >linked-set ] parse-literal ;
-
-{ "linked-sets" "prettyprint" } "linked-sets.prettyprint" require-when

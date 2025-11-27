@@ -219,7 +219,7 @@ HELP: and*
 { $description "If both inputs are true, outputs " { $snippet "obj1" } ". Otherwise outputs " { $link f } "." }
 { $notes "This word implements boolean and, so applying it to integers will not yield useful results (all integers have a true value). Bitwise and is the " { $link bitand } " word." }
 { $examples
-    "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that if both inputs are true, the first is output:"
+    "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that if both inputs are true, the second is output:"
     { $example "USING: kernel prettyprint ;" "t f and* ." "f" }
     { $example "USING: kernel prettyprint ;" "t 7 and* ." "t" }
     { $example "USING: kernel prettyprint ;" "\"hi\" 12.0 and* ." "\"hi\"" }
@@ -242,7 +242,7 @@ HELP: or*
 { $description "If both inputs are false, outputs " { $link f } ". Otherwise outputs the first of " { $snippet "obj2" } " and " { $snippet "obj1" } " which is true." }
 { $notes "This word implements boolean inclusive or, so applying it to integers will not yield useful results (all integers have a true value). Bitwise inclusive or is the " { $link bitor } " word." }
 { $examples
-    "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that the result will be the last true input:"
+    "Usually only the boolean value of the result is used, however you can also explicitly rely on the behavior that the result will be the first true input:"
     { $example "USING: kernel prettyprint ;" "t f or* ." "t" }
     { $example "USING: kernel prettyprint ;" "\"hi\" 12.0 or* ." "12.0" }
 } ;
@@ -289,8 +289,8 @@ HELP: both?
 } ;
 
 HELP: either?
-{ $values { "x" object } { "y" object } { "quot" { $quotation ( ... obj -- ... ? ) } } { "?" "a generalized boolean" } }
-{ $description "Applies the quotation to both " { $snippet "x" } " and " { $snippet "y" } ", and then returns the first result that is not " { $link f } "." }
+{ $values { "x" object } { "y" object } { "quot" { $quotation ( ... obj -- ... ? ) } } { "?" boolean } }
+{ $description "Tests if the quotation yields a true value when applied to either " { $snippet "x" } " or " { $snippet "y" } "." }
 { $examples
     { $example "USING: kernel math prettyprint ;" "3 6 [ odd? ] either? ." "t" }
     { $example "USING: kernel math prettyprint ;" "5 7 [ even? ] either? ." "f" }
@@ -942,7 +942,7 @@ HELP: 1check
         "6 [ even? ] 1check [ . ] bi@"
         "6\nt"
     }
-    "False case:"
+    "True case:"
     { $example "USING: kernel math prettyprint ;"
         "6 [ odd? ] 1check [ . ] bi@"
         "6\nf"
@@ -973,7 +973,7 @@ HELP: 2check
     { "x" object } { "y" object } { "quot" quotation }
     { "?" boolean }
 }
-{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } " and " { $snippet "y" } " and keeps those two values under the boolean result from the " { $snippet "quot" } "."  }
+{ $description "Calls " { $snippet "quot" } " on " { $snippet "x" } " and " { $snippet "x" } " and keeps those two values under the boolean result from the " { $snippet "quot" } "."  }
 { $examples
     "True case:"
     { $example "USING: kernel math prettyprint ;"
@@ -1221,12 +1221,6 @@ HELP: while*
 HELP: until
 { $values { "pred" { $quotation ( ..a -- ..b ? ) } } { "body" { $quotation ( ..b -- ..a ) } } }
 { $description "Calls " { $snippet "body" } " until " { $snippet "pred" } " returns " { $link t } "." } ;
-
-HELP: until*
-{ $values { "pred" { $quotation ( ..a -- ..b ? ) } } { "body" { $quotation ( ..b -- ..a ) } } { "?" boolean } }
-{ $description "Calls " { $snippet "body" } " until " { $snippet "pred" }
-  " returns " { $link t } ". The return value of " { $snippet "pred" } " is "
-  "kept on the stack." } ;
 
 HELP: do
 { $values { "pred" { $quotation ( ..a -- ..b ? ) } } { "body" { $quotation ( ..b -- ..a ) } } }

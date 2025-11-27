@@ -82,9 +82,10 @@ PRIVATE>
     over assoc-reject-as ; inline
 
 : assoc-filter! ( ... assoc quot: ( ... key value -- ... ? ) -- ... assoc )
-    over [
-        '[ _ keepd swap [ drop ] [ _ delete-at ] if ] assoc-each
-    ] keep ; inline
+    [
+        over [ [ [ drop ] 2bi ] dip [ delete-at ] 2curry unless ] 2curry
+        assoc-each
+    ] [ drop ] 2bi ; inline
 
 : assoc-reject! ( ... assoc quot: ( ... key value -- ... ? ) -- ... assoc )
     [ not ] compose assoc-filter! ; inline
@@ -102,7 +103,8 @@ PRIVATE>
     [ nip empty? ] assoc-reject ; inline
 
 : assoc-partition ( ... assoc quot: ( ... key value -- ... ? ) -- ... true-assoc false-assoc )
-    [ assoc-operator partition ] keepd '[ _ assoc-like ] bi@ ; inline
+    [ assoc-operator partition ] [ drop ] 2bi
+    [ assoc-like ] curry bi@ ; inline
 
 : assoc-any? ( ... assoc quot: ( ... key value -- ... ? ) -- ... ? )
     assoc-find 2nip ; inline

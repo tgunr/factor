@@ -107,13 +107,10 @@ GENERIC: slots>tuple ( seq class -- tuple )
 M: tuple-class slots>tuple
     check-slots pad-slots make-tuple ;
 
-: tuple>slots ( tuple -- seq class )
-    [ tuple-slots ] [ class-of ] bi ;
+: tuple>array ( tuple -- array )
+    [ tuple-slots ] [ class-of prefix ] bi ;
 
-: pack-tuple ( tuple -- array )
-    tuple>slots prefix ;
-
-: unpack-tuple ( seq -- tuple )
+: >tuple ( seq -- tuple )
     unclip slots>tuple ;
 
 ERROR: bad-superclass class ;

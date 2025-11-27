@@ -70,14 +70,10 @@ SYMBOL: command-line
 : (parse-command-line) ( args -- )
     [
         unclip "-" ?head [
-            dup empty? [
-                script set command-line set
-            ] [
-                [ CHAR: - = ] trim-head
-                [ param ] [ "run=" head? ] bi
-                [ command-line set ]
-                [ (parse-command-line) ] if
-            ] if
+            [ CHAR: - = ] trim-head
+            [ param ] [ "run=" head? ] bi
+            [ command-line set ]
+            [ (parse-command-line) ] if
         ] [
             script set command-line set
         ] if

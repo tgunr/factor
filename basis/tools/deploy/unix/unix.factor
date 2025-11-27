@@ -1,18 +1,12 @@
 ! Copyright (C) 2008 James Cash
 ! See https://factorcode.org/license.txt for BSD license.
 USING: combinators io.backend io.directories io.files.info.unix
-io.pathnames kernel namespaces sequences system
-tools.deploy.backend tools.deploy.config
-tools.deploy.config.editor ;
+io.pathnames kernel namespaces system tools.deploy.backend
+tools.deploy.config tools.deploy.config.editor ;
 IN: tools.deploy.unix
 
-CONSTANT: extension ".out"
-
-: ?extension ( path -- path.out )
-    os macos? [ extension append ] unless ;
-
 : create-app-dir ( vocab bundle-name -- vm-path )
-    [ ?extension ] dip copy-vm dup 0o755 set-file-permissions ;
+    copy-vm dup 0o755 set-file-permissions ;
 
 M: unix deploy*
     deploy-name get
@@ -27,8 +21,6 @@ M: unix deploy*
 M: unix deploy-path
     deploy-directory get [
         dup deploy-config [
-            deploy-name get
-            swap ?extension append-path
-            normalize-path
+            deploy-name get swap append-path normalize-path
         ] with-variables
     ] with-directory ;

@@ -20,8 +20,7 @@ ARTICLE: "ui-shortcuts" "UI tool keyboard shortcuts"
 $nl
 "Some common shortcuts are supported by all tools:"
 { $command-map tool "tool-switching" }
-{ $command-map tool "common" }
-{ $command-map tool "fonts" } ;
+{ $command-map tool "common" } ;
 
 ARTICLE: "ui-presentations" "Presentations in the UI"
 "A " { $emphasis "presentation" } " is a graphical view of an object which is directly linked to the object in some way. The help article links you see in the documentation browser are presentations; and if you " { $link see } " a word in the UI listener, all words in the definition will themselves be presentations."

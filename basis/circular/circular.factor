@@ -3,7 +3,7 @@
 USING: accessors arrays kernel math sequences strings ;
 IN: circular
 
-TUPLE: circular < wrapped-sequence { start integer } ;
+TUPLE: circular < sequence-view { start integer } ;
 
 : <circular> ( seq -- circular )
     0 circular boa ; inline

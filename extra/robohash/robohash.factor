@@ -16,14 +16,8 @@ IN: robohash
 
 PRIVATE>
 
-: robohash1 ( str -- image ) "set1" (robohash) ; ! robots
+: robohash1 ( str -- image ) "set1" (robohash) ;
 
-: robohash2 ( str -- image ) "set2" (robohash) ; ! monsters
+: robohash2 ( str -- image ) "set2" (robohash) ;
 
-: robohash3 ( str -- image ) "set3" (robohash) ; ! robot heads
-
-: robohash4 ( str -- image ) "set4" (robohash) ; ! beautiful kittens
-
-: robohash5 ( str -- image ) "set5" (robohash) ; ! human technicians
-
-: robohash6 ( str -- image ) "set6" (robohash) ; ! guerilla resistance
+: robohash3 ( str -- image ) "set3" (robohash) ;

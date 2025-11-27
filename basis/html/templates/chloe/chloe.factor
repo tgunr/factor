@@ -3,7 +3,7 @@
 USING: accessors assocs html.components html.forms
 html.templates html.templates.chloe.compiler
 html.templates.chloe.components html.templates.chloe.syntax
-io io.encodings.utf8 io.files io.files.info kernel logging make
+io.encodings.utf8 io.files io.files.info kernel logging make
 math namespaces sequences splitting words xml xml.syntax ;
 QUALIFIED: xml.data
 IN: html.templates.chloe
@@ -31,10 +31,9 @@ CHLOE: style
 
 CHLOE: write-style
     drop [
-        "<style type=\"text/css\">" write
-        get-style write
-        "</style>" write
-    ] [code] ;
+        get-style
+        [XML <style type="text/css"> <-> </style> XML]
+    ] [xml-code] ;
 
 CHLOE: script
     [ "include" optional-attr ]
@@ -43,10 +42,9 @@ CHLOE: script
 
 CHLOE: write-script
     drop [
-        "<script type=\"text/javascript\">" write
-        get-script write
-        "</script>" write
-    ] [code] ;
+        get-script "*/" "/*" surround xml.data:<cdata>
+        [XML <script type="text/javascript">/* <-> */</script> XML]
+    ] [xml-code] ;
 
 CHLOE: meta attrs>> '[ _ add-meta ] [code] ;
 

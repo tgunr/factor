@@ -2,17 +2,17 @@
 ! See https://factorcode.org/license.txt for BSD license.
 
 USING: alien alien.c-types alien.destructors alien.libraries
-alien.libraries.finder alien.syntax combinators literals system ;
+alien.libraries.finder alien.syntax combinators system ;
 
 IN: fftw.ffi
 
 LIBRARY: fftw3
 
-C-LIBRARY: fftw3 {
-    { windows $[ { "fftw3.dll" "libfftw3-3.dll" } find-library-from-list ] }
-    { macos "libfftw3.dylib" }
-    { unix "libfftw3.so" }
-}
+<< "fftw3" {
+    { [ os windows? ] [ { "fftw3.dll" "libfftw3-3.dll" } find-library-from-list ] }
+    { [ os macos? ] [ "libfftw3.dylib" ] }
+    { [ os unix? ] [ "libfftw3.so" ] }
+} cond cdecl add-library >>
 
 TYPEDEF: double[2] fftw_complex
 

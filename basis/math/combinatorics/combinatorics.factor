@@ -96,7 +96,7 @@ DEFER: next-permutation
 
 <PRIVATE
 
-: <permutation-iota> ( seq -- iota )
+: <permutation-iota> ( seq -- <iota> )
     length factorial <iota> ; inline
 
 : permutations-quot ( seq quot -- seq quot' )
@@ -121,13 +121,11 @@ PRIVATE>
     permutations-quot all? ; inline
 
 : find-permutation ( ... seq quot: ( ... elt -- ... ? ) -- ... elt/f )
-    '[ _ keep and ] permutations-quot map-find drop ; inline
+    [ permutations-quot find drop ]
+    [ drop over [ permutation ] [ 2drop f ] if ] 2bi ; inline
 
 : reduce-permutations ( ... seq identity quot: ( ... prev elt -- ... next ) -- ... result )
     swapd each-permutation ; inline
-
-: count-permutations ( ... seq quot: ( ... elt -- ... ? ) -- ... n )
-    0 swap [ [ 1 + ] when ] compose reduce-permutations ; inline
 
 : inverse-permutation ( seq -- permutation )
     <enumerated> sort-values keys ;
@@ -220,13 +218,10 @@ PRIVATE>
     combinations-with-replacement-quot all? ; inline
 
 : find-combination-with-replacement ( ... seq k quot: ( ... elt -- ... ? ) -- ... elt/f )
-    '[ _ keep and ] combinations-with-replacement-quot map-find drop ; inline
+    [ f ] 3dip '[ nip _ 1check ] combinations-with-replacement-quot find drop and* ; inline
 
 : reduce-combinations-with-replacement ( ... seq k identity quot: ( ... prev elt -- ... next ) -- ... result )
     -rotd each-combination-with-replacement ; inline
-
-: count-combinations-with-replacement ( ... seq k quot: ( ... elt -- ... ? ) -- ... n )
-    0 swap [ [ 1 + ] when ] compose reduce-combinations-with-replacement ; inline
 
 <PRIVATE
 
@@ -313,13 +308,10 @@ PRIVATE>
     combinations-quot all? ; inline
 
 : find-combination ( ... seq k quot: ( ... elt -- ... ? ) -- ... elt/f )
-    '[ _ keep and ] combinations-quot map-find drop ; inline
+    [ f ] 3dip '[ nip _ 1check ] combinations-quot find drop and* ; inline
 
 : reduce-combinations ( ... seq k identity quot: ( ... prev elt -- ... next ) -- ... result )
     -rotd each-combination ; inline
-
-: count-combinations ( ... seq k quot: ( ... elt -- ... ? ) -- ... n )
-    0 swap [ [ 1 + ] when ] compose reduce-combinations ; inline
 
 : all-subsets ( seq -- subsets )
     dup length [0..b] [ all-combinations ] with map concat ;
@@ -360,10 +352,7 @@ PRIVATE>
     selections-quot all? ; inline
 
 : find-selection ( ... seq n quot: ( ... elt -- ... ? ) -- ... elt/f )
-    '[ _ keep and ] selections-quot map-find drop ; inline
+    [ f ] 3dip '[ nip _ 1check ] selections-quot find drop and* ; inline
 
 : reduce-selections ( ... seq n identity quot: ( ... prev elt -- ... next ) -- ... result )
     -rotd each-selection ; inline
-
-: count-selections ( ... seq n quot: ( ... elt -- ... ? ) -- ... n )
-    0 swap [ [ 1 + ] when ] compose reduce-selections ; inline

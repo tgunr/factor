@@ -16,6 +16,7 @@ CONSTANT: ansi-font-styles H{
 }
 PRIVATE>
 
+
 : ansi-font-style ( font-style -- string )
     dup sequence? [
         [ ansi-font-styles at ] map concat

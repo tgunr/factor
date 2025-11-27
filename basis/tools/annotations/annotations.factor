@@ -1,9 +1,8 @@
 ! Copyright (C) 2005, 2010 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors arrays assocs combinators.short-circuit
-compiler.units effects generalizations generic inspector io
-kernel math namespaces parser prettyprint quotations sequences
-sequences.deep sequences.generalizations sorting summary
+USING: accessors arrays assocs combinators.short-circuit compiler.units effects
+generalizations generic inspector io kernel math namespaces prettyprint
+quotations sequences sequences.deep sequences.generalizations sorting summary
 tools.time vocabs words ;
 IN: tools.annotations
 
@@ -122,11 +121,6 @@ PRIVATE>
 
 : watch-vars ( word vars -- )
     dupd '[ [ _ _ ] dip (watch-vars) ] annotate ;
-
-DEFER: WATCH>
-
-SYNTAX: <WATCH
-    \ WATCH> parse-until >quotation dup (watch) append! ;
 
 SYMBOL: word-timing
 

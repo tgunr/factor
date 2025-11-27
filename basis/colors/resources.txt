@@ -1,4 +1,0 @@
-css-colors.txt
-factor-colors.txt
-rgb.txt
-solarized-colors.txt

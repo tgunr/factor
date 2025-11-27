@@ -1,11 +1,11 @@
 ! Copyright (C) 2005, 2009 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
-USING: accessors assocs colors combinators
-combinators.short-circuit combinators.smart fry kernel literals
-locals math math.vectors memoize models namespaces sequences
-ui.commands ui.gadgets ui.gadgets.borders ui.gadgets.labels
-ui.gadgets.packs ui.gadgets.worlds ui.gestures ui.pens
-ui.pens.polygon ui.pens.solid ui.theme ;
+USING: accessors assocs colors combinators combinators.short-circuit
+combinators.smart fry kernel locals math.vectors memoize models
+namespaces sequences ui.commands ui.gadgets ui.gadgets.borders
+ui.gadgets.labels ui.gadgets.packs ui.theme ui.gadgets.worlds
+ui.gestures ui.pens ui.pens.image ui.pens.solid ui.pens.tile
+ui.theme.images ;
 FROM: models => change-model ;
 IN: ui.gadgets.buttons
 
@@ -124,14 +124,18 @@ PRIVATE>
 
 <PRIVATE
 
+: <border-button-state-pen> ( prefix background foreground -- pen )
+    [
+        "-left" "-middle" "-right"
+        [ append theme-image ] tri-curry@ tri
+    ] 2dip <tile-pen> ;
+
 : <border-button-pen> ( -- pen )
-    content-background <solid>
-    field-border-color <solid>
-    selection-color <solid>
-    roll-button-rollover-border <solid>
-    toolbar-button-pressed-background <solid>
-    <button-pen>
-    ;
+    "button" transparent button-text-color
+    <border-button-state-pen> dup
+    "button-clicked" transparent button-clicked-text-color
+    <border-button-state-pen> dup dup
+    <button-pen> ;
 
 : border-button-label-theme ( gadget -- )
     dup label? [ [ clone t >>bold? ] change-font ] when drop ;
@@ -140,13 +144,13 @@ PRIVATE>
     dup gadget-child border-button-label-theme
     horizontal >>orientation
     <border-button-pen> >>interior
-    { 10 2 } >>size ; inline
+    dup dup interior>> pen-pref-dim >>min-dim
+    { 10 0 } >>size ; inline
 
 PRIVATE>
 
 : <border-button> ( label quot: ( button -- ) -- button )
-    <button> border-button-theme
-    field-border-color <solid> >>boundary ;
+    <button> border-button-theme ;
 
 TUPLE: repeat-button < button ;
 
@@ -163,14 +167,12 @@ repeat-button H{
 
 <PRIVATE
 
-CONSTANT: checkmark-dim 12
-CONSTANT: checkmark-square { { 0 0 } { 0 $ checkmark-dim } { $ checkmark-dim $ checkmark-dim } { $ checkmark-dim 0 } } 
 : <checkmark-pen> ( -- pen )
-    roll-button-rollover-border checkmark-square <polygon>
-    roll-button-rollover-border checkmark-square <polygon>
-    dim-color checkmark-square <polygon>
-    errors-color checkmark-square <polygon>
-    toolbar-button-pressed-background checkmark-square <polygon>
+    "checkbox" theme-image <image-pen>
+    "checkbox" theme-image <image-pen>
+    "checkbox-clicked" theme-image <image-pen>
+    "checkbox-set" theme-image <image-pen>
+    "checkbox-set-clicked" theme-image <image-pen>
     <button-pen> ;
 
 : <checkmark> ( -- gadget )
@@ -194,24 +196,20 @@ TUPLE: checkbox < button ;
 
 M: checkbox model-changed
     swap value>> >>selected? relayout-1 ;
+
 <PRIVATE
 
-CONSTANT: circle-points 12
-CONSTANT: checkmark-dim/2 $[ $ checkmark-dim 2 / ]
-CONSTANT: checkmark-rhombus { { 0 $ checkmark-dim/2 } { $ checkmark-dim/2 $ checkmark-dim } { $ checkmark-dim $ checkmark-dim/2 } { $ checkmark-dim/2 0 } } 
-CONSTANT: checkmark-circle $[ $ circle-points $ checkmark-dim polygon-circle ]
 : <radio-pen> ( -- pen )
-    roll-button-rollover-border checkmark-circle <polygon>
-    roll-button-rollover-border checkmark-circle <polygon>
-    dim-color checkmark-circle <polygon>
-    errors-color checkmark-circle <polygon>
-    toolbar-button-pressed-background checkmark-circle <polygon>
-    <button-pen>
-    ;
+    "radio" theme-image <image-pen>
+    "radio" theme-image <image-pen>
+    "radio-clicked" theme-image <image-pen>
+    "radio-set" theme-image <image-pen>
+    "radio-set-clicked" theme-image <image-pen>
+    <button-pen> ;
 
 : <radio-knob> ( -- gadget )
     <gadget>
-    <radio-pen> >>interior checkmark-circle max-dims >>dim
+    <radio-pen> >>interior
     dup dup interior>> pen-pref-dim >>dim ;
 
 TUPLE: radio-control < button value ;

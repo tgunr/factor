@@ -4,11 +4,11 @@ USING: alien alien.c-types alien.libraries alien.syntax
 classes.struct combinators system ;
 IN: duckdb.ffi
 
-C-LIBRARY: duckdb {
-    { windows "duckdb.dll" }
-    { macos "libduckdb.dylib" }
-    { unix "libduckdb.so" }
-}
+<< "duckdb" {
+    { [ os windows? ] [ "duckdb.dll" ] }
+    { [ os macos? ] [ "libduckdb.dylib" ] }
+    { [ os unix? ] [ "libduckdb.so" ] }
+} cond cdecl add-library >>
 
 LIBRARY: duckdb
 

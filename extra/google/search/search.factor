@@ -2,8 +2,8 @@
 ! See https://factorcode.org/license.txt for BSD license
 
 USING: accessors assocs.extras classes.tuple colors combinators
-formatting http.client http.json io io.styles json kernel
-sequences urls wrap.strings ;
+formatting http.client io io.styles json kernel sequences urls
+wrap.strings ;
 
 IN: google.search
 
@@ -22,7 +22,7 @@ title content unescapedUrl url titleNoFormatting fileFormat ;
 PRIVATE>
 
 : google-search ( query -- results )
-    search-url http-get-json nip
+    search-url http-get nip json>
     { "responseData" "results" } deep-of
     [ \ search-result from-slots ] map ;
 

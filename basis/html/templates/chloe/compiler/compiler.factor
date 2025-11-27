@@ -136,13 +136,12 @@ ERROR: unknown-chloe-tag tag ;
         { [ dup [ tag? ] [ xml? ] bi or ] [ compile-tag ] }
         { [ dup string? ] [ compile-string ] }
         { [ dup comment? ] [ drop ] }
-        { [ dup cdata? ] [ text>> [write] ] }
         [ compile-misc ]
     } cond ;
 
 : with-compiler ( quot -- quot' )
     [
-        SBUF" " clone string-buffer namespaces:set
+        SBUF" " string-buffer namespaces:set
         V{ } clone tag-stack namespaces:set
         call
         reset-buffer
@@ -154,7 +153,7 @@ ERROR: unknown-chloe-tag tag ;
 : compile-quot ( quot -- )
     reset-buffer
     [
-        SBUF" " clone string-buffer namespaces:set
+        SBUF" " string-buffer namespaces:set
         call
         reset-buffer
     ] [ ] make , ; inline
@@ -177,7 +176,9 @@ ERROR: unknown-chloe-tag tag ;
     nested-template? get swap unless ; inline
 
 : compile-prologue ( xml -- )
-    [ before>> compile-chunk ] compile-quot
+    [
+        before>> compile-chunk
+    ] compile-quot
     [ if-not-nested ] [code] ;
 
 : compile-epilogue ( xml -- )

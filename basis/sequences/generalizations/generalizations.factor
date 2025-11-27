@@ -1,12 +1,14 @@
 ! Copyright (C) 2009 Joe Groff.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: arrays combinators generalizations kernel math math.order
-quotations sequences sequences.padded sequences.private ;
-FROM: memoize.private => [nsequence] [firstn] [set-firstn] ;
+memoize.private quotations sequences sequences.private ;
 IN: sequences.generalizations
 
+MACRO: (nsequence) ( n -- quot )
+    <iota> reverse [ '[ [ _ swap set-nth-unsafe ] keep ] ] map concat ;
+
 MACRO: nsequence ( n exemplar -- quot )
-    [nsequence] ;
+    [ [nsequence] ] keep '[ @ _ like ] ;
 
 MACRO: narray ( n -- quot )
     '[ _ { } nsequence ] ;
@@ -16,25 +18,31 @@ MACRO: firstn-unsafe ( n -- quot )
 
 MACRO: firstn ( n -- quot )
     [ [ drop ] ] [
-        [ 1 - ] keep '[ _ swap bounds-check nip _ firstn-unsafe ]
+        [ 1 - swap bounds-check 2drop ]
+        [ firstn-unsafe ]
+        bi-curry '[ _ _ bi ]
     ] if-zero ;
 
 MACRO: set-firstn-unsafe ( n -- quot )
-    [set-firstn] '[ @ drop ] ;
+    [ 1 + ]
+    [ <iota> [ '[ _ rot [ set-nth-unsafe ] keep ] ] map ] bi
+    '[ _ -nrot _ spread drop ] ;
 
 MACRO: set-firstn ( n -- quot )
     [ [ drop ] ] [
-        [ 1 - ] keep '[ _ swap bounds-check nip _ set-firstn-unsafe ]
+        [ 1 - swap bounds-check 2drop ]
+        [ set-firstn-unsafe ]
+        bi-curry '[ _ _ bi ]
     ] if-zero ;
 
 MACRO: ?firstn ( n -- quot )
-    dup '[ _ f <padded-tail> _ firstn-unsafe ] ;
+    dup '[ _ f pad-tail _ firstn-unsafe ] ;
 
 : lastn ( seq n -- elts... )
     [ tail-slice* ] [ firstn-unsafe ] bi ; inline
 
 : ?lastn ( seq n -- elts... )
-    [ f <padded-head> ] [ lastn ] bi ; inline
+    [ f pad-head ] [ lastn ] bi ; inline
 
 : set-lastn ( elts... seq n -- )
     [ tail-slice* ] [ set-firstn-unsafe ] bi ; inline

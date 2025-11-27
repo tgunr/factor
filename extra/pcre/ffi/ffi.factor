@@ -2,11 +2,11 @@ USING: alien alien.c-types alien.libraries alien.syntax
 classes.struct combinators system ;
 IN: pcre.ffi
 
-C-LIBRARY: pcre {
-    { windows "pcre.dll" }
-    { macos "libpcre.dylib" }
-    { unix "libpcre.so" }
-}
+<< "pcre" {
+    { [ os windows? ] [ "pcre.dll" ] }
+    { [ os macos? ] [ "libpcre.dylib" ] }
+    { [ os unix? ] [ "libpcre.so" ] }
+} cond cdecl add-library >>
 
 LIBRARY: pcre
 

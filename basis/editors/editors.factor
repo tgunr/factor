@@ -14,8 +14,7 @@ SYMBOL: editor-class
 : available-editors ( -- seq )
     "editors" disk-child-vocab-names
     { "editors.ui" "editors.private" } diff
-    [ vocab-platforms supported-platform? ] filter
-    [ "editors." ?head drop ] map ;
+    [ vocab-platforms supported-platform? ] filter ;
 
 : editor-restarts ( -- alist )
     available-editors
@@ -92,8 +91,15 @@ M: cannot-find-source error.
 
 DEFER: edit
 
+<PRIVATE
+
+: public-vocab-name ( vocab-spec -- name )
+    vocab-name ".private" ?tail drop ;
+
+PRIVATE>
+
 : edit-vocab ( vocab -- )
-    >vocab-link edit ;
+    public-vocab-name >vocab-link edit ;
 
 GENERIC: edit ( object -- )
 
@@ -109,17 +115,15 @@ M: string edit edit-vocab ;
 : :edit ( -- )
     error get edit-error ;
 
-: ?edit ( object -- )
-    [ edit ] [
-        dup cannot-find-source? [
-            drop "Cannot find source for " write .
-        ] [ rethrow ] if
-    ] recover ;
-
 : edit-each ( seq -- )
-    "RETURN moves on to the next usage, C+d stops." print [
+    [
         [ "Editing " write . ]
-        [ flush ?edit readln ] bi
+        [
+            "RETURN moves on to the next usage, C+d stops." print
+            flush
+            edit
+            readln
+        ] bi
     ] all? drop ;
 
 : fix ( word -- )
@@ -130,7 +134,7 @@ M: string edit edit-vocab ;
 GENERIC: edit-docs ( object -- )
 
 M: object edit-docs
-    vocab-docs-path 1 edit-location ;
+    public-vocab-name vocab-docs-path 1 edit-location ;
 
 M: word edit-docs
     dup "help-loc" word-prop
@@ -141,18 +145,18 @@ M: word edit-docs
 GENERIC: edit-tests ( object -- )
 
 M: object edit-tests
-    vocab-tests-path 1 edit-location ;
+    public-vocab-name vocab-tests-path 1 edit-location ;
 
 M: word edit-tests vocabulary>> edit-tests ;
 
 : edit-platforms ( vocab -- )
-    vocab-platforms-path 1 edit-location ;
+    public-vocab-name vocab-platforms-path 1 edit-location ;
 
 : edit-authors ( vocab -- )
-    vocab-authors-path 1 edit-location ;
+    public-vocab-name vocab-authors-path 1 edit-location ;
 
 : edit-tags ( vocab -- )
-    vocab-tags-path 1 edit-location ;
+    public-vocab-name vocab-tags-path 1 edit-location ;
 
 : edit-summary ( vocab -- )
-    vocab-summary-path 1 edit-location ;
+    public-vocab-name vocab-summary-path 1 edit-location ;

@@ -29,7 +29,7 @@ SLOT: last-release
             [ os>> extension % ]
             bi
         ] "" make
-    ] keepd release-directory ;
+    ] [ drop ] 2bi release-directory ;
 
 : remote-binary-release-name ( version builder -- string )
     binary-release-name remote-directory ;

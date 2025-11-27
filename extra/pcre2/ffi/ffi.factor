@@ -3,11 +3,11 @@ alien.syntax combinators system ;
 
 IN: pcre2.ffi
 
-C-LIBRARY: pcre2 {
-    { windows "pcre2-8.dll" }
-    { macos "libpcre2-8.dylib" }
-    { unix "libpcre2-8.so" }
-}
+<< "pcre2" {
+    { [ os windows? ] [ "pcre2-8.dll" ] }
+    { [ os macos? ] [ "libpcre2-8.dylib" ] }
+    { [ os unix? ] [ "libpcre2-8.so" ] }
+} cond cdecl add-library >>
 
 LIBRARY: pcre2
 

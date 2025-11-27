@@ -4,5 +4,3 @@ USING: lexer sequences ;
 IN: qw
 
 SYNTAX: qw{ "}" parse-tokens suffix! ;
-
-SYNTAX: qw: scan-token suffix! ;

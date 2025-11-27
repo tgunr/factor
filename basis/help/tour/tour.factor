@@ -46,7 +46,7 @@ the semantics of the language can be implemented more efficiently by mutating a 
 
 ARTICLE: "tour-stack" "Playing with the stack"
 
-Let us start looking at what Factor actually feels like. Our first words will be literals, like { $snippet "3" } , { $snippet "12.58" } or 
+Let us start looking what Factor actually feels like. Our first words will be literals, like { $snippet "3" } , { $snippet "12.58" } or 
 { $snippet "\"Chuck Norris\"" } . Literals can be thought as functions that push themselves on the stack. Try writing { $snippet "5" } in the listener and 
 then press enter to confirm. You will see that the stack, initially empty, now looks like
 
@@ -109,9 +109,10 @@ there are no semantics to the { $snippet "[" } , the { $snippet ".." }  and the 
 since it is just a token like { $snippet "foo" }  or { $snippet "bar" } ).
 
 The range we want starts with { $snippet "1" } , so we can use the simpler word { $link [1..b] }  that assumes the 
-range starts at { $snippet "1" }  and only expects the value at the top of the range to be on the stack. If you get a
-{ $snippet "Data stack underflow" } error, it means you forgot to put a number on the stack first to be the upper
-bound { $snippet "b" } .
+range starts at { $snippet "1" }  and only expects the value at the top of the range to be on the stack. If you write { 
+$link [1..b] }  in the listener, Factor will prompt you with a choice, because the word { $link [1..b] }  is 
+not imported by default. Factor is able to suggest you import the { $vocab-link "ranges" }  vocabulary, so choose that 
+option and proceed.
 
 You should now have on your stack a rather opaque structure which looks like
 
@@ -191,7 +192,7 @@ If you've been paying close attention so far, you will realize that you have bee
 These are { $strong "parsing words" }  and they behave differently from ordinary words like { $snippet "5" } , { $link [1..b] } or { $link drop } . We will cover 
 these in more detail when we talk about metaprogramming, but for now it is enough to know that parsing words are special.
 
-They are not defined using the { $link POSTPONE: : } word, but with the word { $link POSTPONE: SYNTAX: } instead. When a parsing word is encountered, it 
+They are not defined using the { $link POSTPONE: : } word, but with the word { $link POSTPONE: SYNTAX: } instead. When a parsing words is encountered, it 
 can interact with the parser using a well-defined API to influence how successive words are parsed. For instance { $link POSTPONE: : } 
 asks for the next token from the parser until { $link POSTPONE: ; } is found and tries to compile that stream of tokens into a word 
 definition.
@@ -520,7 +521,7 @@ objects. As a result, fairly complex systems can evolve from the cooperation of 
 each other's internals.
 
 To be fair, Factor is very different from Smalltalk, but still there is the concept of classes, and generic words can 
-be defined having different implementations on different classes.
+defined having different implementations on different classes.
 
 Some classes are builtin in Factor, such as { $link string } , { $link boolean } , { $link fixnum } or { $link word } . Next, the most common way to 
 define a class is as a { $strong "tuple" } . Tuples are defined with the { $link POSTPONE: TUPLE: } parsing word, followed by the tuple name and the 
@@ -557,7 +558,7 @@ define a most common constructor called { $snippet "<movie>" } , which in our ca
 { $code "
 : <movie> ( title director actors -- movie ) movie boa ;
 " }
-In fact, boa constructors are so common, that the above line can be shortened to
+In fact, boa constructor are so common, that the above line can be shortened to
 
 { $code "
 C: <movie> movie
@@ -566,7 +567,7 @@ C: <movie> movie
 In other cases, you may want to use some defaults, or compute some fields.
 
 The functional minded will be worried about the mutability of tuples. Actually, slots can be declared to be " read-only "
-with { $snippet "{ slot-name read-only } " } . In this case, the field setter will not be generated, and the value must be set at the 
+with { $snippet "{ slot-name read-only } " } . In this case, the field setter will not be generated, and the value must be set a the 
 beginning with a boa constructor. Other valid slot modifiers are { $link POSTPONE: initial: } - to declare a default value - and a class word
 , such as { $snippet "integer" } , to restrict the values that can be inserted.
 
@@ -1013,10 +1014,7 @@ Factor defines many more words for input/output, which cover many more cases, su
 We will end this section investigating some words to walk the filesystem. Our aim is a very minimal implementation of the { $snippet "ls" } command.
 
 The word { $link directory-entries } lists the contents of a directory, giving a list of tuple elements, each one having the 
-slots { $snippet "name" } and { $snippet "type" } . You can see this by trying 
-
-{ $code "\"/home\" directory-entries [ name>> ] map" } 
-If you inspect the 
+slots { $snippet "name" } and { $snippet "type" } . You can see this by trying { $snippet "\"/home\" directory-entries [ name>> ] map" } . If you inspect the 
 directory entries, you will see that the type is either { $link +directory+ } or { $link +regular-file+ } (well, there are symlinks as well, 
 but we will ignore them for simplicity). Hence we can define a word that lists files and directories with
 
@@ -1486,8 +1484,8 @@ This tutorial will:
 
 { $list 
   "Guide you through the basics of Factor so you can appreciate its simplicity and power."
-  "Show you that Factor can be mastered with a bit of practice."
-  "Assume some familiarity with programming."
+  "Assume you are an experienced programmer familiar with a functional language"
+  "Assume you understand concepts like folding, higher-order functions, and currying"
 }
 
 Even though Factor is a niche language, it is mature and has a comprehensive standard library covering tasks from JSON 

@@ -85,15 +85,6 @@ Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa
 { "1m 1s" } [ 61 elapsed-time ] unit-test
 { "2y 1w 6d 2h 59m 23s" } [ 64033163 elapsed-time ] unit-test
 
-[ "" parse-elapsed-time ] must-fail
-[ "1" parse-elapsed-time ] must-fail
-[ "1t" parse-elapsed-time ] must-fail
-{ T{ duration f 0 0 0 0 0 0 } } [ "0s" parse-elapsed-time ] unit-test
-{ T{ duration f 0 0 0 0 0 59 } } [ "59s" parse-elapsed-time ] unit-test
-{ T{ duration f 0 0 0 0 1 0 } } [ "1m" parse-elapsed-time ] unit-test
-{ T{ duration f 0 0 0 0 1 1 } } [ "1m 1s" parse-elapsed-time ] unit-test
-{ T{ duration f 2 0 13 2 59 23 } } [ "2y 1w 6d 2h 59m 23s" parse-elapsed-time ] unit-test
-
 { "just now" } [ 0 relative-time ] unit-test
 { "less than a minute ago" } [ 10 relative-time ] unit-test
 { "about a minute ago" } [ 60 relative-time ] unit-test
@@ -106,10 +97,3 @@ Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa  Su Mo Tu We Th Fr Sa
 { "2 minutes and 3 seconds" } [ 123 seconds duration>human-readable ] unit-test
 { "20 minutes and 34 seconds" } [ 1234 seconds duration>human-readable ] unit-test
 { "3 hours, 25 minutes and 45 seconds" } [ 12345 seconds duration>human-readable ] unit-test
-
-{ T{ duration f 0 0 0 0 1 0 } } [ "1 minute" human-readable>duration ] unit-test
-{ T{ duration f 0 0 0 1 0 0 } } [ "1 hour" human-readable>duration ] unit-test
-{ T{ duration f 0 0 0 3 0 0 } } [ "3 hours" human-readable>duration ] unit-test
-{ T{ duration f 0 0 0 0 2 3 } } [ "2 minutes and 3 seconds" human-readable>duration ] unit-test
-{ T{ duration f 0 0 0 0 20 34 } } [ "20 minutes and 34 seconds" human-readable>duration ] unit-test
-{ T{ duration f 0 0 0 3 25 45 } } [ "3 hours, 25 minutes and 45 seconds" human-readable>duration ] unit-test

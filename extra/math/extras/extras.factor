@@ -1,9 +1,9 @@
 ! Copyright (C) 2012 John Benediktsson
 ! See https://factorcode.org/license.txt for BSD license
 
-USING: accessors arrays assocs bit-vectors byte-arrays
-combinators combinators.short-circuit compression.zlib grouping
-kernel kernel.private math math.bitwise math.combinatorics
+USING: accessors arrays assocs byte-arrays combinators
+combinators.short-circuit compression.zlib grouping kernel
+kernel.private math math.bitwise math.combinatorics
 math.constants math.functions math.order math.primes
 math.primes.factors math.statistics math.vectors namespaces
 random random.private ranges ranges.private sequences
@@ -23,7 +23,8 @@ DEFER: stirling
 PRIVATE>
 
 MEMO: stirling ( n k -- x )
-    2dup { [ = ] [ nip 1 = ] } 2|| [ 2drop 1 ] [ (stirling) ] if ;
+    2dup { [ = ] [ nip 1 = ] } 2||
+    [ 2drop 1 ] [ (stirling) ] if ;
 
 :: ramanujan ( x -- y )
     pi sqrt x e / x ^ * x 8 * 4 + x * 1 + x * 1/30 + 1/6 ^ * ;
@@ -409,26 +410,3 @@ M:: vose random* ( obj rnd -- elt )
     dup obj probs>> nth-unsafe { float } declare rnd random-unit* >=
     [ obj alias>> nth-unsafe { fixnum } declare ] unless
     obj items>> nth-unsafe ;
-
-:: all-removals ( n seq -- seqs )
-    seq length <iota> n over '[ _ swap diff seq nths ] map-combinations ;
-
-<PRIVATE
-:: next-recaman ( prev n seen -- next )
-    prev n - dup { [ 0 > ] [ seen nth not ] } 1&&
-    [ drop prev n + ] unless t over seen set-nth ;
-PRIVATE>
-
-:: recaman ( N -- seq )
-    0 N dup <bit-vector> '[ _ next-recaman dup ] map-integers nip ;
-
-:: nth-recaman ( N -- elt )
-    0 N dup <bit-vector> '[ _ next-recaman ] each-integer ;
-
-MEMO: tribonacci ( n -- r )
-    {
-        { 0 [ 0 ] }
-        { 1 [ 1 ] }
-        { 2 [ 1 ] }
-        [ 3 2 1 [ - tribonacci ] tri-curry@ tri + + ]
-    } case ;

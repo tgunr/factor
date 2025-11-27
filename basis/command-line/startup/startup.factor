@@ -34,7 +34,6 @@ Options:
     -fep                enter fep mode immediately
     -no-signals         turn off OS signal handling
     -roots=<paths>      '" write os windows? ";" ":" ? write "'-separated list of extra vocab root directories
-    -q                  quiet mode; do not print version banner on startup
 
 Enter
     \"command-line\" help
@@ -45,10 +44,8 @@ from within Factor for more information.
 
 : run-script ( file -- )
     t parser-quiet? [
-        [ read-contents eval-with-stack ] [
-            [ parse-file [ output>array datastack. ] call( quot -- ) ]
-            [ path>source-file main>> [ execute( -- ) ] when* ] bi
-        ] if-empty
+        [ parse-file [ output>array datastack. ] call( quot -- ) ]
+        [ path>source-file main>> [ execute( -- ) ] when* ] bi
     ] with-variable ;
 
 : command-line-startup ( -- )

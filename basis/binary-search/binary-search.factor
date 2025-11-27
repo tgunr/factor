@@ -7,16 +7,16 @@ IN: binary-search
 <PRIVATE
 
 :: (search) ( ... seq from to quot: ( ... elt -- ... <=> ) -- ... i elt )
-    from to + 2/ :> midpoint
-    midpoint seq nth-unsafe :> elt
+    from to + 2/ :> midpoint@
+    midpoint@ seq nth-unsafe :> midpoint
 
     to from - 1 <= [
-        midpoint elt
+        midpoint@ midpoint
     ] [
-        elt quot call {
-            { +lt+ [ seq from midpoint quot (search) ] }
-            { +gt+ [ seq midpoint to quot (search) ] }
-            { +eq+ [ midpoint elt ] }
+        midpoint quot call {
+            { +lt+ [ seq from midpoint@ quot (search) ] }
+            { +gt+ [ seq midpoint@ to quot (search) ] }
+            { +eq+ [ midpoint@ midpoint ] }
         } case
     ] if ; inline recursive
 

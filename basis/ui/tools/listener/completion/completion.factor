@@ -1,14 +1,17 @@
 ! Copyright (C) 2009 Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
 
-USING: accessors arrays assocs colors combinators
-definitions.icons documents documents.elements fonts kernel math
-models.arrow sequences sets splitting strings tools.completion
-ui.gadgets ui.gadgets.editors ui.gadgets.glass
-ui.gadgets.labeled ui.gadgets.scrollers ui.gadgets.tables
-ui.gadgets.tracks ui.gestures ui.images ui.theme ui.tools.common
-ui.tools.listener.history ui.tools.listener.popups unicode.data
-vocabs ;
+USING: accessors arrays assocs calendar colors combinators
+combinators.short-circuit definitions.icons documents
+documents.elements fonts generic help.vocabs kernel math
+math.vectors models.arrow models.delay parser present sequences
+sets splitting strings tools.completion ui.commands ui.gadgets
+ui.gadgets.editors ui.gadgets.glass ui.gadgets.labeled
+ui.gadgets.scrollers ui.gadgets.tables ui.gadgets.tracks
+ui.gadgets.worlds ui.gadgets.wrappers ui.gestures ui.images
+ui.operations ui.pens.solid ui.theme ui.theme.images
+ui.tools.common ui.tools.listener.history
+ui.tools.listener.popups unicode.data vocabs words ;
 
 IN: ui.tools.listener.completion
 
@@ -163,9 +166,7 @@ GENERIC#: accept-completion-hook 1 ( item popup -- )
 
 completion-popup H{
     { T{ key-down f f "TAB" } [ table>> row-action ] }
-    { T{ key-down f f " " } [
-        dup completion-mode>> history-completion =
-        [ drop ] [ table>> row-action ] if ] }
+    { T{ key-down f f " " } [ table>> row-action ] }
 } set-gestures
 
 : show-completion-popup ( interactor mode -- )

@@ -1,13 +1,12 @@
 ! Copyright (C) 2008 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
-
-USING: accessors alien.c-types alien.data alien.endian checksums
-checksums.common combinators combinators.smart kernel
-kernel.private literals math math.bitwise ranges sequences
-sequences.generalizations sequences.private specialized-arrays ;
+USING: accessors alien.c-types checksums checksums.common
+combinators combinators.smart endian grouping kernel
+kernel.private literals math math.bitwise ranges
+sequences sequences.generalizations sequences.private
+specialized-arrays ;
 SPECIALIZED-ARRAY: uint
 SPECIALIZED-ARRAY: ulong
-SPECIALIZED-ARRAY: ube32
 IN: checksums.sha
 
 MIXIN: sha
@@ -27,7 +26,8 @@ INSTANCE: sha-256 sha
 TUPLE: sha1-state < block-checksum-state
 { K uint-array }
 { H uint-array }
-{ W uint-array } ;
+{ W uint-array }
+{ word-size fixnum } ;
 
 CONSTANT: initial-H-sha1
     uint-array{
@@ -49,7 +49,8 @@ CONSTANT: K-sha1
 
 TUPLE: sha2-state < block-checksum-state
 { K uint-array }
-{ H uint-array } ;
+{ H uint-array }
+{ word-size fixnum } ;
 
 TUPLE: sha2-short < sha2-state ;
 
@@ -159,19 +160,22 @@ ALIAS: K-512 K-384
     sha1-state new-checksum-state
         64 >>block-size
         K-sha1 >>K
-        initial-H-sha1 >>H ;
+        initial-H-sha1 >>H
+        4 >>word-size ;
 
 : <sha-224-state> ( -- sha2-state )
     sha-224-state new-checksum-state
         64 >>block-size
         K-256 >>K
-        initial-H-224 >>H ;
+        initial-H-224 >>H
+        4 >>word-size ;
 
 : <sha-256-state> ( -- sha2-state )
     sha-256-state new-checksum-state
         64 >>block-size
         K-256 >>K
-        initial-H-256 >>H ;
+        initial-H-256 >>H
+        4 >>word-size ;
 
 M: sha1 initialize-checksum-state drop <sha1-state> ;
 
@@ -298,9 +302,9 @@ GENERIC: pad-initial-bytes ( string sha2 -- padded-string )
     b a H exchange-unsafe
     T1 T2 w+ a H set-nth-unsafe ; inline
 
-: prepare-message-schedule ( seq block-size -- w-seq )
-    [ ube32 cast-array ] [ <uint-array> ] bi*
-    [ '[ _ set-nth-unsafe ] each-index ]
+: prepare-message-schedule ( seq sha2 -- w-seq )
+    [ word-size>> <groups> ] [ block-size>> <uint-array> ] bi
+    [ '[ [ be> ] dip _ set-nth-unsafe ] each-index ]
     [ 16 over length [a..b) over '[ _ prepare-M-256 ] each ] bi ; inline
 
 :: process-chunk ( M block-size cloned-H sha2 -- )
@@ -312,35 +316,32 @@ GENERIC: pad-initial-bytes ( string sha2 -- padded-string )
     sha2 [ cloned-H [ w+ ] 2map ] change-H drop ; inline
 
 M: sha2-short checksum-block
-    [ block-size>> [ prepare-message-schedule ] keep ]
-    [ H>> clone ]
-    [ process-chunk ] tri ;
+    [ prepare-message-schedule ]
+    [ [ block-size>> ] [ H>> clone ] [ ] tri process-chunk ] bi ;
 
-: uint-array>checksum ( seq -- bytes )
-    [ underlying>> ] [ length ] bi [
-        4 *
-        [ dup 3 + pick exchange-unsafe ]
-        [ 1 + dup 1 + pick exchange-unsafe ] bi
-    ] each-integer ; inline
+: sequence>byte-array ( seq n -- bytes )
+    '[ _ >be ] { } map-as B{ } concat-as ; inline
 
 : sha1>checksum ( sha2 -- bytes )
-    H>> uint-array>checksum ; inline
+    H>> 4 sequence>byte-array ; inline
 
 : sha-224>checksum ( sha2 -- bytes )
-    H>> 7 head uint-array>checksum ; inline
+    H>> 7 head 4 sequence>byte-array ; inline
 
 : sha-256>checksum ( sha2 -- bytes )
-    H>> uint-array>checksum ; inline
+    H>> 4 sequence>byte-array ; inline
 
-: checksum-last-block ( state -- )
+: pad-last-short-block ( state -- )
     [ bytes>> t ] [ bytes-read>> pad-last-block ] [ ] tri
-    '[ _ checksum-block ] each ; inline
+    [ checksum-block ] curry each ; inline
 
 M: sha-224-state get-checksum
-    clone [ checksum-last-block ] [ sha-224>checksum ] bi ;
+    clone
+    [ pad-last-short-block ] [ sha-224>checksum ] bi ;
 
 M: sha-256-state get-checksum
-    clone [ checksum-last-block ] [ sha-256>checksum ] bi ;
+    clone
+    [ pad-last-short-block ] [ sha-256>checksum ] bi ;
 
 : sha1-W ( t seq -- )
     { uint-array } declare
@@ -353,8 +354,8 @@ M: sha-256-state get-checksum
     } 2cleave set-nth-unsafe ; inline
 
 : prepare-sha1-message-schedule ( seq -- w-seq )
-    ube32 cast-array 80 <uint-array>
-    [ '[ _ set-nth-unsafe ] each-index ]
+    4 <groups> 80 <uint-array>
+    [ '[ [ be> ] dip _ set-nth-unsafe ] each-index ]
     [ 16 80 [a..b) over '[ _ sha1-W ] each ] bi ; inline
 
 : sha1-f ( B C D n -- f_nbcd )
@@ -401,6 +402,7 @@ M:: sha1-state checksum-block ( bytes state -- )
     state [ H>> clone ] [ W>> ] [ K>> ] tri state process-sha1-chunk ;
 
 M: sha1-state get-checksum
-    clone [ checksum-last-block ] [ sha-256>checksum ] bi ;
+    clone
+    [ pad-last-short-block ] [ sha-256>checksum ] bi ;
 
 PRIVATE>

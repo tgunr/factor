@@ -167,12 +167,12 @@ ENUM: fcgi-protocol-status
 
 :: handle-post-data* ( post-data data params -- )
     post-data data >>data params >>params
-    request tget swap >>data drop ;
+    request tget swap >>post-data drop ;
 
 : handle-post-data ( -- )
     post? [
         request tget dup "CONTENT_TYPE" header
-        <post-data> [ >>data ] keep nip
+        <post-data> [ >>post-data ] keep nip
         stdin-data tget >string dup query>assoc
         handle-post-data*
     ] when ;

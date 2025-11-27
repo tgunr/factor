@@ -209,14 +209,18 @@ M: virtual-sequence new-sequence virtual-exemplar new-sequence ; inline
 
 INSTANCE: virtual-sequence sequence
 
-TUPLE: wrapped-sequence { seq sequence read-only } ;
+! all wrapped-sequence instances need to define a slot `seq` that is a sequence
+MIXIN: wrapped-sequence
 M: wrapped-sequence virtual-exemplar seq>> ; inline
 M: wrapped-sequence virtual@ seq>> ; inline
 M: wrapped-sequence length seq>> length ; inline
 INSTANCE: wrapped-sequence virtual-sequence
 
+TUPLE: sequence-view { seq sequence read-only } ;
+INSTANCE: sequence-view wrapped-sequence
+
 ! A reversal of an underlying sequence.
-TUPLE: reversed < wrapped-sequence ;
+TUPLE: reversed < sequence-view ;
 
 C: <reversed> reversed
 
@@ -226,7 +230,7 @@ M: reversed virtual@ seq>> [ length swap - 1 - ] keep ; inline
 TUPLE: slice
     { from integer read-only }
     { to integer read-only }
-    { seq sequence read-only } ;
+    { seq read-only } ;
 
 : >slice< ( slice -- from to seq )
     [ from>> ] [ to>> ] [ seq>> ] tri ; inline
@@ -251,13 +255,9 @@ PRIVATE>
 : <slice> ( from to seq -- slice )
     check-slice <slice-unsafe> ; inline
 
-M: slice virtual-exemplar seq>> ; inline
-
 M: slice virtual@ [ from>> + ] [ seq>> ] bi ; inline
 
 M: slice length [ to>> ] [ from>> ] bi - ; inline
-
-INSTANCE: slice virtual-sequence
 
 : head-slice ( seq n -- slice ) head-to-index <slice> ; inline
 
@@ -270,6 +270,8 @@ INSTANCE: slice virtual-sequence
 : tail-slice* ( seq n -- slice ) from-tail tail-slice ; inline
 
 : but-last-slice ( seq -- slice ) 1 head-slice* ; inline
+
+INSTANCE: slice wrapped-sequence
 
 ! One element repeated many times
 TUPLE: repetition
@@ -438,9 +440,6 @@ PRIVATE>
 : sequence-operator ( seq quot -- i n quot' )
     [ >underlying< [ nth-unsafe ] curry ] dip compose ; inline
 
-: sequence-operator-from ( i seq quot -- i' n quot' )
-    [ >underlying< [ + ] 2dip [ nth-unsafe ] curry ] dip compose ; inline
-
 : length-iterator ( seq -- n quot' )
     length-sequence [ nth-unsafe ] curry ; inline
 
@@ -481,6 +480,12 @@ PRIVATE>
 : 3length-operator ( seq1 seq2 seq3 quot -- n quot' )
     [ 3length-iterator ] dip compose ; inline
 
+: element/index ( i/f seq -- elt/f i/f )
+    '[ [ _ nth ] [ f ] if* ] keep ; inline
+
+: index/element ( i/f seq -- i/f elt/f )
+    dupd '[ _ nth ] [ f ] if* ; inline
+
 : (accumulate) ( seq identity quot -- identity seq quot' )
     swapd [ keepd ] curry ; inline
 
@@ -493,7 +498,7 @@ PRIVATE>
     sequence-operator each-integer-from ; inline
 
 : each-from ( ... seq quot: ( ... x -- ... ) i -- ... )
-    -rot sequence-operator-from each-integer-from ; inline
+    -rot length-operator each-integer-from ; inline
 
 : reduce ( ... seq identity quot: ( ... prev elt -- ... next ) -- ... result )
     swapd each ; inline
@@ -575,30 +580,30 @@ PRIVATE>
 : bounds-check-call ( n seq quot -- obj1 obj2 )
     [ drop bounds-check? ] 3check [ call ] [ 3drop f f ] if ; inline
 
-: ?nth-unsafe ( i/f seq -- i/f elt/f )
-    dupd '[ _ nth-unsafe ] [ f ] if* ; inline
+: do-find-from ( ... n seq quot: ( ... elt -- ... ? ) -- ... i/f seq )
+    [ length-operator find-integer-from ] keepd ; inline
+
+: find-last-from-unsafe ( ... n seq quot: ( ... elt -- ... ? ) -- ... i/f seq )
+    [ length-operator nip find-last-integer ] keepd ; inline
 
 PRIVATE>
 
 : find-from ( ... n seq quot: ( ... elt -- ... ? ) -- ... i elt )
-    '[
-        [ _ length-operator find-integer-from ] keep ?nth-unsafe
-    ] bounds-check-call ; inline
+    '[ _ do-find-from index/element ] bounds-check-call ; inline
 
 : find ( ... seq quot: ( ... elt -- ... ? ) -- ... i elt )
-    [ 0 ] 2dip find-from ; inline
+    [ 0 ] 2dip do-find-from index/element ; inline
 
 : find-last-from ( ... n seq quot: ( ... elt -- ... ? ) -- ... i elt )
-    '[
-        [ _ length-operator nip find-last-integer ] keep ?nth-unsafe
-    ] bounds-check-call ; inline
+    '[ _ find-last-from-unsafe index/element ] bounds-check-call ; inline
 
 : find-last ( ... seq quot: ( ... elt -- ... ? ) -- ... i elt )
     [ index-of-last ] dip find-last-from ; inline
 
 : find-index-from ( ... n seq quot: ( ... elt i -- ... ? ) -- ... i elt )
     '[
-        [ _ sequence-index-operator find-integer-from ] keep ?nth-unsafe
+        _ [ sequence-index-operator find-integer-from ] keepd
+        index/element
     ] bounds-check-call ; inline
 
 : find-index ( ... seq quot: ( ... elt i -- ... ? ) -- ... i elt )
@@ -901,11 +906,11 @@ PRIVATE>
     [ exchange-unsafe ]
     3tri ;
 
-: midpoint ( seq -- n ) length 2/ ; inline
+: midpoint@ ( seq -- n ) length 2/ ; inline
 
 : reverse! ( seq -- seq )
     [
-        [ midpoint ] [ length ] [ ] tri
+        [ midpoint@ ] [ length ] [ ] tri
         [ [ over - 1 - ] dip exchange-unsafe ] 2curry
         each-integer
     ] keep ;
@@ -1001,7 +1006,7 @@ PRIVATE>
     swap cut-slice [ swap suffix ] dip append ;
 
 : halves ( seq -- first-slice second-slice )
-    dup midpoint cut-slice ; inline
+    dup midpoint@ cut-slice ; inline
 
 <PRIVATE
 
@@ -1128,7 +1133,7 @@ PRIVATE>
     [ trim-head-slice ] [ trim-tail-slice ] bi ; inline
 
 : trim ( ... seq quot: ( ... elt -- ... ? ) -- ... newseq )
-    [ trim-slice ] keepd like ; inline
+    [ trim-slice ] [ drop ] 2bi like ; inline
 
 GENERIC: sum ( seq -- n )
 M: object sum 0 [ + ] binary-reduce ; inline

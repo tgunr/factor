@@ -69,7 +69,7 @@ IN: project-euler.065
     ] lmap-lazy ;
 
 : e-frac ( n -- n )
-    (e-frac) swap 1 - ltake list>array reverse 0
+    1 - (e-frac) ltake list>array reverse 0
     [ + recip ] reduce 2 + ;
 
 PRIVATE>

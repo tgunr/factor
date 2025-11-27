@@ -1,17 +1,15 @@
 ! Copyright (C) 2023 John Benediktsson
 ! See https://factorcode.org/license.txt for BSD license
 
-USING: accessors assocs calendar calendar.format formatting
-hashtables http http.client http.json io.encodings.string
-io.encodings.utf8 json kernel mirrors namespaces sequences
-sorting urls ;
+USING: accessors assocs assocs.extras calendar calendar.format
+hashtables http http.client io.encodings.string
+io.encodings.utf8 json json.http kernel mirrors namespaces
+sequences sorting urls ;
 
 IN: openai
 
-INITIALIZED-SYMBOL: openai-api-base [ "https://api.openai.com/v1" ]
-
-: with-openai-base ( url quot -- )
-    [ openai-api-base ] dip with-variable ; inline
+SYMBOL: openai-api-base
+"https://api.openai.com/v1" openai-api-base set-global
 
 SYMBOL: openai-api-key
 
@@ -23,7 +21,7 @@ CONSTANT: best-openai-model "gpt-4o-2024-08-06"
 <PRIVATE
 
 : openai-url ( path -- url )
-    [ openai-api-base get ] dip append >url ;
+    [ openai-api-base get ] dip "/" glue >url ;
 
 : openai-request ( request -- data )
     openai-api-key get set-bearer-auth
@@ -37,8 +35,8 @@ CONSTANT: best-openai-model "gpt-4o-2024-08-06"
     openai-url "DELETE" <json-request> openai-request ;
 
 : openai-post ( post-data path -- data )
-    [ <json-data> ] [ openai-url ] bi*
-    "POST" <json-request> swap >>data openai-request ;
+    [ <json-post-data> ] [ openai-url ] bi*
+    "POST" <json-request> swap >>post-data openai-request ;
 
 : openai-input ( obj -- assoc )
     ! assume all false values are default values and reject
@@ -48,14 +46,12 @@ PRIVATE>
 
 : add-human-readable-timestamps ( models -- models )
     [
-        dup "created" of [
-            unix-time>timestamp timestamp>rfc3339
-            "created-string" pick set-at
-        ] when*
+        dup "created" of unix-time>timestamp timestamp>rfc3339
+        "created-string" pick set-at
     ] map ;
 
 : list-models ( -- models )
-    "/models" openai-get "data" of
+    "models" openai-get "data" of
     [ "created" of ] sort-by
     add-human-readable-timestamps ;
 
@@ -63,10 +59,10 @@ PRIVATE>
     list-models [ "id" of ] map ;
 
 : retrieve-model ( model-id -- data )
-    "/models/%s" sprintf openai-get ;
+    "models/" prepend openai-get ;
 
 : delete-model ( model-id -- data )
-    "/models/%s" sprintf openai-delete ;
+    "models/" prepend openai-delete ;
 
 TUPLE: completion model prompt suffix max_tokens temperature
     top_p n stream logprobs echo stop presence_penalty
@@ -76,7 +72,7 @@ TUPLE: completion model prompt suffix max_tokens temperature
     completion new swap >>model swap >>prompt ;
 
 : create-completion ( completion -- data )
-    openai-input "/completions" openai-post ;
+    openai-input "completions" openai-post ;
 
 TUPLE: chat-message role content ;
 
@@ -93,7 +89,7 @@ TUPLE: chat-completion model messages temperature top_p n stream
     cheapest-openai-model <chat-completion> ;
 
 : chat-completions ( chat-completion -- data )
-    openai-input "/chat/completions" openai-post ;
+    openai-input "chat/completions" openai-post ;
 
 TUPLE: edit model input instruction n temperature top_p ;
 
@@ -101,7 +97,7 @@ TUPLE: edit model input instruction n temperature top_p ;
     edit new swap >>model swap >>instruction ;
 
 : create-edit ( edit -- data )
-    openai-input "/edits" openai-post ;
+    openai-input "edits" openai-post ;
 
 TUPLE: image-generation prompt n size response_format user ;
 
@@ -109,7 +105,7 @@ TUPLE: image-generation prompt n size response_format user ;
     image-generation new swap >>prompt ;
 
 : create-image ( image-generation -- data )
-    openai-input "/images/generations" openai-post ;
+    openai-input "images/generations" openai-post ;
 
 TUPLE: image-edit image mask prompt n size response_format user ;
 
@@ -117,7 +113,7 @@ TUPLE: image-edit image mask prompt n size response_format user ;
     image-edit new swap >>prompt swap >>image ;
 
 : create-image-edit ( image-edit -- data  )
-    openai-input "/images/edits" openai-post ;
+    openai-input "images/edits" openai-post ;
 
 TUPLE: image-variation image n size response_format user ;
 
@@ -125,7 +121,7 @@ TUPLE: image-variation image n size response_format user ;
     image-variation new swap >>image ;
 
 : create-image-variation ( image-variation -- data )
-    openai-input "/images/variations" openai-post ;
+    openai-input "images/variations" openai-post ;
 
 TUPLE: embeddings model input user ;
 
@@ -133,7 +129,7 @@ TUPLE: embeddings model input user ;
     embeddings new swap >>model swap >>input ;
 
 : create-embeddings ( embeddings -- data )
-    openai-input "/embeddings" openai-post ;
+    openai-input "embeddings" openai-post ;
 
 TUPLE: transcription file model prompt response_format
     temperature language ;
@@ -142,7 +138,7 @@ TUPLE: transcription file model prompt response_format
     transcription new swap >>model swap >>file ;
 
 : create-transcription ( transcription -- data )
-    openai-input "/audio/transcriptions" openai-post ;
+    openai-input "audio/transcriptions" openai-post ;
 
 TUPLE: translation file model prompt response_format temperature ;
 
@@ -150,26 +146,26 @@ TUPLE: translation file model prompt response_format temperature ;
     translation new swap >>model swap >>file ;
 
 : create-translation ( translation -- data )
-    openai-input "/audio/translations" openai-post ;
+    openai-input "audio/translations" openai-post ;
 
 : list-files ( -- files )
-    "/files" openai-get ;
+    "files" openai-get ;
 
 TUPLE: file-upload file purpose ;
 
 C: <file-upload> file-upload
 
 : upload-file ( file-upload -- data )
-    openai-input "/files" openai-post ;
+    openai-input "files" openai-post ;
 
 : delete-file ( file-id -- data )
-    "/files/%s" sprintf openai-delete ;
+    "files/" prepend openai-delete ;
 
 : retrieve-file ( file-id -- data )
-    "/files/%s" sprintf openai-get ;
+    "files/" prepend openai-get ;
 
 : retrieve-file-content ( file-id -- content )
-    "/files/%s/content" sprintf openai-get ;
+    "files/" "/content" surround openai-get ;
 
 TUPLE: fine-tune training_file validation_file model n_epochs
     batch_size learning_rate_multiplier prompt_loss_weight
@@ -180,20 +176,20 @@ TUPLE: fine-tune training_file validation_file model n_epochs
     fine-tune new swap >>training_file ;
 
 : create-fine-tune ( fine-tune -- data )
-    openai-input "/fine-tunes" openai-post ;
+    openai-input "fine-tunes" openai-post ;
 
 : list-fine-tunes ( -- data )
-    "/fine-tunes" openai-get ;
+    "fine-tunes" openai-get ;
 
 : retrieve-fine-tune ( fine-tune-id -- data )
-    "/fine-tunes/%s" sprintf openai-get ;
+    "fine-tunes/" prepend openai-get ;
 
 : cancel-fine-tune ( fine-tune-id -- data )
-    H{ } swap "/fine-tunes/%s/cancel" sprintf openai-post ;
+    H{ } swap "fine-tunes/" "/cancel" surround openai-post ;
 
 ! XXX: query parameter ?stream=true/false
 : list-fine-tune-events ( fine-tune-id -- data )
-    "/fine-tunes/%s/events" sprintf openai-get ;
+    "fine-tunes/" "/events" surround openai-get ;
 
 TUPLE: moderation input model ;
 
@@ -201,16 +197,4 @@ TUPLE: moderation input model ;
     moderation new swap >>input ;
 
 : create-moderation ( moderation -- data )
-    openai-input "/moderation" openai-post ;
-
-! LM Studio uses the same api as openai
-: lmstudio-model-names ( json -- names )
-    [ "id" of ] map first ;
-
-: with-lmstudio-openai-key ( quot -- )
-    [ "lm-studio" openai-api-key ] dip with-variable ; inline
-
-: with-lmstudio ( quot -- )
-    [ "http://localhost:1234/v1" ] dip '[
-        _ with-lmstudio-openai-key
-    ] with-openai-base ; inline
+    openai-input "moderation" openai-post ;

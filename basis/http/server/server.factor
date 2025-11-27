@@ -2,14 +2,13 @@
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors arrays assocs combinators
 combinators.short-circuit continuations debugger destructors
-hashtables html html.templates http http.server.remapping
-http.server.requests http.server.responses io io.crlf
-io.encodings io.encodings.ascii io.encodings.iana
+hashtables html html.streams html.templates http
+http.server.remapping http.server.requests http.server.responses
+io io.crlf io.encodings io.encodings.ascii io.encodings.iana
 io.encodings.utf8 io.servers io.sockets io.sockets.secure
-io.streams.html io.streams.limited kernel logging
-logging.insomniac math mime.types namespaces present protocols
-sequences splitting tools.time urls vectors vocabs
-vocabs.refresh xml.writer ;
+io.streams.limited kernel logging logging.insomniac math
+mime.types namespaces present protocols sequences splitting
+tools.time urls vectors vocabs vocabs.refresh xml.writer ;
 IN: http.server
 
 GENERIC: write-response ( response -- )
@@ -134,7 +133,8 @@ LOG: httpd-header NOTICE
 
 : log-request ( request -- )
     [ [ method>> ] [ url>> ] bi 2array httpd-hit ]
-    [ { "user-agent" } [ log-header ] with each ] bi ;
+    [ { "user-agent" "x-forwarded-for" } [ log-header ] with each ]
+    bi ;
 
 : split-path ( string -- path )
     "/" split harvest ;
@@ -145,9 +145,9 @@ LOG: httpd-header NOTICE
         { "HEAD" [ url>> query>> ] }
         { "OPTIONS" [ url>> query>> ] }
         { "DELETE" [ url>> query>> ] }
-        { "POST" [ data>> params>> ] }
-        { "PATCH" [ data>> params>> ] }
-        { "PUT" [ data>> params>> ] }
+        { "POST" [ post-data>> params>> ] }
+        { "PATCH" [ post-data>> params>> ] }
+        { "PUT" [ post-data>> params>> ] }
         [ 2drop H{ } clone ]
     } case ;
 

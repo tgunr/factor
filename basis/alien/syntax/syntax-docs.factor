@@ -1,7 +1,6 @@
-USING: alien alien.c-types alien.enums alien.libraries assocs
-classes.struct classes.enumeration help.markup help.syntax see system ;
-
 IN: alien.syntax
+USING: alien alien.c-types alien.enums alien.libraries classes.struct assocs
+help.markup help.syntax see ;
 
 HELP: DLL"
 { $syntax "DLL\" path\"" }
@@ -25,11 +24,6 @@ HELP: LIBRARY:
 { $values { "name" "a logical library name" } }
 { $description "Sets the logical library for consequent " { $link POSTPONE: FUNCTION: } ", " { $link POSTPONE: C-GLOBAL: } " and " { $link POSTPONE: CALLBACK: } " definitions, as well as " { $link POSTPONE: &: } " forms." }
 { $notes "Logical library names are defined with the " { $link add-library } " word." } ;
-
-HELP: C-LIBRARY:
-{ $syntax "C-LIBRARY: name paths" }
-{ $values { "name" "a logical library name" } { "paths" { "an alist of {os,path} pairs" } } }
-{ $description "Adds the appropriate library path for the current " { $link os } " using " { $link cdecl } " calling convention." } ;
 
 HELP: FUNCTION:
 { $syntax "FUNCTION: return name ( parameters )" }
@@ -73,7 +67,7 @@ HELP: TYPEDEF:
 HELP: ENUM:
 { $syntax "ENUM: type words... ;" "ENUM: type < base-type words..." }
 { $values { "type" { $maybe "a name to typedef to int" } } { "words" "a sequence of word names" } }
-{ $description { $warning "This word is part of Factor's C library interface, and not intended for use with Factor data. Factor has its own native " { $link "enums" } " which can be created with " { $link POSTPONE: ENUMERATION: } "." } "Creates a c-type that boxes and unboxes integer values to symbols. A singleton is defined for each member word which allows generic dispatch on the enum's members. The base c-type can optionally be specified and defaults to " { $link int } ". A constructor word " { $snippet "<type>" } " is defined for converting from integers to singletons. The generic word " { $link enum>number } " converts from singletons to integers. Enum-typed values are automatically prettyprinted as their singleton words. Unrecognizing enum numbers are kept as numbers." }
+{ $description { $warning "This word is part of Factor's C library interface, and not intended for use with Factor data. Factor has its own native " { $link "enums" } " which can be created with " { $link <enumerated> } "." } "Creates a c-type that boxes and unboxes integer values to symbols. A singleton is defined for each member word which allows generic dispatch on the enum's members. The base c-type can optionally be specified and defaults to " { $link int } ". A constructor word " { $snippet "<type>" } " is defined for converting from integers to singletons. The generic word " { $link enum>number } " converts from singletons to integers. Enum-typed values are automatically prettyprinted as their singleton words. Unrecognizing enum numbers are kept as numbers." }
 { $examples
     "Here is an example enumeration definition:"
     { $code "ENUM: color_t red { green 3 } blue ;" }

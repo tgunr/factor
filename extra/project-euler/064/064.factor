@@ -1,7 +1,7 @@
 ! Copyright (C) 2009 Kye W. Shi.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors classes.tuple kernel math math.functions
-project-euler.common ranges sequences serialize ;
+project-euler.common ranges sequences ;
 IN: project-euler.064
 
 ! http://projecteuler.net/problem=64
@@ -64,6 +64,9 @@ TUPLE: cont-frac
 
 C: <cont-frac> cont-frac
 
+: deep-copy ( cont-frac -- cont-frac cont-frac )
+    dup tuple>array rest cont-frac slots>tuple ;
+
 : create-cont-frac ( n -- n cont-frac )
     dup sqrt >fixnum dup 1 <cont-frac> ;
 
@@ -108,7 +111,7 @@ C: <cont-frac> cont-frac
     0 swap
     create-cont-frac
     step
-    dup deep-clone -rot
+    deep-copy -rot
     loop
     drop drop drop ;
 

@@ -14,9 +14,6 @@ os unix? [
 ] when
 
 { } [ "factor-test-key-1" unset-os-env ] unit-test
-{ f } [ "factor-test-key-1" os-env ] unit-test
-{ } [ "" "factor-test-key-1" set-os-env ] unit-test
-{ "" } [ "factor-test-key-1" os-env ] unit-test
 { } [ "ps3" "factor-test-key-1" set-os-env ] unit-test
 { "ps3" } [ "factor-test-key-1" os-env ] unit-test
 { } [ "factor-test-key-1" unset-os-env ] unit-test

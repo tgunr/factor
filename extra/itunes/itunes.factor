@@ -1,10 +1,17 @@
 ! Copyright (C) 2020 Doug Coleman.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: accessors assocs biassocs combinators formatting
-http.client http.json json kernel literals sequences ;
+http.client json kernel literals sequences ;
 IN: itunes
 
 ERROR: http-get-error url res json ;
+
+: get-json ( url -- json )
+    dup http-get over code>> 200 = [
+        2nip json>
+    ] [
+        http-get-error
+    ] if ;
 
 : ?key ( key assoc -- key ? ) dupd key? ; inline
 
@@ -117,7 +124,7 @@ CONSTANT: apple-languages $[
     apple-languages from>> ?key [ ] [ apple-languages to>> ?at drop ] if ;
 
 : search-apple-podcasts ( terms -- json )
-    "https://itunes.apple.com/search?media=podcast&term=%s" sprintf http-get-json nip ;
+    "https://itunes.apple.com/search?media=podcast&term=%s" sprintf get-json ;
 
 ! https://podcasts.apple.com/de/genre/podcasts/id26
 
@@ -129,7 +136,7 @@ CONSTANT: apple-languages $[
         [ { "explicit" } find-first-value drop "true" or ]
     } cleave
     "https://itunes.apple.com/%s/rss/toppodcasts/genre=%s/limit=%s/explicit=%s/json"
-    sprintf http-get-json nip  ;
+    sprintf get-json  ;
 
 : top-100-apple-podcasts ( code/f -- json )
     "US" or
@@ -141,7 +148,7 @@ CONSTANT: apple-languages $[
     } >top-apple-podcasts ;
 
 : id>podcast ( id -- podcast )
-    "https://itunes.apple.com/lookup?id=%s" sprintf http-get-json nip ;
+    "https://itunes.apple.com/lookup?id=%s" sprintf get-json ;
 
 
 ! TODO
