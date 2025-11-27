@@ -312,6 +312,11 @@ void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
   cell scan = this->start;
   cell last_scan = scan;
   cell iteration_count = 0;
+  
+  // Print heap bounds once at start
+  std::cerr << "HEAP ITERATE: start=" << std::hex << this->start
+            << " end=" << this->end << " size=" << std::dec << (this->end - this->start) << std::endl;
+  
   while (scan != this->end) {
     // Bounds check: ensure we haven't gone past end
     if (scan > this->end) {
@@ -322,22 +327,43 @@ void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
       std::cerr << "After " << iteration_count << " iterations" << std::endl;
       FACTOR_ASSERT(scan <= this->end);
     }
+    
     Block* block = reinterpret_cast<Block*>(scan);
-    cell block_size = fixup.size(block);
-    // Check for invalid block size
-    if (block_size == 0) {
-      std::cerr << "HEAP ITERATION ERROR: block_size=0 at scan=" << std::hex << scan
-                << " (offset " << (scan - this->start) << ")" << std::dec << std::endl;
-      std::cerr << "Block header=" << std::hex << block->header << std::dec << std::endl;
-      std::cerr << "Block free_p()=" << block->free_p() << std::endl;
-      FACTOR_ASSERT(block_size > 0);
+    
+    // PRE-SIZE diagnostic: print info BEFORE calling size() since that's where crash happens
+    cell header = block->header;
+    bool is_free = (header & 1) == 1;
+    cell header_type = (header >> 2) & 0xF;  // type tag in bits 2-5
+    
+    // Print every 1000th block, or if this looks suspicious
+    if (iteration_count % 1000 == 0 || is_free) {
+      std::cerr << "ITER[" << iteration_count << "] offset=" << std::hex << (scan - this->start)
+                << " header=" << header << " free=" << is_free
+                << " type=" << std::dec << header_type << std::endl;
     }
+    
+    // Try-catch equivalent: check if free block has valid size BEFORE calling size()
+    if (is_free) {
+      cell free_size = header & ~static_cast<cell>(7);
+      if (free_size == 0) {
+        std::cerr << "FREE_BLOCK_CRASH: offset=" << std::hex << (scan - this->start)
+                  << " header=" << header << " computed_size=0" << std::dec << std::endl;
+        std::cerr << "Last valid: offset=" << std::hex << (last_scan - this->start)
+                  << " iteration=" << std::dec << iteration_count << std::endl;
+        // Don't call size() - it will crash. Just assert here with our info.
+        FACTOR_ASSERT(free_size > 0);
+      }
+    }
+    
+    cell block_size = fixup.size(block);
+    
     if (!block->free_p())
       iter(block, block_size);
     last_scan = scan;
     scan += block_size;
     iteration_count++;
   }
+  std::cerr << "HEAP ITERATE COMPLETE: " << iteration_count << " objects processed" << std::endl;
 }
 
 template <typename Block>
