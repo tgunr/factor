@@ -353,7 +353,8 @@ big-endian off
     ! frame-reg stack-reg MOV
 
     ! Save all non-volatile registers
-    -16 SP X19 X18 STPpre
+    ! X18 is platform-reserved on Apple ARM64 - DO NOT SAVE/RESTORE
+    -16 SP X19 STRpre
     -16 SP X21 X20 STPpre
     -16 SP X23 X22 STPpre
     -16 SP X25 X24 STPpre
@@ -416,7 +417,8 @@ big-endian off
     16 SP X25 X24 LDPpost
     16 SP X23 X22 LDPpost
     16 SP X21 X20 LDPpost
-    16 SP X19 X18 LDPpost
+    ! X18 is platform-reserved on Apple ARM64 - DO NOT SAVE/RESTORE
+    16 SP X19 LDRpost
 
     ! Callbacks which return structs, or use stdcall/fastcall/thiscall,
     ! need a parameter here.
@@ -458,7 +460,8 @@ big-endian off
     -16 SP X13 X12 STPpre
     -16 SP X15 X14 STPpre
     -16 SP X17 X16 STPpre
-    -16 SP X19 X18 STPpre
+    ! X18 is platform-reserved on Apple ARM64 - DO NOT SAVE/RESTORE
+    -16 SP X19 STRpre
     -16 SP X21 X20 STPpre
     -16 SP X23 X22 STPpre
     -16 SP X25 X24 STPpre
@@ -486,7 +489,8 @@ big-endian off
     16 SP X25 X24 LDPpost
     16 SP X23 X22 LDPpost
     16 SP X21 X20 LDPpost
-    16 SP X19 X18 LDPpost
+    ! X18 is platform-reserved on Apple ARM64 - DO NOT SAVE/RESTORE
+    16 SP X19 LDRpost
     16 SP X17 X16 LDPpost
     16 SP X15 X14 LDPpost
     16 SP X13 X12 LDPpost
