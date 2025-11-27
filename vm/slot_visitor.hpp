@@ -17,9 +17,23 @@ cell object::base_size(Fixup fixup) const {
     case STRING_TYPE:
       return string_size(string_capacity(static_cast<string*>(const_cast<object*>(this))));
     case TUPLE_TYPE: {
-      tuple_layout* layout = static_cast<tuple_layout*>(fixup.translate_data(
-          untag<object>(static_cast<tuple*>(const_cast<object*>(this))->layout)));
-      return tuple_size(layout);
+      cell tagged_layout = static_cast<tuple*>(const_cast<object*>(this))->layout;
+      object* untagged = untag<object>(tagged_layout);
+      tuple_layout* layout = static_cast<tuple_layout*>(fixup.translate_data(untagged));
+      cell capacity = tuple_capacity(layout);
+      cell size = tuple_size(layout);
+      // Debug logging for tuple size calculation
+      static int tuple_count = 0;
+      tuple_count++;
+      if (tuple_count <= 5 || size > 1000000 || capacity > 1000) {
+        std::cerr << "TUPLE_SIZE[" << tuple_count << "] tagged=" << std::hex << tagged_layout
+                  << " untagged=" << (cell)untagged
+                  << " translated=" << (cell)layout
+                  << " layout_header=" << layout->header
+                  << " capacity=" << std::dec << capacity
+                  << " size=" << size << std::endl;
+      }
+      return size;
     }
     case QUOTATION_TYPE:
       return sizeof(quotation);
