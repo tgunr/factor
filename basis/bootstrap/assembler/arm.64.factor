@@ -261,7 +261,7 @@ big-endian off
     ! NOT push to stack like x86-64 CALL. We must explicitly push to stack
     ! for GC to find frame markers when walking suspended context stacks.
     0 temp0 ADR                                  ! Get current PC into temp0
-    -16 SP temp0 FP STPpre                       ! Push FP and bogus return address
+    -16 SP temp0 stack-frame-reg STPpre          ! Push frame pointer and bogus return address
 
     ! Make the new context the current one
     ctx-reg MOVr
