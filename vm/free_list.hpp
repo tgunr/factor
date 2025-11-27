@@ -313,6 +313,15 @@ void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
   cell last_scan = scan;
   cell iteration_count = 0;
   
+  // Circular buffer to store last 10 objects' info for crash analysis
+  struct obj_info {
+    cell offset;
+    cell header;
+    cell size;
+  };
+  obj_info last_objs[10];
+  int obj_idx = 0;
+  
   // Print heap bounds once at start
   std::cerr << "HEAP ITERATE: start=" << std::hex << this->start
             << " end=" << this->end << " size=" << std::dec << (this->end - this->start) << std::endl;
@@ -335,8 +344,8 @@ void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
     bool is_free = (header & 1) == 1;
     cell header_type = (header >> 2) & 0xF;  // type tag in bits 2-5
     
-    // Print every 1000th block, or if this looks suspicious
-    if (iteration_count % 1000 == 0 || is_free) {
+    // Print every 1000th block
+    if (iteration_count % 1000 == 0) {
       std::cerr << "ITER[" << iteration_count << "] offset=" << std::hex << (scan - this->start)
                 << " header=" << header << " free=" << is_free
                 << " type=" << std::dec << header_type << std::endl;
@@ -348,14 +357,30 @@ void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
       if (free_size == 0) {
         std::cerr << "FREE_BLOCK_CRASH: offset=" << std::hex << (scan - this->start)
                   << " header=" << header << " computed_size=0" << std::dec << std::endl;
-        std::cerr << "Last valid: offset=" << std::hex << (last_scan - this->start)
-                  << " iteration=" << std::dec << iteration_count << std::endl;
+        std::cerr << "Last 10 objects before crash:" << std::endl;
+        for (int i = 0; i < 10; i++) {
+          int idx = (obj_idx + i) % 10;
+          std::cerr << "  obj[" << i << "] offset=" << std::hex << last_objs[idx].offset
+                    << " header=" << last_objs[idx].header
+                    << " size=" << std::dec << last_objs[idx].size
+                    << " (type=" << ((last_objs[idx].header >> 2) & 0xF) << ")" << std::endl;
+        }
         // Don't call size() - it will crash. Just assert here with our info.
         FACTOR_ASSERT(free_size > 0);
+      } else {
+        // Valid free block - print it
+        std::cerr << "FREE_BLOCK: offset=" << std::hex << (scan - this->start)
+                  << " header=" << header << " size=" << std::dec << free_size << std::endl;
       }
     }
     
     cell block_size = fixup.size(block);
+    
+    // Store in circular buffer
+    last_objs[obj_idx].offset = scan - this->start;
+    last_objs[obj_idx].header = header;
+    last_objs[obj_idx].size = block_size;
+    obj_idx = (obj_idx + 1) % 10;
     
     if (!block->free_p())
       iter(block, block_size);
