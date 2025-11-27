@@ -310,12 +310,33 @@ template <typename Block>
 template <typename Iterator, typename Fixup>
 void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
   cell scan = this->start;
+  cell last_scan = scan;
+  cell iteration_count = 0;
   while (scan != this->end) {
+    // Bounds check: ensure we haven't gone past end
+    if (scan > this->end) {
+      std::cerr << "HEAP ITERATION ERROR: scan=" << std::hex << scan
+                << " > end=" << this->end << std::dec << std::endl;
+      std::cerr << "Last valid scan was at " << std::hex << last_scan
+                << " (offset " << (last_scan - this->start) << ")" << std::dec << std::endl;
+      std::cerr << "After " << iteration_count << " iterations" << std::endl;
+      FACTOR_ASSERT(scan <= this->end);
+    }
     Block* block = reinterpret_cast<Block*>(scan);
     cell block_size = fixup.size(block);
+    // Check for invalid block size
+    if (block_size == 0) {
+      std::cerr << "HEAP ITERATION ERROR: block_size=0 at scan=" << std::hex << scan
+                << " (offset " << (scan - this->start) << ")" << std::dec << std::endl;
+      std::cerr << "Block header=" << std::hex << block->header << std::dec << std::endl;
+      std::cerr << "Block free_p()=" << block->free_p() << std::endl;
+      FACTOR_ASSERT(block_size > 0);
+    }
     if (!block->free_p())
       iter(block, block_size);
+    last_scan = scan;
     scan += block_size;
+    iteration_count++;
   }
 }
 
