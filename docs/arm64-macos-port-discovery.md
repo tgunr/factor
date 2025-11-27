@@ -1,6 +1,6 @@
 # Factor ARM64 macOS Port - Discovery Document
 
-**Last Updated**: 2025-11-25
+**Last Updated**: 2025-11-27
 
 ---
 
@@ -239,14 +239,58 @@ The x86_64 version has `RSP 8 ADD` which is NOT commented out.
 
 **Remaining Issue**: Free block corruption crash during garbage collection (separate from boot image loading).
 
-### 4.2 Next Phase: Free Block Corruption
+### 4.2 Current Issue: Heap Iteration Overflow (2025-11-27)
 
-The VM now crashes with `FREE_BLOCK_CRASH` at address `0x107697b10` with `header: 0x1` and `size=0`. This appears to be a garbage collection issue, not related to the boot image loading problem we just fixed.
+**Issue**: The VM crashes with `assertion "block_size > 0" failed` during `fixup_heaps()` when iterating the data heap.
 
-**Investigation Needed**:
-1. Analyze free block management in ARM64 vs x86_64
-2. Check if GC initialization differs between architectures
-3. Verify heap block size calculations during allocation/deallocation
+**Key Evidence from Analysis**:
+- Image header shows `data_size = 0x482570` (4,727,152 bytes)
+- Crash happens at address `0x105157770`
+- Crash offset from heap start = `0x500770` (5,244,784 bytes)
+- **The crash offset EXCEEDS data_size by 516KB!**
+
+**Root Cause Analysis**:
+
+The heap iteration in [`vm/free_list.hpp`](../vm/free_list.hpp:311) iterates from `start` to `end`:
+```cpp
+while (scan != this->end) {
+  Block* block = reinterpret_cast<Block*>(scan);
+  cell block_size = fixup.size(block);  // Get object size
+  if (!block->free_p())
+    iter(block, block_size);
+  scan += block_size;  // Advance by object size
+}
+```
+
+The free block created by `initial_free_list(data_size)` is at offset `0x482570`. But iteration reaches offset `0x500770`, which is **past the free block**. This means:
+
+1. Some object has an incorrectly calculated size
+2. This causes `scan += block_size` to jump past the free block
+3. Iteration then reads garbage memory
+4. Garbage memory has header `0x1` (free bit set, size = 0)
+5. `free_heap_block::size()` asserts `block_size > 0` and crashes
+
+**Likely Culprit**: TUPLE_TYPE size calculation. In [`vm/slot_visitor.hpp`](../vm/slot_visitor.hpp:19):
+```cpp
+case TUPLE_TYPE: {
+  tuple_layout* layout = static_cast<tuple_layout*>(fixup.translate_data(
+      untag<object>(static_cast<tuple*>(const_cast<object*>(this))->layout)));
+  return tuple_size(layout);
+}
+```
+
+If `translate_data()` returns a bad address for the tuple's layout, `layout->size` will be garbage, leading to a massive calculated object size.
+
+**Diagnostic Logging Added**:
+- [`vm/free_list.hpp`](../vm/free_list.hpp:311) now includes bounds checking and logging
+- Will report: last valid scan offset, iteration count, block header/size
+- Committed: `b9a088e38ad` - "Add diagnostic logging to heap iteration to debug ARM64 crash"
+
+**Next Steps**:
+1. Rebuild VM with diagnostic logging
+2. Run on ARM64 Mac with boot image
+3. Analyze output to identify which object has incorrect size
+4. Fix the size calculation for that object type
 
 ---
 
@@ -386,6 +430,8 @@ Factor uses Mach exceptions on macOS. Key signals:
 | 2025-11-26 | **MAJOR BREAKTHROUGH**: Fixed heap corruption during boot image loading by implementing ARM-specific relocation bases | AI Code Fix |
 | 2025-11-26 | **BOOT IMAGE LOADING NOW WORKS**: ARM64 VM successfully loads and processes 10,000+ objects during boot | AI Verification |
 | 2025-11-26 | Added diagnostic logging for free block corruption crashes (separate issue from boot loading) | AI Code Fix |
+| 2025-11-27 | Deep analysis of heap iteration crash - identified crash offset exceeds valid data by 516KB | AI Analysis |
+| 2025-11-27 | Added improved diagnostic logging with bounds checking to free_list.hpp iterate() | AI Code Fix |
 
 ---
 
