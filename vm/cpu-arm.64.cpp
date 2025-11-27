@@ -32,9 +32,10 @@ void factor_vm::dispatch_resumable_signal(cell* sp, cell* pc, cell handler) {
 }
 
 void factor_vm::dispatch_signal_handler(cell* sp, cell* pc, cell handler) {
-  // During early initialization, ctx may be null if a signal arrives
-  // before context is established. In that case, treat as non-resumable.
-  if (!ctx) {
+  // During early initialization, ctx or callstack_seg may be null if a signal
+  // arrives before context is fully established. In that case, treat as
+  // non-resumable.
+  if (!ctx || !ctx->callstack_seg) {
     signal_resumable = false;
     // Cannot safely dispatch - let the signal terminate the process
     return;
