@@ -22,30 +22,26 @@ cell object::base_size(Fixup fixup) const {
       tuple_layout* layout = static_cast<tuple_layout*>(fixup.translate_data(untagged));
       cell capacity = tuple_capacity(layout);
       cell size = tuple_size(layout);
-      // Debug logging - track last tuple for crash analysis
-      static cell last_tuple_addr = 0;
-      static cell last_tagged = 0;
-      static cell last_untagged = 0;
-      static cell last_translated = 0;
-      static cell last_layout_header = 0;
-      static cell last_capacity = 0;
-      static cell last_size = 0;
-      last_tuple_addr = reinterpret_cast<cell>(this);
-      last_tagged = tagged_layout;
-      last_untagged = reinterpret_cast<cell>(untagged);
-      last_translated = reinterpret_cast<cell>(layout);
-      last_layout_header = layout->header;
-      last_capacity = capacity;
-      last_size = size;
-      // Log when capacity seems wrong (layout might be garbage)
+      // Debug: log tuple layout translation for tuples at high offsets (near crash)
+      static int tuple_counter = 0;
+      tuple_counter++;
+      cell tuple_addr = reinterpret_cast<cell>(this);
+      // Log first 5 tuples AND all tuples with untagged layout > 0x100000000
+      // (large layout pointers suggest already-translated or wrong addresses)
+      cell untagged_val = reinterpret_cast<cell>(untagged);
+      if (tuple_counter <= 5 || untagged_val > 0x100000000ULL) {
+        std::cerr << "TUPLE_LAYOUT[" << tuple_counter << "] tuple_addr=" << std::hex << tuple_addr
+                  << " tagged=" << tagged_layout
+                  << " untagged=" << untagged_val
+                  << " translated=" << reinterpret_cast<cell>(layout)
+                  << " layout_header=" << layout->header
+                  << " capacity=" << std::dec << capacity
+                  << " size=" << size << std::endl;
+      }
+      // Also debug: log when capacity seems wrong
       if (capacity > 100 || size > 10000 || layout->header > 0xFFFF) {
-        std::cerr << "TUPLE_SUSPICIOUS addr=" << std::hex << last_tuple_addr
-                  << " tagged=" << last_tagged
-                  << " untagged=" << last_untagged
-                  << " translated=" << last_translated
-                  << " layout_header=" << last_layout_header
-                  << " capacity=" << std::dec << last_capacity
-                  << " size=" << last_size << std::endl;
+        std::cerr << "TUPLE_SUSPICIOUS tuple_addr=" << std::hex << tuple_addr
+                  << " layout is BAD" << std::dec << std::endl;
       }
       return size;
     }
