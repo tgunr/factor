@@ -365,6 +365,21 @@ void free_list_allocator<Block>::iterate(Iterator& iter, Fixup fixup) {
                     << " size=" << std::dec << last_objs[idx].size
                     << " (type=" << ((last_objs[idx].header >> 2) & 0xF) << ")" << std::endl;
         }
+        // Dump raw memory around crash location
+        std::cerr << "Raw memory at crash location (32 bytes before and after):" << std::endl;
+        cell* raw = reinterpret_cast<cell*>(scan - 64);
+        for (int i = 0; i < 16; i++) {
+          std::cerr << "  [" << std::hex << (scan - 64 + i*8 - this->start) << "]: " << raw[i] << std::dec << std::endl;
+        }
+        // Also examine the LAST tuple (obj[9]) more closely
+        if (last_objs[(obj_idx + 9) % 10].offset > 0) {
+          int last_idx = (obj_idx + 9) % 10;
+          cell* last_tuple = reinterpret_cast<cell*>(this->start + last_objs[last_idx].offset);
+          std::cerr << "Last tuple raw memory (at offset " << std::hex << last_objs[last_idx].offset << "):" << std::endl;
+          for (int i = 0; i < 12; i++) {
+            std::cerr << "  word[" << i << "]: " << std::hex << last_tuple[i] << std::dec << std::endl;
+          }
+        }
         // Don't call size() - it will crash. Just assert here with our info.
         FACTOR_ASSERT(free_size > 0);
       } else {

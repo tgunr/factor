@@ -22,16 +22,30 @@ cell object::base_size(Fixup fixup) const {
       tuple_layout* layout = static_cast<tuple_layout*>(fixup.translate_data(untagged));
       cell capacity = tuple_capacity(layout);
       cell size = tuple_size(layout);
-      // Debug logging for tuple size calculation
-      static int tuple_count = 0;
-      tuple_count++;
-      if (tuple_count <= 5 || size > 1000000 || capacity > 1000) {
-        std::cerr << "TUPLE_SIZE[" << tuple_count << "] tagged=" << std::hex << tagged_layout
-                  << " untagged=" << (cell)untagged
-                  << " translated=" << (cell)layout
-                  << " layout_header=" << layout->header
-                  << " capacity=" << std::dec << capacity
-                  << " size=" << size << std::endl;
+      // Debug logging - track last tuple for crash analysis
+      static cell last_tuple_addr = 0;
+      static cell last_tagged = 0;
+      static cell last_untagged = 0;
+      static cell last_translated = 0;
+      static cell last_layout_header = 0;
+      static cell last_capacity = 0;
+      static cell last_size = 0;
+      last_tuple_addr = reinterpret_cast<cell>(this);
+      last_tagged = tagged_layout;
+      last_untagged = reinterpret_cast<cell>(untagged);
+      last_translated = reinterpret_cast<cell>(layout);
+      last_layout_header = layout->header;
+      last_capacity = capacity;
+      last_size = size;
+      // Log when capacity seems wrong (layout might be garbage)
+      if (capacity > 100 || size > 10000 || layout->header > 0xFFFF) {
+        std::cerr << "TUPLE_SUSPICIOUS addr=" << std::hex << last_tuple_addr
+                  << " tagged=" << last_tagged
+                  << " untagged=" << last_untagged
+                  << " translated=" << last_translated
+                  << " layout_header=" << last_layout_header
+                  << " capacity=" << std::dec << last_capacity
+                  << " size=" << last_size << std::endl;
       }
       return size;
     }
