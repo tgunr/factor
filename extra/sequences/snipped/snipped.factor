@@ -3,12 +3,14 @@
 USING: accessors kernel math math.order sequences ;
 IN: sequences.snipped
 
-TUPLE: snipped < sequence-view
+TUPLE: snipped < wrapped-sequence
 { from integer read-only }
 { length integer read-only } ;
 
-: <snipped> ( from to seq -- snipped )
-    [ length min ] keep -rot over - snipped boa ;
+:: <snipped> ( from to seq -- snipped )
+    seq dup length :> n
+    from to [ 0 n clamp ] bi@
+    over - snipped boa ;
 
 : <removed> ( i seq -- snipped )
     [ dup 1 + ] dip <snipped> ;

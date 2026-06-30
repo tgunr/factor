@@ -8,9 +8,6 @@ inline static void flush_icache(cell start, cell len) {
 
 #define CALLSTACK_BOTTOM(ctx) (ctx->callstack_seg->end - sizeof(cell) * 6)
 
-// void c_to_factor(cell quot);
-// void lazy_jit_compile(cell quot);
-
 // 3 B of LDR=BLR
 static const unsigned int call_opcode = 0x14000003;
 // X9 BR of LDR=BR
@@ -21,19 +18,19 @@ inline static unsigned int call_site_opcode(cell return_address) {
 }
 
 inline static void check_call_site(cell return_address) {
-  unsigned char opcode = call_site_opcode(return_address);
+  unsigned int opcode = call_site_opcode(return_address);
   FACTOR_ASSERT(opcode == call_opcode || opcode == jmp_opcode);
   (void)opcode; // suppress warning when compiling without assertions
 }
 
 inline static void* get_call_target(cell return_address) {
   check_call_site(return_address);
-  return (void*)(*(cell*)(return_address - sizeof(cell)));
+  return reinterpret_cast<void*>(*reinterpret_cast<cell*>(return_address - sizeof(cell)));
 }
 
 inline static void set_call_target(cell return_address, cell target) {
   check_call_site(return_address);
-  *(cell*)(return_address - sizeof(cell)) = target;
+  *reinterpret_cast<cell*>(return_address - sizeof(cell)) = target;
 }
 
 inline static bool tail_call_site_p(cell return_address) {
@@ -72,5 +69,7 @@ static const unsigned JIT_FRAME_SIZE = 64;
 // Must match the calculation in word jit-signal-handler-prolog in
 // basis/bootstrap/assembler/arm.64.factor
 static const unsigned SIGNAL_HANDLER_STACK_FRAME_SIZE = 288;
+
+static const unsigned FRAME_RETURN_ADDRESS = 8;
 
 }

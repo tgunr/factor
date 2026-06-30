@@ -2,7 +2,7 @@
 ! Cavazos, Slava Pestov.
 ! See https://factorcode.org/license.txt for BSD license.
 USING: arrays combinators kernel kernel.private math ranges
-memoize.private sequences ;
+sequences ;
 IN: generalizations
 
 ! These words can be inline combinators when the word does no math
@@ -11,7 +11,8 @@ IN: generalizations
 ! be done at compile-time.
 <<
 
-ALIAS: n*quot (n*quot)
+: n*quot ( n quot -- quotquot )
+    <repetition> [ ] concat-as ;
 
 MACRO: call-n ( n -- quot )
     [ call ] <repetition> '[ _ cleave ] ;
@@ -50,50 +51,8 @@ MACRO: -nrot ( n -- quot )
 : nnip ( n -- )
     '[ _ ndrop ] dip ; inline
 
-DEFER: -nrotd
-MACRO: nrotd ( n d -- quot )
-    over 0 < [
-        [ neg ] dip '[ _ _ -nrotd ]
-    ] [
-        [ 1 - [ ] [ '[ _ dip swap ] ] swapd times ] dip '[ _ _ ndip ]
-    ] if ;
-
-MACRO: -nrotd ( n d -- quot )
-    over 0 < [
-        [ neg ] dip '[ _ _ nrotd ]
-    ] [
-        [ 1 - [ ] [ '[ swap _ dip ] ] swapd times ] dip '[ _ _ ndip ]
-    ] if ;
-
-MACRO: nrotated ( nrots depth dip -- quot )
-    [ '[ [ _ nrot ] ] replicate [ ] concat-as ] dip '[ _ _ ndip ] ;
-
-MACRO: -nrotated ( -nrots depth dip -- quot )
-    [ '[ [ _ -nrot ] ] replicate [ ] concat-as ] dip '[ _ _ ndip ] ;
-
-MACRO: nrotate-heightd ( n height dip -- quot )
-    [ '[ [ _ nrot ] ] replicate concat ] dip '[ _ _ ndip ] ;
-
-MACRO: -nrotate-heightd ( n height dip -- quot )
-    [
-        '[ [ _ -nrot ] ] replicate concat
-    ] dip '[ _ _ ndip ] ;
-
-: ndupd ( n dip -- ) '[ [ _ ndup ] _ ndip ] call ; inline
-
-MACRO: ntuckd ( ntuck ndip -- quot )
-    [ 1 + ] dip '[ [ dup _ -nrot ] _ ndip ] ;
-
 MACRO: nover ( n -- quot )
     dup 1 + '[ _ npick ] n*quot ;
-
-MACRO: noverd ( n depth dip -- quot' )
-    [ + ] [ 2drop ] [ [ + ] dip ] 3tri
-    '[ _ _ ndupd _ _ _ nrotated ] ;
-
-MACRO: mntuckd ( ndup depth ndip -- quot )
-    { [ nip ] [ 2drop ] [ drop + ] [ 2nip ] } 3cleave
-    '[ _ _ ndupd _ _ _ -nrotated ] ;
 
 : nkeep ( n -- )
     dup '[ [ _ ndup ] dip _ ndip ] call ; inline
