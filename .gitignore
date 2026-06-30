@@ -42,3 +42,28 @@ tags
 .vscode
 factor-arm
 launch.json
+node_modules
+ghskov/
+skovsrc/
+Skov/
+
+# Build artifacts
+*.dSYM/
+FactorOSX.app/
+factorOSX
+FactorARM
+.zig-cache/
+
+# Log files
+*.log
+
+# Debug and test files
+debug_callback.lldb
+test-minimal.factor
+todo.md
+
+# Local config
+agents.config.json
+factor.code-workspace
+package.json
+package-lock.json
